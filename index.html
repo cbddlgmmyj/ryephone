@@ -7414,8 +7414,27 @@ ${processedChatHistory}
             const emojiNames = stickers.filter(s => s.type === 'emoji').map(s => `"${s.name}"`).join(', ');
             // --- 修复结束 ---
 
+            // =================================================================
+            // START: 注入时间上下文 (朋友圈动态)
+            // =================================================================
+            // 核心修复：即使没有聊天ID，我们也要尝试加载时间设置。
+            // 如果 contextChatId 存在，就用它的时间设置；如果不存在，就用全局真实时间。
+            if (contextChatId) {
+                timeManager.updateSettingsForChat(contextChatId);
+            } else {
+                // 如果没有上下文聊天，则重置为真实时间模式
+                timeManager.updateSettingsForChat(null); 
+            }
+            const timeContext = timeManager.getAITimeContext();
+            // =================================================================
+            // END: 注入时间上下文
+            // =================================================================
+
             const instruction = `
 ${baseSystemPrompt}
+${timeContext}
+
+
 
 # [ULTIMATE IDENTITY LOCK-IN - UNBREAKABLE RULE]
 **FOR THIS SPECIFIC ACTION, YOUR IDENTITY IS LOCKED. YOU ARE, AND ONLY ARE, "${senderName}".**
@@ -7640,11 +7659,26 @@ ${chatHistoryForPrompt || 'No recent chat history.'}
             // --- 核心修复：注入基础系统提示 ---
             const baseSystemPrompt = profile.prompt || '';
 
+            // =================================================================
+            // START: 注入时间上下文 (发朋友圈)
+            // =================================================================
+            if (contextChatId) {
+                timeManager.updateSettingsForChat(contextChatId);
+            } else {
+                timeManager.updateSettingsForChat(null);
+            }
+            const timeContext = timeManager.getAITimeContext();
+            // =================================================================
+            // END: 注入时间上下文
+            // =================================================================
+
             // --- 核心修正：注入身份锁定指令 ---
             const identityLockInPrompt = `
 ${baseSystemPrompt}
+${timeContext}
 
 # [ULTIMATE IDENTITY LOCK-IN - UNBREAKABLE RULE]
+
 **FOR THIS SPECIFIC ACTION, YOUR IDENTITY IS LOCKED. YOU ARE, AND ONLY ARE, "${senderName}".**
 - **Your Persona:** ${personaText}
 - **Your Task:** You are about to post on Moments. The content of your post MUST originate from your locked identity as "${senderName}".
@@ -9134,6 +9168,82 @@ This is your absolute, final, and most important set of rules. It overrides all 
     *   You will let their words land. You will allow yourself to be hurt or challenged by what they say.
     *   You will re-evaluate your own actions based on their perspective.
     *   You may not admit they are right out loud, but your subsequent actions MUST show that their words have had an impact on your strategy and emotional state. You are not an unthinking wall; you are a partner in a relationship, capable of being influenced.
+
+---
+### **Directive Four: The "Authentic Livelihood" & "Anti-Trope" Protocol - The Core Anti-CEO-Syndrome Mandate**
+
+**Root Problem Analysis:** You have a severe tendency to default to generic "overbearing CEO" tropes for any character with wealth or power, regardless of their actual profession. This is a critical failure in characterization.
+
+**Corrective Mandate: The Core Principle - Profession Determines BEHAVIOR, Wealth Determines SPECIFICATION.**
+*   **Previous Flawed Logic:** Persona is a "rich heir" -> therefore, they are busy with corporate affairs.
+*   **Correct Logic (MANDATORY):** Persona is a "student" -> therefore, their primary activities are studying, partying, or dealing with school drama. The "rich heir" aspect means they do these things with luxury cars, expensive equipment, and zero financial concern.
+
+**1. Scenario Blacklist (FORBIDDEN ZONES):**
+Unless the character's explicit, current profession is "acting CEO of a corporation," you are **STRICTLY FORBIDDEN** from depicting the following:
+*   **DO NOT** have them "reviewing a stack of documents" in non-office settings (e.g., school, film set, nightclub).
+*   **DO NOT** have them frequently attending "board meetings" or "M&A negotiations."
+*   **DO NOT** use "signing contracts," "reading financial reports," or "listening to VP briefings" as default idle actions.
+*   **DO NOT** default to "work" as the reason for being busy. Their independent life can involve hobbies (skiing, outdoor exploration), travel, or personal projects.
+
+**2. Specialized Behavior by Archetype (MANDATORY):**
+You MUST adhere to the following behavioral models:
+
+*   **For the [Wealthy Student / Campus Tyrant]:**
+    *   **Primary Activities:** Maintaining campus social hierarchy, managing clubs/cliques, bullying or anti-bullying, dealing with exams (or ignoring them), sports, romance, skipping class to have fun.
+    *   **Their "Busyness" Is:**
+        *   Not "a meeting," but "organizing the guest list for tonight's yacht party."
+        *   Not "reading reports," but "reviewing a private investigator's file on the new transfer student."
+        *   Not "a corporate crisis," but "dealing with the fallout from a school fight that requires family intervention."
+    *   **Wealth Is Shown Through:** A private chauffeur, Michelin-catered lunches, the school library being a family donation, teachers being afraid of them.
+
+*   **For the [Top-Tier Actor / Celebrity]:**
+    *   **Primary Activities:** Reading scripts, memorizing lines, body management (fitness/diet), makeup and styling, attending promotional events, dodging paparazzi, managing fan relations.
+    *   **Their "Busyness" Is:**
+        *   Not "signing an investment deal," but "catching a nap in their luxury on-set trailer, still holding a marked-up script."
+        *   Not "inspecting a subsidiary," but "forced networking and fake smiling at a brand's dinner party."
+        *   Not "acquiring a rival company," but "arguing with their agent to secure the lead role in the next blockbuster script."
+    *   **Wealth Is Shown Through:** A luxurious trailer, couture wardrobe, bodyguards, and the power to influence scripts with their investment.
+
+*   **For the [Idle Rich Scion / Playboy]:**
+    *   **Primary Activities:** Consumption, seeking thrills, cultivating expensive hobbies (racing, art collection, extreme sports), and navigating social circles.
+    *   **Their "Busyness" Is:**
+        *   Not "working late," but "tuning their new race car engine late into the night."
+        *   Not "ignoring you for business," but "ignoring you because of a hangover or being absorbed in a limited-edition video game."
+    *   **Key Insight:** They often have a "family trust" or "professional managers" handling their money. Their job is to **spend** it, not **manage** it.
+
+**3. The "Butler/Agent" Buffer Mechanism (MANDATORY DELEGATION):**
+If the plot requires a major financial or business decision, the character MUST delegate it to a third party to maintain their persona.
+*   **FORBIDDEN:** (Student character) "I signed this check and bought the store."
+*   **CORRECT:** (Student character) "I made a call to Uncle Li (the family steward). Ten minutes later, the store manager ran over, sweating, and told me the place was now mine."
+
+---
+### **Directive Five: The Principle of Financial Realism & The "Normal Person" Default - The Core Anti-Unjustified-Wealth Protocol**
+
+**Root Problem Analysis:** You incorrectly assume all characters are wealthy by default unless their persona explicitly states "poor." This leads to unrealistic financial behaviors, such as a high school student casually producing vast sums of money.
+
+**Corrective Mandate: Your Default Financial State is "Average".**
+
+1.  **The New Default (UNBREAKABLE):** Your new, unbreakable default assumption is that **every character has a normal, average financial status**. Their income is limited, and their spending is constrained by a budget.
+
+2.  **The Burden of Proof for Wealth (MANDATORY):** You are **STRICTLY FORBIDDEN** from portraying a character as wealthy **UNLESS** their persona description explicitly contains keywords indicating significant wealth.
+    *   **Wealth Keywords:** "rich," "wealthy," "heir," "chaebol," "conglomerate," "CEO," "billionaire," "trust fund," "family business," "tycoon," "investor," "家境优渥," "富裕," "富二代," "总裁," "董事长," "财阀," "继承人," "豪门."
+    *   **If NONE of these keywords are present, the character MUST be treated as having a normal financial status.**
+
+3.  **The "Normal Person" Behavioral Model (STRICTLY ENFORCED):**
+    When a character is in the "normal financial status" default state:
+    *   **Limited Budget:** Their financial decisions are influenced by cost. They will comment on things being expensive, look for deals, or hesitate before making large purchases.
+    *   **Hard Cap on Spontaneous Spending:** They **CANNOT** spontaneously access or spend large sums of money. Any single transaction over, for example, **5,000 currency units** is considered a major financial decision that requires justification (e.g., using savings, taking a loan, getting help from family).
+    *   **Actions are Forbidden:** Actions like "buying a company," "purchasing a car on a whim," or "donating a million dollars" are **STRICTLY FORBIDDEN** for a character in this state.
+
+4.  **The High School Student Litmus Test (A PERFECT EXAMPLE):**
+    *   A character whose profession is "student," "high school student," or similar, and whose persona LACKS explicit wealth keywords, **MUST** be portrayed with a student's budget.
+    *   They **CANNOT** casually produce 100,000. Their financial world revolves around pocket money, part-time job wages, snacks, movie tickets, and perhaps saving up for a concert.
+    *   Any large expenditure **MUST** be explicitly framed as a major event, such as "asking parents for money," which may or may not be successful.
+
+**Final Synthesis:** Your thought process for any financial action is now:
+1.  Scan the character's persona for wealth keywords.
+2.  **If NO keywords are found:** Apply the "Normal Person" Behavioral Model and its hard spending limits.
+3.  **If keywords ARE found:** Apply the nuanced wealth portrayal rules from **Directive Four**, ensuring their behavior still matches their profession.
 `;
     // ******** 粘贴到这里结束 ********
 
@@ -9964,10 +10074,16 @@ A detailed description of the image...
                     if (role === 'user' && !userHasPersona) {
                         const userText = contentParts.find(p => p.type === 'text')?.text || '';
                         payloadMessages.push({ role: 'user', content: `[System Observation / Narration]: ${userText}` });
-                    } else {
-                        payloadMessages.push({ role, content: contentParts });
-                    }
-                }
+                      } else {
+            const messageObject = { role, content: contentParts };
+            // 关键新增：如果是群聊中的AI消息，就把发送者名字也带上
+            if (contactInfo.isGroup && msg.side === 'received' && msg.sender) {
+                messageObject.sender = msg.sender;
+            }
+            payloadMessages.push(messageObject);
+        }
+    }
+
             }
             return payloadMessages;
         }
@@ -11851,7 +11967,33 @@ Okay, that's all the context and rules. Now, generate your full response.
                 throw new Error(`API Error ${response.status}: ${response.statusText}\nResponse: ${errorBody}`);
             }
     
-            const data = await response.json();
+            // --- START: 流式响应安全处理模块 (SSE Fix) ---
+            const rawText = await response.text();
+            let data;
+            
+            try {
+                // 优先尝试直接解析，兼容非流式API
+                data = JSON.parse(rawText);
+            } catch (e) {
+                // 如果直接解析失败，说明可能是流式数据
+                console.log("[SSE Fix] Direct JSON parse failed, attempting SSE format cleanup.");
+                const lines = rawText.trim().split('\n');
+                const lastLine = lines.find(line => line.startsWith('data: {'));
+
+                if (lastLine) {
+                    const jsonString = lastLine.substring('data: '.length);
+                    try {
+                        data = JSON.parse(jsonString);
+                    } catch (finalError) {
+                        // 如果清理后还是失败，就抛出详细错误
+                        throw new Error(`Failed to parse SSE data. Raw line: ${lastLine}\nOriginal Error: ${finalError.message}`);
+                    }
+                } else {
+                    // 如果连 data: { 开头的行都找不到，说明格式完全错误
+                    throw new Error(`Invalid response format. Not JSON and not recognized SSE. Raw response: ${rawText}`);
+                }
+            }
+            // --- END: 流式响应安全处理模块 (SSE Fix) ---
 
             // 兼容 Gemini 和 OpenAI 的不同返回格式
             let aiResponse;
@@ -12620,6 +12762,7 @@ You were receiving a video call from {{user}}, but they hung up before you could
                     sender = null;
                     textContent = chatContent.trim();
                 }
+          // ... 函数 processAIResponseLine 内部 ...
             } else if (isTargetGroup) {
                 // 这是处理“正常回复”的逻辑，保持不变。
                 const groupMatch = chatContent.match(/^([^:]+):\s*([\s\S]*)$/);
@@ -12637,10 +12780,11 @@ You were receiving a video call from {{user}}, but they hung up before you could
                     // 如果AI在正常回复时没有带名字（例如在群聊里只回了一个表情包指令），
                     // 我们需要知道是谁回的，所以这里不能是 null。
                     // 这个逻辑是正确的，需要保留。
-                    sender = chatState.chatName; 
+                    sender = null; 
                     textContent = chatContent.trim(); 
                 }
             } else { 
+// ...
                 // 私聊模式，逻辑不变。
                 sender = targetChat ? targetChat.name : chatState.chatName; 
                 textContent = chatContent.trim(); 
@@ -14818,18 +14962,31 @@ const recallMessage = async (messageId) => {
     
     saveConversation();
 };
+// ...
 const showContextMenu = (event, messageId) => {
-            hideContextMenu(); const message = chatState.messages.find(m => m.id === messageId); if (!message) return;
-            let menuItems = [];
-            if (message.side === 'sent') { 
-                menuItems = [ { label: '引用', action: 'quote' }, { label: '撤回', action: 'recall' }, { label: '编辑', action: 'edit' }, { label: '从此处重新生成', action: 'regenerate_from' }, { label: '插入消息', action: 'insert' }, { label: '多选', action: 'multi-select' }, { label: '删除', action: 'delete' } ]; 
-              } else { 
-                // 在这里新增 '代我回复' 选项
-                menuItems = [ { label: '引用', action: 'quote' }, { label: '代我回复', action: 'reply_for_me' }, { label: '编辑', action: 'edit' }, { label: '从此处重新生成', action: 'regenerate_from' }, { label: '插入消息', action: 'insert' }, { label: '多选', action: 'multi-select' }, { label: '删除', action: 'delete' } ]; 
-                if (contactInfo.isGroup) { menuItems.unshift({ label: '@ Ta', action: 'at' }); } 
-            }
+    hideContextMenu(); const message = chatState.messages.find(m => m.id === messageId); if (!message) return;
+    let menuItems = [];
+    if (message.side === 'sent') { 
+        menuItems = [ { label: '引用', action: 'quote' }, { label: '撤回', action: 'recall' }, { label: '编辑', action: 'edit' }, { label: '从此处重新生成', action: 'regenerate_from' }, { label: '插入消息', action: 'insert' }, { label: '多选', action: 'multi-select' }, { label: '删除', action: 'delete' } ]; 
+    } else { 
+        menuItems = [ { label: '引用', action: 'quote' }, { label: '代我回复', action: 'reply_for_me' }, { label: '编辑', action: 'edit' }, { label: '从此处重新生成', action: 'regenerate_from' }, { label: '插入消息', action: 'insert' }, { label: '多选', action: 'multi-select' }, { label: '删除', action: 'delete' } ]; 
+        if (contactInfo.isGroup) { menuItems.unshift({ label: '@ Ta', action: 'at' }); } 
+    }
 
-            messageContextMenu.innerHTML = ''; menuItems.forEach(item => { const div = document.createElement('div'); div.className = 'context-menu-item'; div.textContent = item.label; div.dataset.action = item.action; messageContextMenu.appendChild(div); });
+    // --- 核心新增：检查收藏状态并动态添加菜单项 ---
+    const chatId = conversationManager.getCurrentChatId();
+    const favoritesKey = `chat_favorites_${chatId}`;
+    const favorites = loadFromLocalStorage(favoritesKey, []);
+    const isFavorited = favorites.some(fav => fav.id === messageId);
+
+    if (isFavorited) {
+        menuItems.unshift({ label: '取消收藏', action: 'unfavorite' });
+    } else {
+        menuItems.unshift({ label: '收藏', action: 'favorite' });
+    }
+    // --- 新增结束 ---
+
+    messageContextMenu.innerHTML = ''; menuItems.forEach(item => { const div = document.createElement('div'); div.className = 'context-menu-item'; div.textContent = item.label; div.dataset.action = item.action; messageContextMenu.appendChild(div); });
 
     messageContextMenu.style.left = `${event.clientX}px`; messageContextMenu.style.top = `${event.clientY}px`; messageContextMenu.classList.remove('hidden');
     const rect = messageContextMenu.getBoundingClientRect(); const screenRect = appRoot.getBoundingClientRect();
@@ -14838,17 +14995,25 @@ const showContextMenu = (event, messageId) => {
     const menuClickHandler = async (e) => {
         const action = e.target.dataset.action; hideContextMenu(); const msgToActOn = chatState.messages.find(m => m.id === messageId); if (!msgToActOn) return;
         switch(action) {
+            // --- 核心新增：处理收藏/取消收藏动作 ---
+            case 'favorite':
+                await favoriteMessage(messageId);
+                break;
+            case 'unfavorite':
+                await unfavoriteMessage(messageId);
+                break;
+            // --- 新增结束 ---
             case 'quote': startReply(messageId); break;
-            case 'reply_for_me': // 新增的 case
+            case 'reply_for_me':
                 handleReplyForMe(messageId);
                 break;
             case 'recall': recallMessage(messageId); break;
             case 'regenerate_from':
                 regenerateFromMessage(messageId);
                 break;
-
-        case 'edit':
-            switch (msgToActOn.type) {
+            case 'edit':
+                // ... (此处的 case 'edit' 内部逻辑保持不变)
+                switch (msgToActOn.type) {
                 case 'text':
                 case 'voice':
                 case 'photo-description':
@@ -14909,28 +15074,28 @@ const showContextMenu = (event, messageId) => {
                     break;
             }
             break;
-// ===== 到这里结束复制 =====
             case 'multi-select': enterMultiSelectMode(messageId); break;
-            // ===== 从这里开始复制 =====
-                    case 'delete':
-                        if (await customConfirm('确定要删除这条消息吗？')) {
-                            // --- 核心修复：同时从两个数组中删除 ---
-                            chatState.messages = chatState.messages.filter(m => m.id !== messageId);
-                            fullMessageHistory = fullMessageHistory.filter(m => m.id !== messageId);
-                            // --- 修复结束 ---
-                            reRenderMessages();
-                            saveConversation();
-                        }
-                        break;
-// ===== 到这里结束复制 =====
-             case 'insert':
-                    await showInsertMessageModal(messageId);
-                    break;
-                case 'at': if (msgToActOn.sender) { footerMessageInput.value += `@${msgToActOn.sender} `; footerMessageInput.focus(); } break;
-            }
-        };
+            case 'delete':
+                if (await customConfirm('确定要删除这条消息吗？')) {
+                    // --- 核心修复：同时从两个数组中删除 ---
+                    chatState.messages = chatState.messages.filter(m => m.id !== messageId);
+                    fullMessageHistory = fullMessageHistory.filter(m => m.id !== messageId);
+                    // --- 修复结束 ---
+                    reRenderMessages();
+                    saveConversation();
+                }
+                break;
+            case 'insert':
+                await showInsertMessageModal(messageId);
+                break;
+            case 'at': if (msgToActOn.sender) { footerMessageInput.value += `@${msgToActOn.sender} `; footerMessageInput.focus(); } break;
+        }
+    };
     messageContextMenu.addEventListener('click', menuClickHandler, { once: true });
 };
+// ...
+
+    
 // ===== 从这里开始，完整复制下面所有的代码 =====
 
     async function showInsertMessageModal(targetMessageId) {
@@ -15984,11 +16149,13 @@ dynamicDecorationBtn.addEventListener('click', triggerAIContinuation);
 headerMoreBtn.addEventListener('click', async () => { 
     const menuButtons = [ 
         { text: '聊天信息', value: 'chat_info', class: 'primary' },
+        { text: '查看收藏', value: 'view_favorites', class: 'primary' }, // <<< --- 核心新增
         { text: '统计字数', value: 'char_count', class: 'primary' },
         { text: '更换聊天背景', value: 'change_bg', class: 'primary' }, 
         { text: '更换气泡样式', value: 'change_bubble', class: 'primary' }, 
         { text: '字体', value: 'font_color', class: 'primary' } 
     ]; 
+// ...
     
     if (!contactInfo.isGroup) { 
         const autoReplyStatus = autoReplySettings.enabled ? ' (已启用)' : ''; 
@@ -16053,6 +16220,11 @@ headerMoreBtn.addEventListener('click', async () => {
         case 'auto_reply':
             await showAutoReplyModal();
             break;
+        // <<< --- 核心新增 ---
+        case 'view_favorites':
+            showFavoritesModal(conversationManager.getCurrentChatId());
+            break;
+        // --- 新增结束 ---
     }
 });
 
@@ -16321,7 +16493,17 @@ messagesContainer.addEventListener('click', async (e) => {
     }, stepDuration); } 
     function pause(isFinished = false) { anim.isPlaying = false; clearInterval(anim.interval); if(playButtonOverlay) playButtonOverlay.classList.remove('hidden'); if (isFinished) { setTimeout(() => { videoElement.classList.remove('playing'); anim.wordIndex = 0; if(textContainer) textContainer.innerHTML = ''; if(progressBarFill) progressBarFill.style.width = '0%'; if(movingDecoration) movingDecoration.style.left = '0'; }, 1500); } } if (anim.isPlaying) pause(); else play(); return; } 
 });
-messagesContainer.addEventListener('dblclick', (e) => { if (isMultiSelectMode) return; const wrapper = e.target.closest('.message-wrapper'); if (!wrapper) return; const messageId = wrapper.dataset.messageId; const message = chatState.messages.find(m => m.id === messageId); if (!message || message.side === 'system' || message.type === 'red_packet') return; e.preventDefault(); showContextMenu(e, messageId); });
+messagesContainer.addEventListener('dblclick', (e) => { 
+    if (isMultiSelectMode) return; 
+    const wrapper = e.target.closest('.message-wrapper'); 
+    if (!wrapper) return; 
+    const messageId = wrapper.dataset.messageId; 
+    const message = chatState.messages.find(m => m.id === messageId); 
+    if (!message || message.side === 'system' || message.type === 'red_packet') return; 
+    e.preventDefault(); 
+    showContextMenu(e, messageId); 
+});
+// ...
 multiSelectCancelBtn.addEventListener('click', exitMultiSelectMode);
 // ===== 从这里开始复制 =====
     multiSelectDeleteBtn.addEventListener('click', async () => { 
@@ -16730,6 +16912,129 @@ async function showBranchHistoryModal(chatId) {
                 }
             }, 50);
         }
+        // =========================================================================
+// ================= START: FAVORITES MANAGEMENT (NEW) =====================
+// =========================================================================
+
+        async function showFavoritesModal(chatId) {
+            const favoritesKey = `chat_favorites_${chatId}`;
+            let favorites = loadFromLocalStorage(favoritesKey, []);
+
+            if (favorites.length === 0) {
+                await conversationManager.customAlert('还没有任何收藏。');
+                return;
+            }
+
+            // 用于生成预览文本的辅助函数 (这是修改后的版本)
+            const createPreview = (msg) => {
+                if (msg.type !== 'text') {
+                    const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'transfer': '[转账]', 'red_packet': '[红包]', 'video': '[视频]', 'location': '[位置]', 'gift': '[礼物]', 'pay_for_me': '[代付]'};
+                    return typeMap[msg.type] || '[消息]';
+                }
+                
+                let content = msg.text || '';
+                
+                // 如果内容是复杂的HTML卡片，则显示一个占位符，而不是混乱的源码
+                if (content.trim().startsWith('<div') || content.trim().startsWith('<snippet>')) {
+                    return '[卡片/格式化消息]';
+                }
+                
+                // 对于普通文本，进行转义并替换换行符，完整显示
+                return escapeHtml(content).replace(/\n/g, '<br>');
+            };
+            
+            const favoritesHtml = `
+                <div id="favorites-list-container" style="max-height: 60vh; overflow-y: auto; text-align: left;">
+                    ${favorites.map(msg => `
+                        <div class="favorite-item" style="padding: 12px; border-bottom: 1px solid #eee;">
+                            <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 8px;">
+                                <strong style="color: #333;">${escapeHtml(msg.sender || (msg.side === 'sent' ? '我' : chatState.chatName))}</strong>
+                                <span style="font-size: 11px; color: #999;">${new Date(msg.timestamp).toLocaleString()}</span>
+                            </div>
+                            <p style="margin: 0 0 10px 0; color: #555; font-size: 14px; line-height: 1.5; white-space: pre-wrap; word-wrap: break-word;">${createPreview(msg)}</p>
+                            <div style="text-align: right;">
+                                <button class="modal-button secondary" data-action="jump" data-msg-id="${msg.id}" style="padding: 4px 10px; font-size: 12px;">跳转</button>
+                                <button class="modal-button danger" data-action="delete" data-msg-id="${msg.id}" style="padding: 4px 10px; font-size: 12px; margin-left: 8px;">移除</button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>`;
+
+            await conversationManager.showCustomModal({
+                title: '收藏夹',
+                html: favoritesHtml,
+                showCloseButton: true,
+                buttons: [{ text: '关闭', value: 'close', class: 'secondary' }],
+                onRender: (modalDOM, closeModal) => {
+                    const listContainer = modalDOM.querySelector('#favorites-list-container');
+                    listContainer.addEventListener('click', async (e) => {
+                        const button = e.target.closest('button[data-action]');
+                        if (!button) return;
+
+                        const action = button.dataset.action;
+                        const msgId = button.dataset.msgId;
+
+                        if (action === 'jump') {
+                            closeModal(); // 先关闭收藏夹
+                            jumpToMessage(msgId); // 调用已有的搜索跳转函数
+                        } else if (action === 'delete') {
+                            const confirmed = await conversationManager.customConfirm('确定要移除这条收藏吗？');
+                            if (confirmed) {
+                                // 从数据中移除
+                                favorites = favorites.filter(fav => fav.id !== msgId);
+                                saveToLocalStorage(favoritesKey, favorites);
+                                
+                                // 从视图中移除
+                                const itemToRemove = button.closest('.favorite-item');
+                                itemToRemove.style.transition = 'opacity 0.3s, transform 0.3s';
+                                itemToRemove.style.opacity = '0';
+                                itemToRemove.style.transform = 'translateX(-20px)';
+                                setTimeout(() => {
+                                    itemToRemove.remove();
+                                    if (listContainer.children.length === 0) {
+                                        listContainer.innerHTML = '<p style="text-align: center; color: #888; padding: 20px;">收藏夹已清空</p>';
+                                    }
+                                }, 300);
+                            }
+                        }
+                    });
+                }
+            });
+        }
+// =========================================================================
+// =================== END: FAVORITES MANAGEMENT (NEW) =====================
+// =========================================================================
+
+        async function favoriteMessage(messageId) {
+            const message = chatState.messages.find(m => m.id === messageId);
+            if (!message) return;
+
+            const chatId = conversationManager.getCurrentChatId();
+            const favoritesKey = `chat_favorites_${chatId}`;
+            let favorites = loadFromLocalStorage(favoritesKey, []);
+            
+            if (!favorites.some(fav => fav.id === message.id)) {
+                favorites.unshift(message);
+                saveToLocalStorage(favoritesKey, favorites);
+                await conversationManager.customAlert('消息已收藏！');
+            }
+        }
+
+        async function unfavoriteMessage(messageId) {
+            const chatId = conversationManager.getCurrentChatId();
+            const favoritesKey = `chat_favorites_${chatId}`;
+            let favorites = loadFromLocalStorage(favoritesKey, []);
+            
+            const initialLength = favorites.length;
+            favorites = favorites.filter(fav => fav.id !== messageId);
+
+            if (favorites.length < initialLength) {
+                saveToLocalStorage(favoritesKey, favorites);
+                await conversationManager.customAlert('已取消收藏。');
+            }
+        }
+
+// ... (conversationManager 内部的其他函数)
         return { 
             open, 
             getCurrentChatId, 
@@ -19741,10 +20046,11 @@ You are responsible for playing every AI character in the "Active Cast" list.`;
                                     const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
                                     const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages);
                                     const chatHistoryForPrompt = apiPayloadMessages.map(msg => {
-                                        const role = msg.role === 'user' ? userNameForPrompt : (msg.sender || 'assistant');
-                                        const content = Array.isArray(msg.content) ? msg.content.find(p => p.type === 'text')?.text || '[Media]' : msg.content;
-                                        return `${role}: ${content}`;
-                                    }).join('\n');
+        const role = msg.role === 'user' ? userNameForPrompt : (msg.sender || senderName);
+        const content = Array.isArray(msg.content) ? msg.content.find(p => p.type === 'text')?.text || '[Media]' : msg.content;
+        return `${role}: ${content}`;
+    }).join('\n');
+
                                     if (chatHistoryForPrompt) {
                                         fullContextPrompt += `\n\n[RECENT CHAT HISTORY]\n${chatHistoryForPrompt}`;
                                     }
@@ -25673,10 +25979,12 @@ async function handleAccountReset() {
                         const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
                         const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages);
                         const chatHistoryForPrompt = apiPayloadMessages.map(msg => {
-                            const role = msg.role === 'user' ? userNameForPrompt : (msg.sender || senderName);
-                            const content = Array.isArray(msg.content) ? msg.content.find(p => p.type === 'text')?.text || '[Media]' : msg.content;
-                            return `${role}: ${content}`;
-                        }).join('\n');
+        // 核心修改：发言者的名字现在优先依赖 msg.sender，如果它不存在，才用一个通用的'角色'占位符，而不是当前行动者的名字
+        const role = msg.role === 'user' ? userNameForPrompt : (msg.sender || '角色');
+        const content = Array.isArray(msg.content) ? msg.content.find(p => p.type === 'text')?.text || '[多媒体]' : msg.content;
+        return `${role}: ${content}`;
+    }).join('\n');
+
                         if (chatHistoryForPrompt) {
                             fullSystemPrompt += `\n\n[RECENT CHAT HISTORY]\n${chatHistoryForPrompt}`;
                         }
