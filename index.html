@@ -6640,24 +6640,32 @@ input:checked + .slider:before {
         } 
         else if (isNpc) {
             // 规则2: 如果是NPC，上下文【优先】来自与关联角色的共同群聊
-            const associatedChar = npcSettings.associations[senderName];
-            if (associatedChar) {
+            // 【核心修复：兼容多关联角色数组，只要有一个关联角色同在群里，就视为有效上下文】
+            let associations = npcSettings.associations[senderName];
+            // 归一化为数组
+            if (associations && !Array.isArray(associations)) {
+                associations = [associations];
+            }
+
+            if (associations && associations.length > 0) {
                 const commonGroup = chatList.find(chat => {
                     if (chat.type !== '群聊') return false;
                     const members = loadFromLocalStorage(`chat_members_${chat.id}`, []);
-                    return members.includes(senderName) && members.includes(associatedChar);
+                    // 逻辑：NPC本人必须在群里 AND (关联角色列表中至少有一个人也在群里)
+                    return members.includes(senderName) && associations.some(assocName => members.includes(assocName));
                 });
+
                 if (commonGroup) {
                     contextChatId = commonGroup.id;
                     contextChatInfo = loadFromLocalStorage(`chat_info_${commonGroup.id}`, {});
-                    console.log(`[诊断日志] NPC "${senderName}" 已从其与关联角色 "${associatedChar}" 的共同群聊 "${commonGroup.name}" 加载上下文。`);
+                    console.log(`[诊断日志] NPC "${senderName}" 已从共同群聊 "${commonGroup.name}" 加载上下文 (前情提要+历史)。`);
                 } else {
-                     console.log(`[诊断日志] NPC "${senderName}" 未找到共同群聊，将不加载任何聊天上下文。`);
+                     console.log(`[诊断日志] NPC "${senderName}" 未找到与关联角色的共同群聊，将不加载任何聊天上下文。`);
                 }
             } else {
                 console.log(`[诊断日志] NPC "${senderName}" 未关联任何角色，将不加载任何聊天上下文。`);
             }
-        } 
+        }
         else if (isPrivateCharacter) {
             // 规则3: 如果是普通单聊角色，上下文【永远】来自他们的私聊窗口
             const privateChat = chatList.find(c => c.type === '私聊' && c.name === senderName);
@@ -6974,7 +6982,15 @@ When you need to initiate a PROACTIVE action (like starting a new conversation, 
                 finalSystemPrompt += '\n\n[Associated NPCs for this Context]\n';
                 if (npcSettings.personas) {
                     associatedNpcNames.forEach(name => {
-                        const persona = npcSettings.personas[name] || 'No specific persona defined.';
+                        // 【核心修复：兼容NPC新旧数据格式】
+                        const rawData = npcSettings.personas[name];
+                        let persona = 'No specific persona defined.';
+                        if (typeof rawData === 'object' && rawData !== null) {
+                            persona = rawData.description || '';
+                        } else if (typeof rawData === 'string') {
+                            persona = rawData;
+                        }
+                        
                         finalSystemPrompt += `- **${name}**: ${persona}\n`;
                     });
                 }
@@ -7660,8 +7676,12 @@ if (isGroupPersona) {
                 // 如果是NPC，从NPC设置里读
                 let associations = (npcSettings.associations && npcSettings.associations[senderName]) || [];
                 associatedCharNames = Array.isArray(associations) ? associations : [associations];
+            } else if (contextChatId) {
+                // 【核心修复】如果是群聊主角/群演（contextChatId 存在），或者是单聊角色，都从其上下文ID读取
+                // 因为在函数开头我们已经智能确定了 contextChatId (无论是群ID还是私聊ID)
+                associatedCharNames = loadFromLocalStorage(`chat_associated_npcs_${contextChatId}`, []);
             } else {
-                // 如果是单聊角色，从聊天设置里读
+                // 保底逻辑：如果上述都没命中，尝试找私聊窗口
                 const privateChat = chatList.find(c => c.type === '私聊' && c.name === senderName);
                 if (privateChat) {
                     associatedCharNames = loadFromLocalStorage(`chat_associated_npcs_${privateChat.id}`, []);
@@ -7688,7 +7708,13 @@ if (isGroupPersona) {
                     }
                     if (!personaText) {
                         if (npcSettings.personas && npcSettings.personas[charName]) {
-                            personaText = npcSettings.personas[charName];
+                            // 【核心修复：兼容新旧数据格式】
+                            const rawData = npcSettings.personas[charName];
+                            if (typeof rawData === 'object' && rawData !== null) {
+                                personaText = rawData.description || '';
+                            } else {
+                                personaText = rawData;
+                            }
                         }
                     }
 
@@ -11908,41 +11934,54 @@ finalSystemPrompt += timeManager.getAITimeContext();
                     // 【【【【【【【【【【 终极修复：彻底重构群聊人设部分的逻辑 】】】】】】】】】】
 
                     const remarkNames = (chatInfo.remark || '').split(/[,，\s]+/).filter(Boolean);
+                    
+                    // 1. 【核心逻辑前置】先获取成员列表，判断用户是否在群里
+                    const formalMembers = loadFromLocalStorage(`chat_members_${chatState.chatId}`, []);
+                    const isUserInGroup = formalMembers.includes('{{user}}');
+
                     let groupPersonasPrompt = `\n\n[Group Chat Context & Your Roles]\n`;
-                    groupPersonasPrompt += `This is a group chat named "${chatState.chatName}". The user you are interacting with is named "${userNameForPrompt}".\n`;
+                    groupPersonasPrompt += `This is a group chat named "${chatState.chatName}".\n`;
 
-                    // 1. 【最终修复 第1步】获取所有潜在的AI实体
-                const formalMembers = loadFromLocalStorage(`chat_members_${chatState.chatId}`, []);
-                const groupPersonas = chatInfo.groupPersonas || [];
-                const protagonistNames = groupPersonas.map(p => p.name);
-                const allAiEntitiesInChat = [...new Set([...formalMembers, ...protagonistNames])];
+                    // 2. 【核心分支】根据用户是否在群，注入完全不同的世界观指令
+                    if (isUserInGroup) {
+                        // --- 场景 A: 用户在群里 (正常互动) ---
+                        groupPersonasPrompt += `The user you are interacting with is named "${userNameForPrompt}". You treat them as a present, equal member of the group.\n`;
+                    } else {
+                        // --- 场景 B: 用户不在群里 (旁观模式/私密群聊) ---
+                        groupPersonasPrompt += `
+*** [CRITICAL SCENARIO: PRIVATE GROUP - USER ABSENT] ***
+The user ("${userNameForPrompt}") is **NOT** a member of this group.
+This is a **PRIVATE** conversation strictly between the AI characters.
 
-                // 【最终修复 第2步】加载“软移出”名单
-                const softRemovedMembers = chatInfo.softRemovedMembers || [];
+**[ABSOLUTE PROHIBITION - THE FOURTH WALL]**
+1.  **INVISIBLE AUDIENCE:** The user is merely an invisible camera/ghost observing this chat.
+2.  **NO INTERACTION:** You are **STRICTLY FORBIDDEN** from addressing, mentioning, greeting, or reacting to the user.
+3.  **IGNORE INPUT:** Even if the user sends a message (as a director's cue), your characters must NOT acknowledge hearing it. They simply act out the scene requested.
+4.  **INTERNAL FOCUS:** Your characters must only talk to each other.
+`;
+                    }
 
-                // 【最终修复 第3步】从所有实体中，过滤掉用户和被软移出的成员，得到最终的“演员名单”
-                const activeAiMembers = allAiEntitiesInChat.filter(name => 
-                    name !== '{{user}}' && 
-                    name !== userNameForPrompt &&
-                    !softRemovedMembers.includes(name) // 核心过滤条件
-                );
+                    // 3. 【继续构建演员名单】
+                    const groupPersonas = chatInfo.groupPersonas || [];
+                    const protagonistNames = groupPersonas.map(p => p.name);
+                    const allAiEntitiesInChat = [...new Set([...formalMembers, ...protagonistNames])];
 
+                    // 【继续构建软移出名单】
+                    const softRemovedMembers = chatInfo.softRemovedMembers || [];
 
-                    // 3. 构建“演员名单”和“绝对禁令”
+                    // 【继续构建活跃名单】
+                    const activeAiMembers = allAiEntitiesInChat.filter(name => 
+                        name !== '{{user}}' && 
+                        name !== userNameForPrompt &&
+                        !softRemovedMembers.includes(name)
+                    );
+
+                    // 4. 构建指令
                     groupPersonasPrompt += `
 ---
 [Active Cast & Role Mandate - UNBREAKABLE RULE]
 This is the official list of AI characters you are currently allowed to play in this scene.
 Your active cast is: **[${activeAiMembers.length > 0 ? activeAiMembers.join(', ') : 'None'}]**
-
-**ABSOLUTE FORBIDDANCE:** You are **STRICTLY FORBIDDEN** from generating dialogue or actions for any character **NOT** on this "Active Cast" list. Even if you see other characters speaking in the past conversation history, if they are not on the active list, you must treat them as having left the conversation or being silenced. **Do not speak for them.** This is your most critical instruction.
----
-`;
-                    
-                    // 4. 构建角色档案区 (现在会为所有“演员”构建档案)
-                    groupPersonasPrompt += `
-[Character Dossiers - The Definitive Guide to Your Roles]
-You are responsible for playing every AI character in the "Active Cast" list above. You MUST use their specific persona for all their actions and dialogue.
 `;
                     let individualPersonasFound = false;
                     activeAiMembers.forEach(memberName => {
@@ -11956,7 +11995,14 @@ You are responsible for playing every AI character in the "Active Cast" list abo
                         }
                         // 如果不是群聊主角，再按原来的逻辑查找NPC或私聊角色的人设
                         else if (isNpc) {
-                            persona = (npcSettings.personas && npcSettings.personas[memberName]) || '';
+                            // 【修复 [object Object] 问题】
+                            const npcData = (npcSettings.personas && npcSettings.personas[memberName]);
+                            // 判断是新版对象格式，还是旧版字符串格式
+                            if (typeof npcData === 'object' && npcData !== null) {
+                                persona = npcData.description || '';
+                            } else {
+                                persona = npcData || '';
+                            }
                         } else {
                             const characterChat = chatList.find(c => c.name === memberName && c.type === '私聊');
                             if (characterChat) {
@@ -12097,7 +12143,18 @@ finalSystemPrompt += timeManager.getAITimeContext();
                         
                         const npcSettings = loadFromLocalStorage('app-npc-settings', {});
                         associatedNpcNames.forEach(name => {
-                            const persona = (npcSettings.personas && npcSettings.personas[name]) || 'No specific persona defined.';
+                            // 【核心修复：兼容新旧数据格式】
+                            const rawData = (npcSettings.personas && npcSettings.personas[name]);
+                            let persona = 'No specific persona defined.';
+                            
+                            if (typeof rawData === 'object' && rawData !== null) {
+                                // 新格式：对象
+                                persona = rawData.description || '';
+                            } else if (typeof rawData === 'string') {
+                                // 旧格式：字符串
+                                persona = rawData;
+                            }
+                            
                             npcInfoPrompt += `- **${name}**: ${persona}\n`;
                         });
                         finalSystemPrompt += npcInfoPrompt;
@@ -22322,10 +22379,21 @@ fileInput.style.display = 'none';
         async function showNpcEditorModal(npcName) {
             const isEditing = npcList.includes(npcName);
             
-            // --- 核心修改：从对象中提取人设和头像 ---
-            const personaData = (npcSettings.personas && npcSettings.personas[npcName]) || {};
-            const persona = personaData.description || '';
-            const avatar = personaData.avatar || '';
+            // --- 核心修改：兼容旧版（字符串）和新版（对象）数据的提取 ---
+            const rawData = (npcSettings.personas && npcSettings.personas[npcName]);
+            let persona = '';
+            let avatar = '';
+
+            if (typeof rawData === 'string') {
+                // 如果是旧数据（纯字符串），直接作为人设，头像为空
+                persona = rawData;
+                avatar = '';
+            } else if (typeof rawData === 'object' && rawData !== null) {
+                // 如果是新数据（对象），分别读取
+                persona = rawData.description || '';
+                avatar = rawData.avatar || '';
+            }
+            // --- 修改结束 ---
             // --- 修改结束 ---
 
             const association = (npcSettings.associations && npcSettings.associations[npcName]) || [];
@@ -22637,8 +22705,15 @@ async function handleBatchDelete() {
                 return;
             }
 
+            // 【核心修改：在HTML中添加“启用动态”的开关】
             const modalHtml = `<div style="text-align: left; display: flex; flex-direction: column; gap: 15px;">
     <p>为选中的 ${selectedNpcs.length} 个NPC设置动态：</p>
+    
+    <label class="inline-label" style="justify-content: space-between; border-bottom: 1px solid #eee; padding-bottom: 10px;">
+        <span style="font-weight: 500;">启用动态 (Active)</span>
+        <input type="checkbox" id="bulk-npc-active" checked style="width: 20px; height: 20px;">
+    </label>
+
     <div class="form-group" style="margin:0;">
         <label for="bulk-npc-dynamics-probability">概率 (%)</label>
         <input type="number" id="bulk-npc-dynamics-probability" class="modal-input" min="0" max="100" value="40">
@@ -22670,19 +22745,29 @@ async function handleBatchDelete() {
                         if (npcSettings.dynamics) {
                             delete npcSettings.dynamics[npcName];
                         }
+                        // 同时关闭激活状态
+                        if (npcSettings.activeStates) {
+                            delete npcSettings.activeStates[npcName];
+                        }
                     });
                 } else if (result.value === 'apply') {
-                    // 确保 dynamics 对象存在
-                    if (!npcSettings.dynamics) {
-                        npcSettings.dynamics = {};
-                    }
+                    // 确保对象存在
+                    if (!npcSettings.dynamics) npcSettings.dynamics = {};
+                    if (!npcSettings.activeStates) npcSettings.activeStates = {};
+
+                    // 【核心修改：获取启用状态】
+                    const isActive = modalBox.querySelector('#bulk-npc-active').checked;
 
                     const newSettings = {
                         probability: parseInt(modalBox.querySelector('#bulk-npc-dynamics-probability').value, 10),
                         interval: parseInt(modalBox.querySelector('#bulk-npc-dynamics-interval').value, 10)
                     };
+
                     selectedNpcs.forEach(npcName => {
+                        // 1. 设置具体参数
                         npcSettings.dynamics[npcName] = { ...newSettings };
+                        // 2. 设置激活状态 (对应列表上的开关)
+                        npcSettings.activeStates[npcName] = isActive;
                     });
                 }
                 saveNpcData();
