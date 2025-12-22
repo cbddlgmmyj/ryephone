@@ -15790,29 +15790,49 @@ You were receiving a video call from {{user}}, but they hung up before you could
                 window.app.playNotificationSound();
             }
 
-            // 【【【 终极方案：强制高优先级 + 交互按钮 】】】
-            if ("serviceWorker" in navigator && Notification.permission === "granted") {
-                navigator.serviceWorker.ready.then(function(registration) {
-                    try {
-                        registration.showNotification(displayName, {
+            // 【【【 终极方案：安卓/iOS 分流处理 】】】
+            // 检测是否是苹果设备
+            const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !window.MSStream;
+
+            if ("Notification" in window && Notification.permission === "granted") {
+                try {
+                    if (isIOS) {
+                        // ==========================================
+                        // 🍎 iOS 专用通道：使用最原始的 new Notification
+                        // iOS 16.4+ 在 PWA 模式下，这个反而最稳定
+                        // ==========================================
+                        const iosNotify = new Notification(displayName, {
                             body: previewText,
-                            icon: avatarUrl,
-                            badge: 'https://i.imgur.com/sE3924q.png',
-                            tag: chatId,
-                            renotify: true,
-                            requireInteraction: true,
-                            silent: false,
-                            // 【核心新增】添加一个操作按钮，骗过系统让它以为这是重要交互
-                            actions: [
-                                { action: 'open', title: '查看消息' }
-                            ],
-                            // 【核心新增】时间戳设为当前，强制顶到最上面
-                            timestamp: Date.now()
+                            tag: chatId, // 覆盖旧消息
+                            silent: true // iOS靠系统声音，网页声音设为静音防止重音
                         });
-                    } catch (e) {
-                        console.error("SW通知失败:", e);
+                        
+                        iosNotify.onclick = function() {
+                            window.focus();
+                            open(chatId);
+                            this.close();
+                        };
+                    } else {
+                        // ==========================================
+                        // 🤖 安卓 专用通道：必须用 ServiceWorker
+                        // ==========================================
+                        if ("serviceWorker" in navigator) {
+                            navigator.serviceWorker.ready.then(function(registration) {
+                                registration.showNotification(displayName, {
+                                    body: previewText,
+                                    icon: avatarUrl,
+                                    badge: 'https://i.imgur.com/sE3924q.png',
+                                    tag: chatId,
+                                    renotify: true, // 强制重新提醒
+                                    requireInteraction: true, // 强制不消失
+                                    silent: false // 安卓强制响铃
+                                });
+                            });
+                        }
                     }
-                });
+                } catch (e) {
+                    console.error("通知发送失败:", e);
+                }
             }
             // 【【【 插入结束 】】】
 
