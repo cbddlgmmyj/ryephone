@@ -6405,8 +6405,35 @@ body.preview-fullscreen-active #page-conversation .chat-content {
     
 
 <script>
-(function() {
+    // 【【【 核心新增：在 script 标签的第一行插入这段代码 】】】
+    // 注册一个虚拟的服务线程，专门用来骗过安卓的通知拦截
+    if ('serviceWorker' in navigator) {
+        const swCode = `
+            self.addEventListener('install', (event) => self.skipWaiting());
+            self.addEventListener('activate', (event) => event.waitUntil(clients.claim()));
+            self.addEventListener('notificationclick', (event) => {
+                event.notification.close();
+                event.waitUntil(
+                    clients.matchAll({type: 'window'}).then(clientList => {
+                        for (const client of clientList) {
+                            if (client.url && 'focus' in client) return client.focus();
+                        }
+                        if (clients.openWindow) return clients.openWindow('/');
+                    })
+                );
+            });
+        `;
+        const blob = new Blob([swCode], {type: 'application/javascript'});
+        const url = URL.createObjectURL(blob);
+        navigator.serviceWorker.register(url)
+            .then(reg => console.log('通知服务线程注册成功'))
+            .catch(err => console.log('通知服务线程失败', err));
+    }
+    // 【【【 插入结束 】】】
+
+    (function() {
     'use strict';
+    // ... 原有的代码 ...
     
     // =================================================================================
     // Global Helper Functions
@@ -15761,36 +15788,24 @@ You were receiving a video call from {{user}}, but they hung up before you could
                 window.app.playNotificationSound();
             }
 
-            // 【【【 核心新增：系统级通知 (增强调试版) 】】】
-            if ("Notification" in window && Notification.permission === "granted") {
-                try {
-                    // 1. 尝试注册 ServiceWorker (这是安卓最标准的做法，虽然我们没写sw.js，但尝试一下无妨)
-                    // 如果是在 HTTPS 下，这步能提高优先级
-                    
-                    const sysNotification = new Notification(displayName, {
-                        body: previewText,
-                        icon: avatarUrl,
-                        tag: chatId,
-                        silent: false, // 强制设为 false，要求系统响铃/震动
-                        requireInteraction: true, // 要求用户必须点击才会消失（提高优先级）
-                        vibrate: [200, 100, 200] // 申请震动权限
-                    });
-
-                    sysNotification.onclick = function() {
-                        window.focus();
-                        open(chatId);
-                        this.close();
-                    };
-                    
-                    // 如果发送成功，控制台打印一下
-                    console.log("系统通知已发送");
-
-                } catch (e) {
-                    // 如果失败，直接弹个 alert 告诉你原因
-                    // 调试完成后可以把这行 alert 删掉
-                    // alert("系统通知发送报错: " + e.message);
-                    console.error("系统通知失败:", e);
-                }
+            // 【【【 终极方案：通过 ServiceWorker 强制发送安卓通知 】】】
+            if ("serviceWorker" in navigator && Notification.permission === "granted") {
+                navigator.serviceWorker.ready.then(function(registration) {
+                    try {
+                        // 安卓 Chrome 必须用 showNotification 才能弹横幅
+                        registration.showNotification(displayName, {
+                            body: previewText,
+                            icon: avatarUrl,
+                            tag: chatId, // 防止刷屏
+                            vibrate: [200, 100, 200], // 震动
+                            requireInteraction: true, // 强制停留
+                            data: { url: window.location.href } // 点击跳转数据
+                        });
+                        console.log("已尝试通过SW发送通知");
+                    } catch (e) {
+                        console.error("SW通知发送失败:", e);
+                    }
+                });
             }
             // 【【【 插入结束 】】】
 
