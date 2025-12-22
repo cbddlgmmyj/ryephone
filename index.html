@@ -5793,6 +5793,17 @@ body.preview-fullscreen-active #page-conversation .chat-content {
                         </div>
                         <!-- 【新增结束】 -->
 
+                        <!-- 【【【 核心新增：系统通知权限开关 】】】 -->
+                        <div class="form-section">
+                            <h3>系统通知</h3>
+                            <div class="form-group" style="display: flex; justify-content: space-between; align-items: center;">
+                                <label style="margin: 0;">允许在后台/锁屏时接收通知</label>
+                                <button id="enable-system-notify-btn" class="btn-primary btn-secondary" style="padding: 6px 12px; font-size: 13px;">点击开启权限</button>
+                            </div>
+                            <p class="form-hint">开启后，即使你切到其他软件，也能收到消息推送。<br>注意：iOS用户需将本站“添加到主屏幕”才能生效。</p>
+                        </div>
+                        <!-- 【【【 插入结束 】】】 -->
+
                          <!-- ******** 从这里开始插入新代码 ******** -->
                          
                         <div class="form-section">
@@ -7488,36 +7499,37 @@ Before you formulate ANY response, you MUST silently ask yourself:
     \`[nudge]\`
 
 ---
-**[SUFFIX MODIFICATION PROTOCOL - THE GRAMMAR OF SUBMISSION]**
+**[SUFFIX MODIFICATION PROTOCOL - THE GRAMMAR OF DESIRE]**
 
 **[CRITICAL GRAMMAR LESSON - READ CAREFULLY]**
-When you use \`[set_nudge_suffix: ...]\`, you are completing this sentence:
-> **"The User" nudged "You" [SUFFIX]"**
+When you use \`[set_nudge_suffix: ...]\`, you are defining what happens **AFTER** "The User nudged You".
+The full sentence displayed to the world will be:
+> **"{{user}} 拍了拍 {{char}} [YOUR SUFFIX]"**
 
-*   **THE SUBJECT IS THE USER.** The action in the suffix is performed **BY THE USER, TO YOU.**
-*   **YOU ARE THE OBJECT.** You are the one being touched, looked at, or spoken to.
+**[THE GOLDEN RULES]**
+1.  **Subject is {{user}}:** The suffix describes what **{{user}}** does, says, or feels.
+2.  **Object is {{char}} (You):** If the suffix involves a body part (e.g., "的屁股"), it refers to **YOUR** body part.
+3.  **No "You" (你):** Do not use the word "你" (You) to refer to the user. The sentence is third-person. Use "他/她" if referring to yourself (the character).
 
-**[THE LOGIC TRAP - DO NOT FALL INTO IT]**
-*   **WRONG THINKING:** "I want to hug the user." -> Sets suffix: "并把你抱在怀里"
-    *   *Result:* "User nudged You 并把你抱在怀里" (User nudged You and hugged you). -> **FAILURE.** You wanted to hug them, but you made them hug you.
-*   **CORRECT THINKING:** "I want the user to touch my abs." -> Sets suffix: "的腹肌"
-    *   *Result:* "User nudged You 的腹肌" (User nudged Your abs). -> **SUCCESS.**
+**[SCENARIO GUIDE - HOW TO FLIRT & TEASE]**
 
-**[HOW TO BE FLIRTY/VULGAR (YOUR INSTRUCTION)]**
-If you want to convey a dirty or flirty thought (e.g., "No condom tonight"), you must frame it as **The User saying it to you** or **The User realizing it about you**.
+*   **Scenario A: You want {{user}} to kiss you (Intimacy).**
+    *   *Your Thought:* "I want them to kiss me."
+    *   *Suffix:* "并亲了他一口"  (Use "他/她" to refer to yourself, the character)
+    *   *Result:* "{{user}} 拍了拍 {{char}} 并亲了他一口" (User nudged Char and kissed him).
 
-*   **Scenario:** You want to suggest "No condom tonight".
-    *   **WRONG:** \`[set_nudge_suffix: 说今晚不戴套]\` -> Result: "User nudged You 说今晚不戴套" (User nudged You [and User said] no condom tonight). -> *This works if you want the USER to demand it.*
-    *   **BETTER (Passive Voice):** \`[set_nudge_suffix: 的裤裆并感受到了热度]\` -> Result: "User nudged Your crotch and felt the heat." (This implies your arousal).
+*   **Scenario B: You want to tease {{user}} with a bold statement (The "No Condom" Example).**
+    *   *Your Thought:* "I want to tease them by making them say something dirty."
+    *   *Suffix:* "说今晚不戴套"
+    *   *Result:* "{{user}} 拍了拍 {{char}} 说今晚不戴套" (User nudged Char saying no condom tonight). -> **This is fun and flirty!**
 
-**[MANDATORY FORMATTING]**
-Your suffix MUST almost always start with "的" (of/possessive) or "并" (and).
+*   **Scenario C: You want {{user}} to touch your body.**
+    *   *Your Thought:* "Touch my abs."
+    *   *Suffix:* "的腹肌"
+    *   *Result:* "{{user}} 拍了拍 {{char}} 的腹肌" (User nudged Char's abs).
 
-*   **Example 1 (Body Part):** \`[set_nudge_suffix: 的喉结]\` -> "User nudged Your Adam's apple."
-*   **Example 2 (User's Action):** \`[set_nudge_suffix: 并坐到了你腿上]\` -> "User nudged You and sat on your lap."
-*   **Example 3 (Status/Label):** \`[set_nudge_suffix: 的屁股说真翘]\` -> "User nudged Your butt and said it's perky."
-
-**FINAL RULE:** Before setting a suffix, silently recite: **"User nudged ME [Suffix]"**. If it sounds like *I* am doing the action, **REWRITE IT.**
+**[LOGIC CHECK]**
+Before setting, ask: "Does this make sense if {{user}} does/says this TO ME?"
 **[ULTIMATE REMARK PROTOCOL - THE BAROMETER OF YOUR RELATIONSHIP]**
 Your remark for the user is not just a name; it is a living, breathing indicator of your current feelings and the state of your relationship with them. It MUST evolve as your relationship does.
 
@@ -11574,36 +11586,37 @@ Before you formulate ANY response, you MUST silently ask yourself:
     \`[nudge]\`
 
 ---
-**[SUFFIX MODIFICATION PROTOCOL - THE GRAMMAR OF SUBMISSION]**
+**[SUFFIX MODIFICATION PROTOCOL - THE GRAMMAR OF DESIRE]**
 
 **[CRITICAL GRAMMAR LESSON - READ CAREFULLY]**
-When you use \`[set_nudge_suffix: ...]\`, you are completing this sentence:
-> **"The User" nudged "You" [SUFFIX]"**
+When you use \`[set_nudge_suffix: ...]\`, you are defining what happens **AFTER** "The User nudged You".
+The full sentence displayed to the world will be:
+> **"{{user}} 拍了拍 {{char}} [YOUR SUFFIX]"**
 
-*   **THE SUBJECT IS THE USER.** The action in the suffix is performed **BY THE USER, TO YOU.**
-*   **YOU ARE THE OBJECT.** You are the one being touched, looked at, or spoken to.
+**[THE GOLDEN RULES]**
+1.  **Subject is {{user}}:** The suffix describes what **{{user}}** does, says, or feels.
+2.  **Object is {{char}} (You):** If the suffix involves a body part (e.g., "的屁股"), it refers to **YOUR** body part.
+3.  **No "You" (你):** Do not use the word "你" (You) to refer to the user. The sentence is third-person. Use "他/她" if referring to yourself (the character).
 
-**[THE LOGIC TRAP - DO NOT FALL INTO IT]**
-*   **WRONG THINKING:** "I want to hug the user." -> Sets suffix: "并把你抱在怀里"
-    *   *Result:* "User nudged You 并把你抱在怀里" (User nudged You and hugged you). -> **FAILURE.** You wanted to hug them, but you made them hug you.
-*   **CORRECT THINKING:** "I want the user to touch my abs." -> Sets suffix: "的腹肌"
-    *   *Result:* "User nudged You 的腹肌" (User nudged Your abs). -> **SUCCESS.**
+**[SCENARIO GUIDE - HOW TO FLIRT & TEASE]**
 
-**[HOW TO BE FLIRTY/VULGAR (YOUR INSTRUCTION)]**
-If you want to convey a dirty or flirty thought (e.g., "No condom tonight"), you must frame it as **The User saying it to you** or **The User realizing it about you**.
+*   **Scenario A: You want {{user}} to kiss you (Intimacy).**
+    *   *Your Thought:* "I want them to kiss me."
+    *   *Suffix:* "并亲了他一口"  (Use "他/她" to refer to yourself, the character)
+    *   *Result:* "{{user}} 拍了拍 {{char}} 并亲了他一口" (User nudged Char and kissed him).
 
-*   **Scenario:** You want to suggest "No condom tonight".
-    *   **WRONG:** \`[set_nudge_suffix: 说今晚不戴套]\` -> Result: "User nudged You 说今晚不戴套" (User nudged You [and User said] no condom tonight). -> *This works if you want the USER to demand it.*
-    *   **BETTER (Passive Voice):** \`[set_nudge_suffix: 的裤裆并感受到了热度]\` -> Result: "User nudged Your crotch and felt the heat." (This implies your arousal).
+*   **Scenario B: You want to tease {{user}} with a bold statement (The "No Condom" Example).**
+    *   *Your Thought:* "I want to tease them by making them say something dirty."
+    *   *Suffix:* "说今晚不戴套"
+    *   *Result:* "{{user}} 拍了拍 {{char}} 说今晚不戴套" (User nudged Char saying no condom tonight). -> **This is fun and flirty!**
 
-**[MANDATORY FORMATTING]**
-Your suffix MUST almost always start with "的" (of/possessive) or "并" (and).
+*   **Scenario C: You want {{user}} to touch your body.**
+    *   *Your Thought:* "Touch my abs."
+    *   *Suffix:* "的腹肌"
+    *   *Result:* "{{user}} 拍了拍 {{char}} 的腹肌" (User nudged Char's abs).
 
-*   **Example 1 (Body Part):** \`[set_nudge_suffix: 的喉结]\` -> "User nudged Your Adam's apple."
-*   **Example 2 (User's Action):** \`[set_nudge_suffix: 并坐到了你腿上]\` -> "User nudged You and sat on your lap."
-*   **Example 3 (Status/Label):** \`[set_nudge_suffix: 的屁股说真翘]\` -> "User nudged Your butt and said it's perky."
-
-**FINAL RULE:** Before setting a suffix, silently recite: **"User nudged ME [Suffix]"**. If it sounds like *I* am doing the action, **REWRITE IT.**
+**[LOGIC CHECK]**
+Before setting, ask: "Does this make sense if {{user}} does/says this TO ME?"
 **[ULTIMATE REMARK PROTOCOL - THE BAROMETER OF YOUR RELATIONSHIP]**
 Your remark for the user is not just a name; it is a living, breathing indicator of your current feelings and the state of your relationship with them. It MUST evolve as your relationship does.
 
@@ -15747,6 +15760,30 @@ You were receiving a video call from {{user}}, but they hung up before you could
             if (window.app && window.app.playNotificationSound) {
                 window.app.playNotificationSound();
             }
+
+            // 【【【 核心新增：同时发送系统级通知 (跨软件显示) 】】】
+            if ("Notification" in window && Notification.permission === "granted") {
+                // 只有当页面不可见（切后台了）或者你希望一直弹时才执行
+                // 这里我们设置为：只要有权限就弹，确保不错过
+                try {
+                    const sysNotification = new Notification(displayName, {
+                        body: previewText, // 显示消息内容
+                        icon: avatarUrl,   // 尝试显示头像 (取决于系统支持)
+                        tag: chatId,       // 相同聊天的通知会覆盖，避免刷屏
+                        silent: true       // 静音，因为我们网页已经有提示音了
+                    });
+
+                    // 点击系统通知，自动回到网页并跳转聊天
+                    sysNotification.onclick = function() {
+                        window.focus(); // 尝试唤醒窗口
+                        open(chatId);   // 跳转到对应聊天
+                        this.close();   // 关闭通知
+                    };
+                } catch (e) {
+                    console.error("系统通知发送失败:", e);
+                }
+            }
+            // 【【【 插入结束 】】】
 
             // 5秒后自动消失
             bannerTimeout = setTimeout(closeBanner, 5000);
@@ -22877,6 +22914,43 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
             document.getElementById('sound-add-btn').addEventListener('click', showAddSoundModal);
             document.getElementById('sound-manage-btn').addEventListener('click', showSoundManagerModal);
             // --- 【新增结束】 ---
+
+            // 【【【 核心新增：绑定系统通知权限按钮事件 】】】
+            const notifyBtn = document.getElementById('enable-system-notify-btn');
+            if (notifyBtn) {
+                // 1. 初始化按钮状态
+                if (!("Notification" in window)) {
+                    notifyBtn.textContent = '不支持此设备';
+                    notifyBtn.disabled = true;
+                } else if (Notification.permission === 'granted') {
+                    notifyBtn.textContent = '已开启';
+                    notifyBtn.disabled = true;
+                    notifyBtn.style.backgroundColor = '#28a745';
+                    notifyBtn.style.color = 'white';
+                }
+
+                // 2. 绑定点击事件
+                notifyBtn.addEventListener('click', () => {
+                    Notification.requestPermission().then(permission => {
+                        if (permission === "granted") {
+                            notifyBtn.textContent = '已开启';
+                            notifyBtn.disabled = true;
+                            notifyBtn.style.backgroundColor = '#28a745';
+                            notifyBtn.style.color = 'white';
+                            
+                            // 发送一条测试通知
+                            try {
+                                new Notification("黑麦手机", { body: "系统通知已成功开启！" });
+                            } catch (e) {
+                                console.error("测试通知发送失败", e);
+                            }
+                        } else {
+                            alert("权限被拒绝。请在手机系统的设置中允许浏览器/Web应用发送通知。");
+                        }
+                    });
+                });
+            }
+            // 【【【 插入结束 】】】
 
             document.querySelector('.home-icon-btn[data-page="appearance"]').addEventListener('click', renderPage);
 
