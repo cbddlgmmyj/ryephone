@@ -6405,8 +6405,7 @@ body.preview-fullscreen-active #page-conversation .chat-content {
     
 
 <script>
-    // 【【【 核心新增：在 script 标签的第一行插入这段代码 】】】
-    // 注册一个虚拟的服务线程，专门用来骗过安卓的通知拦截
+    // 【【【 核心新增：Service Worker 注册 (增强版) 】】】
     if ('serviceWorker' in navigator) {
         const swCode = `
             self.addEventListener('install', (event) => self.skipWaiting());
@@ -6414,10 +6413,12 @@ body.preview-fullscreen-active #page-conversation .chat-content {
             self.addEventListener('notificationclick', (event) => {
                 event.notification.close();
                 event.waitUntil(
-                    clients.matchAll({type: 'window'}).then(clientList => {
+                    clients.matchAll({type: 'window', includeUncontrolled: true}).then(clientList => {
+                        // 如果有窗口打开，就聚焦
                         for (const client of clientList) {
                             if (client.url && 'focus' in client) return client.focus();
                         }
+                        // 如果没有，尝试打开新窗口 (部分浏览器限制)
                         if (clients.openWindow) return clients.openWindow('/');
                     })
                 );
@@ -6425,9 +6426,10 @@ body.preview-fullscreen-active #page-conversation .chat-content {
         `;
         const blob = new Blob([swCode], {type: 'application/javascript'});
         const url = URL.createObjectURL(blob);
-        navigator.serviceWorker.register(url)
-            .then(reg => console.log('通知服务线程注册成功'))
-            .catch(err => console.log('通知服务线程失败', err));
+        // 核心修改：添加 scope: '/' 确保接管整个页面
+        navigator.serviceWorker.register(url, { scope: '/' })
+            .then(reg => console.log('SW注册成功'))
+            .catch(err => console.log('SW注册失败', err));
     }
     // 【【【 插入结束 】】】
 
@@ -15788,22 +15790,22 @@ You were receiving a video call from {{user}}, but they hung up before you could
                 window.app.playNotificationSound();
             }
 
-            // 【【【 终极方案：通过 ServiceWorker 强制发送安卓通知 】】】
+            // 【【【 终极方案：强制高优先级通知 】】】
             if ("serviceWorker" in navigator && Notification.permission === "granted") {
                 navigator.serviceWorker.ready.then(function(registration) {
                     try {
-                        // 安卓 Chrome 必须用 showNotification 才能弹横幅
                         registration.showNotification(displayName, {
                             body: previewText,
                             icon: avatarUrl,
-                            tag: chatId, // 防止刷屏
-                            vibrate: [200, 100, 200], // 震动
-                            requireInteraction: true, // 强制停留
-                            data: { url: window.location.href } // 点击跳转数据
+                            badge: 'https://i.imgur.com/sE3924q.png', // 加个小图标显得正规
+                            tag: chatId, 
+                            renotify: true, // 【关键】强制再次提醒，不仅是更新文字
+                            requireInteraction: true, // 强制停留不消失
+                            vibrate: [200, 100, 200, 100, 200], // 疯狂震动
+                            silent: false // 确保不静音
                         });
-                        console.log("已尝试通过SW发送通知");
                     } catch (e) {
-                        console.error("SW通知发送失败:", e);
+                        console.error("SW通知失败:", e);
                     }
                 });
             }
