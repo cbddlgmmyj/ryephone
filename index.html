@@ -15790,19 +15790,24 @@ You were receiving a video call from {{user}}, but they hung up before you could
                 window.app.playNotificationSound();
             }
 
-            // 【【【 终极方案：强制高优先级通知 】】】
+            // 【【【 终极方案：强制高优先级 + 交互按钮 】】】
             if ("serviceWorker" in navigator && Notification.permission === "granted") {
                 navigator.serviceWorker.ready.then(function(registration) {
                     try {
                         registration.showNotification(displayName, {
                             body: previewText,
                             icon: avatarUrl,
-                            badge: 'https://i.imgur.com/sE3924q.png', // 加个小图标显得正规
-                            tag: chatId, 
-                            renotify: true, // 【关键】强制再次提醒，不仅是更新文字
-                            requireInteraction: true, // 强制停留不消失
-                            vibrate: [200, 100, 200, 100, 200], // 疯狂震动
-                            silent: false // 确保不静音
+                            badge: 'https://i.imgur.com/sE3924q.png',
+                            tag: chatId,
+                            renotify: true,
+                            requireInteraction: true,
+                            silent: false,
+                            // 【核心新增】添加一个操作按钮，骗过系统让它以为这是重要交互
+                            actions: [
+                                { action: 'open', title: '查看消息' }
+                            ],
+                            // 【核心新增】时间戳设为当前，强制顶到最上面
+                            timestamp: Date.now()
                         });
                     } catch (e) {
                         console.error("SW通知失败:", e);
