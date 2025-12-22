@@ -15761,26 +15761,35 @@ You were receiving a video call from {{user}}, but they hung up before you could
                 window.app.playNotificationSound();
             }
 
-            // 【【【 核心新增：同时发送系统级通知 (跨软件显示) 】】】
+            // 【【【 核心新增：系统级通知 (增强调试版) 】】】
             if ("Notification" in window && Notification.permission === "granted") {
-                // 只有当页面不可见（切后台了）或者你希望一直弹时才执行
-                // 这里我们设置为：只要有权限就弹，确保不错过
                 try {
+                    // 1. 尝试注册 ServiceWorker (这是安卓最标准的做法，虽然我们没写sw.js，但尝试一下无妨)
+                    // 如果是在 HTTPS 下，这步能提高优先级
+                    
                     const sysNotification = new Notification(displayName, {
-                        body: previewText, // 显示消息内容
-                        icon: avatarUrl,   // 尝试显示头像 (取决于系统支持)
-                        tag: chatId,       // 相同聊天的通知会覆盖，避免刷屏
-                        silent: true       // 静音，因为我们网页已经有提示音了
+                        body: previewText,
+                        icon: avatarUrl,
+                        tag: chatId,
+                        silent: false, // 强制设为 false，要求系统响铃/震动
+                        requireInteraction: true, // 要求用户必须点击才会消失（提高优先级）
+                        vibrate: [200, 100, 200] // 申请震动权限
                     });
 
-                    // 点击系统通知，自动回到网页并跳转聊天
                     sysNotification.onclick = function() {
-                        window.focus(); // 尝试唤醒窗口
-                        open(chatId);   // 跳转到对应聊天
-                        this.close();   // 关闭通知
+                        window.focus();
+                        open(chatId);
+                        this.close();
                     };
+                    
+                    // 如果发送成功，控制台打印一下
+                    console.log("系统通知已发送");
+
                 } catch (e) {
-                    console.error("系统通知发送失败:", e);
+                    // 如果失败，直接弹个 alert 告诉你原因
+                    // 调试完成后可以把这行 alert 删掉
+                    // alert("系统通知发送报错: " + e.message);
+                    console.error("系统通知失败:", e);
                 }
             }
             // 【【【 插入结束 】】】
