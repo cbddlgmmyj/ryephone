@@ -109,21 +109,22 @@
         -webkit-transform: translate3d(0, 0, 0);
     }
     .status-bar { 
-        position: absolute; top: 8px; left: 0; width: 100%; height: 28px;
+        position: absolute; top: 8px; left: 0; width: 100%; height: 30px; /* 高度增加到30px，与刘海一致 */
         z-index: 101; pointer-events: none; padding: 0 25px; box-sizing: border-box;
         display: flex; justify-content: space-between; align-items: center;
     }
     .notch { 
-        position: relative; 
-        width: 120px; /* 放大两倍 */
-        height: 30px; /* 放大两倍 */
+        position: absolute; /* 核心修改：改为绝对定位，脱离 flex 限制 */
+        left: 50%; /* 移动到屏幕水平中心 */
+        transform: translateX(-50%); /* 向左偏移自身一半的宽度，达成完美居中 */
+        width: 120px; 
+        height: 30px; 
         background: #000; 
-        border-radius: 18px; /* 增加圆角以保持药丸形状 */
+        border-radius: 18px; 
         z-index: 1000; 
         display: flex;
         align-items: center;
         justify-content: center;
-        /* 增加一点点阴影，让它在深绿背景上更有立体感 */
         box-shadow: 0 4px 12px rgba(0,0,0,0.3); 
     }
     /* 彻底隐藏摄像头和麦克风样式 */
@@ -178,7 +179,8 @@
         padding: 0 !important; 
         padding-top: 60px !important; /* 避开刘海 */
         overflow: hidden !important; 
-        background: var(--bg-gradient) !important; /* 应用深绿渐变背景 */
+        background-image: var(--bg-gradient); /* 核心修改：移除 !important 并改为 background-image */
+        background-color: #0b2b1a; /* 添加一个底色作为保底 */
     }
 
     .home-icon-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100px; height: 100px; cursor: pointer; text-decoration: none; }
@@ -5967,7 +5969,7 @@ body.preview-fullscreen-active #page-conversation .chat-content {
 
 /* --- Bento 栅格系统：强制固定高度，防止忽长忽短 --- */
 #page-home { 
-    background: var(--bg-gradient) !important; 
+    background-image: var(--bg-gradient); /* 核心修改：移除 !important 并改为 background-image */
     padding-top: 60px !important;
 }
 
@@ -6072,11 +6074,11 @@ body.preview-fullscreen-active #page-conversation .chat-content {
 }
 .music-main-row { 
     position: relative; 
-    height: 115px; 
+    height: 105px; 
     perspective: 1000px; 
     display: flex;
     align-items: center;
-    padding-top: 12px; /* 新增：通过内边距将唱片和文字整体向下推 */
+    padding-top: 5px; 
 }
 .music-flip-container { 
     position: relative; 
@@ -6107,13 +6109,13 @@ body.preview-fullscreen-active #page-conversation .chat-content {
     top: 0; 
 }
 .music-record-wrapper { 
-    width: 110px; /* 缩小唱片外框 */
-    height: 110px; 
+    width: 100px; 
+    height: 100px; 
     position: relative; 
     flex-shrink: 0; 
     background-color: transparent; 
     overflow: hidden;
-    transition: transform 0.5s ease; /* 切换时的平滑过渡 */
+    transition: transform 0.5s ease; 
 }
 
 /* 定义旋转动画 */
@@ -6158,7 +6160,7 @@ body.preview-fullscreen-active #page-conversation .chat-content {
     display: flex; 
     justify-content: space-between; 
     align-items: center; 
-    margin-top: 8px; /* 稍微减小间距，确保整体在 180px 的卡片内不拥挤 */
+    margin-top: 2px; 
 }
 .music-btn { background: none; border: none; cursor: pointer; padding: 5px; display: flex; align-items: center; justify-content: center; transition: transform 0.1s; }
 .music-btn svg { width: 22px; height: 22px; fill: var(--text-main); transition: fill 0.2s; } /* 稍微缩小图标并统一为白色 */
@@ -7962,11 +7964,11 @@ body.preview-fullscreen-active #page-conversation .chat-content {
             <div id="listen-together-app-container" style="width: 100%; height: 100%; display: flex; flex-direction: column; padding: 20px; box-sizing: border-box;">
                 
                 <!-- 顶部：头像与时长 -->
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-shrink: 0; width: 100%;">
-                    <!-- 我的头像 -->
-                    <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
-                        <div id="lt-my-avatar" style="width: 55px; height: 55px; border-radius: 50%; background-size: cover; background-position: center;"></div>
-                    </div>
+               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; flex-shrink: 0; width: 100%;">
+    <!-- 我的头像 -->
+    <div style="display: flex; flex-direction: column; align-items: center; flex: 1;">
+        <div id="lt-my-avatar" style="width: 45px; height: 45px; border-radius: 50%; background-size: cover; background-position: center;"></div>
+    </div>
 
                     <!-- 中间：时长 -->
                     <div style="flex: 1.5; text-align: center; color: rgba(255,255,255,0.5);">
@@ -7993,17 +7995,17 @@ body.preview-fullscreen-active #page-conversation .chat-content {
 
                 <!-- 中间：唱片与歌词翻转区 -->
                 <div style="flex-grow: 1; position: relative; perspective: 1000px; display: flex; flex-direction: column; justify-content: center; align-items: center; min-height: 0;">
-                    <div id="lt-flip-container" style="position: relative; width: 100%; height: 260px; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
-                        <!-- 正面：唱片 -->
-                        <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center;">
-                            <div class="music-record-wrapper" id="lt-record" style="width: 220px; height: 220px; flex-shrink: 0;">
+                    <div id="lt-flip-container" style="position: relative; width: 100%; height: 160px; transition: transform 0.6s; transform-style: preserve-3d; cursor: pointer;">
+    <!-- 正面：唱片 -->
+    <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; display: flex; justify-content: center; align-items: center;">
+        <div class="music-record-wrapper" id="lt-record" style="width: 130px; height: 130px; flex-shrink: 0;">
                                 <div class="music-record-cover" id="lt-cover"></div>
                                 <div class="music-record-overlay"></div>
                             </div>
                         </div>
                         <!-- 背面：歌词 -->
                         <div style="position: absolute; width: 100%; height: 100%; backface-visibility: hidden; transform: rotateY(180deg); display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <div class="music-lyrics-box" id="lt-lyrics-box" style="font-size: 16px; color: white; opacity: 0.8; line-height: 2.5; text-align: center; width: 100%; height: 100%;">
+                            <div class="music-lyrics-box" id="lt-lyrics-box" style="font-size: 15px; color: white; opacity: 0.8; line-height: 2.0; text-align: center; width: 100%; height: 100%;">
                                 <p>暂无歌词</p>
                             </div>
                         </div>
@@ -8800,12 +8802,12 @@ if ('serviceWorker' in navigator) {
                 targetMembers = [...new Set([...members, ...protagonists, ...ensemble])].filter(m => m !== '{{user}}');
                 
                 selectorHtml = `
-                    <div id="lt-member-selector" style="display: flex; gap: 18px; overflow-x: auto; padding: 15px 20px; margin: -10px -20px 15px -20px; border-bottom: 1px solid rgba(255,255,255,0.1); scrollbar-width: none; -webkit-overflow-scrolling: touch;">
-                        ${targetMembers.map(name => `
-                            <div class="lt-member-item" data-rawname="${name}" style="display: flex; flex-direction: column; align-items: center; gap: 6px; flex-shrink: 0; cursor: pointer; transition: all 0.3s;">
-                                <div class="lt-member-option" style="width: 44px; height: 44px; border-radius: 50%; border: 2px solid transparent; background-size: cover; background-position: center; opacity: 0.5; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
-                                <span class="lt-member-name" style="font-size: 10px; color: rgba(255,255,255,0.6); max-width: 50px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</span>
-                            </div>
+    <div id="lt-member-selector" style="display: flex; gap: 12px; overflow-x: auto; padding: 10px 15px; margin: 0 0 15px 0; border-bottom: 1px solid rgba(255,255,255,0.1); scrollbar-width: none; -webkit-overflow-scrolling: touch;">
+        ${targetMembers.map(name => `
+                            <div class="lt-member-item" data-rawname="${name}" style="display: flex; flex-direction: column; align-items: center; gap: 4px; flex-shrink: 0; cursor: pointer; transition: all 0.3s; width: 85px;">
+    <div class="lt-member-option" style="width: 40px; height: 40px; border-radius: 50%; border: 2px solid transparent; background-size: cover; background-position: center; opacity: 0.5; transition: all 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3);"></div>
+    <span class="lt-member-name" style="font-size: 10px; color: rgba(255,255,255,0.6); width: 100%; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${name}</span>
+</div>
                         `).join('')}
                     </div>
                 `;
@@ -28607,6 +28609,7 @@ function saveSettings() {
             await setImageSrc(homePage, homeBgUrl);
             
             if (homeBgUrl) {
+                homePage.style.setProperty('background-image', homePage.style.backgroundImage, 'important'); // 核心新增：强制设为最高优先级
                 homePage.style.backgroundSize = 'cover';
                 homePage.style.backgroundPosition = 'center';
             }
