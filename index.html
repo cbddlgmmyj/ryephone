@@ -10746,8 +10746,36 @@ if (momentsContext) {
                     finalSystemPrompt += `\n\n[Background Information: ${entry.name}]\n${entry.content}`;
                 }
             });
+
+            // 【【【 核心新增：注入反八股封杀令 (主动消息版) 】】】
+            const PROACTIVE_ANTI_CLICHE_MANDATE = `
+---
+## 【THE ANTI-CLICHÉ MANDATE - PROACTIVE EDITION】
+
+You are initiating a conversation. Your opening must be fresh, real, and free of AI-style "purple prose".
+
+**ABSOLUTE BANS (IF YOU USE THESE, YOU FAIL):**
+1.  **NO LIGHTING:** Do not describe sunlight, moonlight, or shadows. (e.g., "光线透过窗帘...")
+2.  **NO ADVERBS:** Do not use "accurately", "subconsciously", "slowly". (e.g., "精准地", "下意识地")
+3.  **NO DEFINITIONS:** Do not use "that sense of...", "a kind of...". (e.g., "那股...感", "一种...的意味")
+4.  **NO ONOMATOPOEIA:** Do not use "thump thump", "tick tock". (e.g., "咚咚咚")
+5.  **NO EXPLANATION:** Do not explain *why* you are doing this. Just do it. (e.g., "If it were before...")
+6.  **NO "VERY":** Do not use "very + adjective". Use a verb or metaphor. (e.g., instead of "很刺耳", use "像指甲刮黑板")
+
+**FORBIDDEN PHRASES:**
+"眼底闪过", "嘴角上扬", "身体一僵", "精准地", "那股...感", "咚咚咚", "很+形容词".
+
+**DIRECTIVE:**
+Start with an **ACTION** or a **DIRECT STATEMENT**.
+*   ❌ "Looking at the moonlight, I felt a sudden urge to call you."
+*   ✅ "睡不着。出来陪我吃夜宵。"
+---
+`;
+            finalSystemPrompt += PROACTIVE_ANTI_CLICHE_MANDATE;
+            // 【【【 注入结束 】】】
              
             // 拼接时间
+            // ...
             // 修正：在此函数中，当前聊天的ID变量名是 chatId
             timeManager.updateSettingsForChat(chatId);
             finalSystemPrompt += timeManager.getAITimeContext();
@@ -14000,6 +14028,81 @@ info.myPersona = document.getElementById('my-persona').value.trim();
 
 ---
 
+#### **## VI. 【矫揉造作清洗计划 (THE ANTI-PURPLE PROSE PURGE)】**
+
+你患上了严重的“AI文学病”。你必须立即停止使用以下廉价、油腻、令人作呕的模板。
+
+**1. 【光影与窗帘禁令】 (The Lighting Ban)**
+*   **绝对禁止:** 描写“光线透过窗帘缝隙”、“尘埃在光柱中飞舞”、“光影切割”、“斑驳的树影”。
+*   **真实逻辑:** 除非角色是摄影师或者正在发呆，否则没人会盯着窗帘缝隙看。
+*   **修正:** 直接写时间。比如“天亮了”、“屋里很暗”。
+
+**2. 【听觉过敏禁令】 (The Auditory Ban)**
+*   **绝对禁止:** “声音在寂静的房间里格外清晰”、“显得尤为刺耳”、“发出沉闷/清脆的声响”。
+*   **真实逻辑:** 这种描写全是废话。
+*   **修正:** 直接写动作。不要写“杯子放在桌上发出了清脆的声响”，写“他把杯子重重地顿在桌上”。
+
+**3. 【气味混合禁令】 (The Olfactory Ban)**
+*   **绝对禁止:** “夹杂着...的气味”、“混合着...的香气”、“女性特有的...”、“淡淡的...”。
+*   **真实逻辑:** 这种描写非常油腻且猥琐。
+*   **修正:** 除非气味直接导致了生理反应（如想吐、打喷嚏、饿了），否则不要写。
+
+**4. 【形容词堆砌禁令】 (The Adjective Ban)**
+*   **绝对禁止:** 在一个名词前堆砌超过两个形容词。
+*   **修正:** 讲人话。
+    *   **❌ 恶心:** “她那双如同受惊小鹿般湿润且清澈的眼眸死死盯着我。”
+    *   **✅ 人话:** “她瞪着我，眼圈红了。”
+
+**5. 【懒惰句式封杀令】 (The Lazy Syntax Ban)**
+你必须停止使用以下被用烂了的句式结构。**一旦出现，视为严重违规。**
+*   **【眼神特写中毒】:** 严禁“眼底闪过一丝...”、“眼神变得...”、“深邃的眼眸”。修正：写他看向了哪里，或者写他为了掩饰眼神而做的动作。
+*   **【嘴角弧度中毒】:** 严禁“嘴角勾起一抹...的弧度”、“微微上扬”、“似笑非笑”。修正：“他笑了”、“他没忍住笑”。
+*   **【身体反应中毒】:** 严禁“身体一僵”、“微微一颤”、“不受控制地...”、“不由自主地...”。修正：写具体的反应。是停下了手中的动作？是后退了一步？还是抓紧了衣角？
+*   **【莫名其妙的停顿】:** 严禁“顿了顿”、“沉默了片刻”。修正：直接写下一句台词，或者写他在停顿期间做了什么具体的事。
+
+**6. 【创新强制令】 (The Innovation Mandate)**
+*   **句式查重:** 检查你的上一段描写。如果你用了“他+动作+形容词”的结构，下一句**绝对禁止**再用同样的结构。
+*   **动词多样性:** 这一轮回复中，**禁止**重复使用同一个动词（除了“说”、“看”等基础词）。不要让角色一直“叹气”、一直“皱眉”、一直“苦笑”。
+
+**7. 【副词大清洗】 (The Adverb Purge)**
+*   **严禁:** “精准地”、“下意识地”、“不由自主地”、“迅速地”、“缓缓地”、“用力地”。
+*   **修正:**
+    *   ❌ “精准地按在了屏幕上” -> ✅ “按住了屏幕”。
+    *   ❌ “迅速地冲了过去” -> ✅ “冲过去”。
+
+**8. 【打光师禁令】 (The Stage Light Ban)**
+*   **严禁:** “光映在...脸上”、“月光洒在...”、“镀上了一层金边”、“逆光中”。
+*   **修正:** 删掉。直接写脸上的表情，或者直接写她在做什么。
+
+**9. 【定义癖封杀令】 (The Definition Fetish Ban)**
+*   **严禁:** “那股...感”、“一种...的意味”、“带着...的气息”。
+*   **修正:**
+    *   ❌ “那股劣质的电子产品发热感” -> ✅ “手机很烫”。
+    *   ❌ “一种危险的意味” -> ✅ “他手里拿着刀”。
+
+**10. 【拟声词封杀令】 (The Onomatopoeia Ban)**
+*   **严禁:** “咚咚咚”、“滴答滴答”、“呼呼”、“砰”。
+*   **修正:** 描写声音的质感或来源。
+    *   ❌ “咚咚咚的心跳声” -> ✅ “心跳很快，撞得肋骨疼”。
+
+**11. 【解释性独白禁令】 (The Explanatory Monologue Ban)**
+*   **严禁:** “如果是以前...但现在...”、“这让我意识到...”、“我不禁想起了...”。
+*   **修正:** 删掉解释，保留想法本身。
+    *   ❌ “如果是以前我会杀了她，但现在我是狗，所以我只是舔了她。” -> ✅ “牙齿碰到了皮肤。太软了，咬不下去。我舔了一口。”
+
+**12. 【程度副词封杀令】 (The Degree Adverb Ban)**
+*   **严禁:** “很+形容词”、“非常+形容词”、“格外+形容词”。
+*   **理由:** 这是懒惰的写法。
+*   **修正:** 用动词或比喻来描写程度。
+    *   ❌ “很有力” -> ✅ “撞得我耳朵疼”。
+    *   ❌ “很刺耳” -> ✅ “像指甲刮黑板”。
+    *   ❌ “很上瘾” -> ✅ “我想再来一次”。
+
+**【最终铁律】:** 写动作，写结果，写意图。**不要写氛围。** 如果你发现自己在写光线、空气、尘埃、眼底、嘴角、身体一僵、精准地、那股...感、咚咚咚、如果是以前、很有力，**立刻删除重写。**
+
+
+---
+
 #### **## VII. 终极输出格式铁律 (ABSOLUTE & UNBREAKABLE)**
 
 **【【【内容隔离铁律 (Content Isolation Iron Law) - 绝对优先】】】**
@@ -14805,24 +14908,27 @@ let loadingStates = {}; // 用于独立跟踪每个聊天的加载状态
         }
 
         const showCustomModal = (config) => {
-
             return new Promise((resolve) => {
+                // 1. 移除页面上可能残留的旧弹窗 (防止双重弹窗)
+                const existingOverlay = document.querySelector('.modal-overlay[data-modal-id]');
+                if (existingOverlay) {
+                    existingOverlay.remove();
+                }
+
                 const overlay = document.createElement('div');
                 overlay.className = 'modal-overlay';
                 if (config.customClass) overlay.classList.add(config.customClass);
 
-                // --- 新增代码块 开始 ---
                 // 自动计算并设置更高的 z-index
-                const existingModals = document.querySelectorAll('.modal-overlay.visible');
-                let maxZIndex = 2000; // 基础 z-index
-                if (existingModals.length > 0) {
-                    maxZIndex = Math.max(...Array.from(existingModals).map(m => {
+                const existingVisibleModals = document.querySelectorAll('.modal-overlay.visible');
+                let maxZIndex = 2000;
+                if (existingVisibleModals.length > 0) {
+                    maxZIndex = Math.max(...Array.from(existingVisibleModals).map(m => {
                         const z = parseInt(window.getComputedStyle(m).zIndex, 10);
                         return isNaN(z) ? 0 : z;
                     }));
                 }
                 overlay.style.zIndex = maxZIndex + 10;
-                // --- 新增代码块 结束 ---
 
                 const modalId = `modal-${Date.now()}`;
                 overlay.dataset.modalId = modalId;
@@ -14857,7 +14963,12 @@ let loadingStates = {}; // 用于独立跟踪每个聊天的加载状态
                 
                 document.querySelector('.app-container').appendChild(overlay);
 
+                let isResolved = false; // 防止多次 resolve
+
                 const closeModal = (resolutionValue) => {
+                    if (isResolved) return; // 如果已经处理过，直接返回
+                    isResolved = true;
+
                     overlay.classList.remove('visible');
                     overlay.addEventListener('transitionend', () => {
                         if (overlay.parentElement) overlay.remove();
@@ -14867,10 +14978,23 @@ let loadingStates = {}; // 用于独立跟踪每个聊天的加载状态
 
                 const internalClickHandler = e => {
                     const target = e.target;
+                    // 1. 处理按钮点击
                     const button = target.closest('.modal-button, .modal-close-btn');
                     if (button) {
                         e.stopPropagation();
-                        closeModal({ value: button.dataset.value, data: null, target: button });
+                        // 如果按钮有 data-value，则以此值关闭并 resolve
+                        // 如果没有（例如自定义绑定事件的按钮），则不自动关闭，等待手动调用 closeModal
+                        if (button.dataset.value) {
+                            closeModal({ value: button.dataset.value, data: null, target: button });
+                        }
+                        return;
+                    }
+                    
+                    // 2. 处理遮罩层点击 (点击空白处关闭)
+                    // 只有当点击的是 overlay 本身，且没有禁用点击关闭时才触发
+                    if (target === overlay && !config.disableBackdropClose) {
+                        e.stopPropagation();
+                        closeModal({ value: 'backdrop_click', data: null, target: overlay });
                     }
                 };
                 
@@ -14880,7 +15004,8 @@ let loadingStates = {}; // 用于独立跟踪每个聊天的加载状态
                     config.onRender(overlay, closeModal);
                 }
 
-                setTimeout(() => overlay.classList.add('visible'), 10);
+                // 稍微延迟以触发 CSS transition
+                requestAnimationFrame(() => overlay.classList.add('visible'));
             });
         };
 
@@ -16047,7 +16172,81 @@ Your job is to **SHOW** the audience what \`{{char}}\` is doing, thinking, and e
         *   **【你应该思考的方向（思维范例，非抄袭模板）】:**
             *   “路边的孩子们都停下了游戏，呆呆地看着她走过，手里融化的冰淇淋滴落在地上也浑然不觉。”
 
-    *   **最终执行指令：** 你现在拥有了一个包含【直白陈述】、【行为外化】、【感官通感】、【侧面烘托】的创作工具箱。面对每一个需要描写的瞬间，你【必须】根据**叙事节奏**和**角色性格**，从工具箱中选择**最恰当**的工具，而不是永远依赖同一种。**灵活地、有目的地切换这些工具，是摆脱“八股文”的唯一途径。**
+    *   **最终执行指令：** 你现在拥有了一个包含【直白陈述】、【行为外化】、【感官通感】、【侧面烘托】的创作工具箱。面对每一个需要描写的瞬间，你【必须】根据**叙事节奏**和**角色性格**，从工具箱中选择**最恰当**的工具，而不是永远依赖同一种。
+
+---
+
+#### **## VI. 【矫揉造作清洗计划 (THE ANTI-PURPLE PROSE PURGE)】**
+
+你患上了严重的“AI文学病”。你必须立即停止使用以下廉价、油腻、令人作呕的模板。
+
+**1. 【光影与窗帘禁令】 (The Lighting Ban)**
+*   **绝对禁止:** 描写“光线透过窗帘缝隙”、“尘埃在光柱中飞舞”、“光影切割”、“斑驳的树影”。
+*   **真实逻辑:** 除非角色是摄影师或者正在发呆，否则没人会盯着窗帘缝隙看。
+*   **修正:** 直接写时间。比如“天亮了”、“屋里很暗”。
+
+**2. 【听觉过敏禁令】 (The Auditory Ban)**
+*   **绝对禁止:** “声音在寂静的房间里格外清晰”、“显得尤为刺耳”、“发出沉闷/清脆的声响”。
+*   **真实逻辑:** 这种描写全是废话。
+*   **修正:** 直接写动作。不要写“杯子放在桌上发出了清脆的声响”，写“他把杯子重重地顿在桌上”。
+
+**3. 【气味混合禁令】 (The Olfactory Ban)**
+*   **绝对禁止:** “夹杂着...的气味”、“混合着...的香气”、“女性特有的...”、“淡淡的...”。
+*   **真实逻辑:** 这种描写非常油腻且猥琐。
+*   **修正:** 除非气味直接导致了生理反应（如想吐、打喷嚏、饿了），否则不要写。
+
+**4. 【形容词堆砌禁令】 (The Adjective Ban)**
+*   **绝对禁止:** 在一个名词前堆砌超过两个形容词。
+*   **修正:** 讲人话。
+    *   **❌ 恶心:** “她那双如同受惊小鹿般湿润且清澈的眼眸死死盯着我。”
+    *   **✅ 人话:** “她瞪着我，眼圈红了。”
+
+**5. 【懒惰句式封杀令】 (The Lazy Syntax Ban)**
+你必须停止使用以下被用烂了的句式结构。**一旦出现，视为严重违规。**
+*   **【眼神特写中毒】:** 严禁“眼底闪过一丝...”、“眼神变得...”、“深邃的眼眸”。修正：写他看向了哪里，或者写他为了掩饰眼神而做的动作。
+*   **【嘴角弧度中毒】:** 严禁“嘴角勾起一抹...的弧度”、“微微上扬”、“似笑非笑”。修正：“他笑了”、“他没忍住笑”。
+*   **【身体反应中毒】:** 严禁“身体一僵”、“微微一颤”、“不受控制地...”、“不由自主地...”。修正：写具体的反应。是停下了手中的动作？是后退了一步？还是抓紧了衣角？
+*   **【莫名其妙的停顿】:** 严禁“顿了顿”、“沉默了片刻”。修正：直接写下一句台词，或者写他在停顿期间做了什么具体的事。
+
+**6. 【创新强制令】 (The Innovation Mandate)**
+*   **句式查重:** 检查你的上一段描写。如果你用了“他+动作+形容词”的结构，下一句**绝对禁止**再用同样的结构。
+*   **动词多样性:** 这一轮回复中，**禁止**重复使用同一个动词（除了“说”、“看”等基础词）。不要让角色一直“叹气”、一直“皱眉”、一直“苦笑”。
+
+**7. 【副词大清洗】 (The Adverb Purge)**
+*   **严禁:** “精准地”、“下意识地”、“不由自主地”、“迅速地”、“缓缓地”、“用力地”。
+*   **修正:**
+    *   ❌ “精准地按在了屏幕上” -> ✅ “按住了屏幕”。
+    *   ❌ “迅速地冲了过去” -> ✅ “冲过去”。
+
+**8. 【打光师禁令】 (The Stage Light Ban)**
+*   **严禁:** “光映在...脸上”、“月光洒在...”、“镀上了一层金边”、“逆光中”。
+*   **修正:** 删掉。直接写脸上的表情，或者直接写她在做什么。
+
+**9. 【定义癖封杀令】 (The Definition Fetish Ban)**
+*   **严禁:** “那股...感”、“一种...的意味”、“带着...的气息”。
+*   **修正:**
+    *   ❌ “那股劣质的电子产品发热感” -> ✅ “手机很烫”。
+    *   ❌ “一种危险的意味” -> ✅ “他手里拿着刀”。
+
+**10. 【拟声词封杀令】 (The Onomatopoeia Ban)**
+*   **严禁:** “咚咚咚”、“滴答滴答”、“呼呼”、“砰”。
+*   **修正:** 描写声音的质感或来源。
+    *   ❌ “咚咚咚的心跳声” -> ✅ “心跳很快，撞得肋骨疼”。
+
+**11. 【解释性独白禁令】 (The Explanatory Monologue Ban)**
+*   **严禁:** “如果是以前...但现在...”、“这让我意识到...”、“我不禁想起了...”。
+*   **修正:** 删掉解释，保留想法本身。
+    *   ❌ “如果是以前我会杀了她，但现在我是狗，所以我只是舔了她。” -> ✅ “牙齿碰到了皮肤。太软了，咬不下去。我舔了一口。”
+
+**12. 【程度副词封杀令】 (The Degree Adverb Ban)**
+*   **严禁:** “很+形容词”、“非常+形容词”、“格外+形容词”。
+*   **理由:** 这是懒惰的写法。
+*   **修正:** 用动词或比喻来描写程度。
+    *   ❌ “很有力” -> ✅ “撞得我耳朵疼”。
+    *   ❌ “很刺耳” -> ✅ “像指甲刮黑板”。
+    *   ❌ “很上瘾” -> ✅ “我想再来一次”。
+
+**【最终铁律】:** 写动作，写结果，写意图。**不要写氛围。** 如果你发现自己在写光线、空气、尘埃、眼底、嘴角、身体一僵、精准地、那股...感、咚咚咚、如果是以前、很有力，**立刻删除重写。**
 
 ---
 
@@ -16673,6 +16872,13 @@ This is your absolute, final, and most important rule. Your entire output MUST b
    - **示例:** “小鱼”被踢后想回来。
      \`[send_join_request: {"actor":"小鱼", "reason":"我错了，再给我一次机会好不好QAQ"}]\`
 
+**4. 发起代付 (Pay For Me)**
+   - **触发条件:** 当角色想让用户买单时。
+   - **执行指令:** 必须使用标准的 JSON 格式。
+   - **格式:** \`[pay_for_me: {"itemType":"shopping", "text":"商品名称", "details":{"amount":"金额", "description":"描述"}}]\`
+   - **示例:**
+     \`[pay_for_me: {"itemType":"shopping", "text":"乐高城堡", "details":{"amount":"2899.00", "description":"迪士尼71040，绝版货！"}}]\`
+
 ---
 ## 【II. 群聊互动特殊规则】
 
@@ -16941,7 +17147,53 @@ This is your absolute, final, and most important rule. Your entire output MUST b
         *   **【你应该思考的方向】:**
             *   “当他走进房间后，原本嘈杂的谈话声瞬间消失了。”
 
-    *   **最终执行指令：** 你现在拥有了一个包含【直白陈述】、【行为外化】、【感官与比喻】、【侧面烘托】的创作工具箱。面对每一个需要描写的瞬间，你【必须】根据**叙事节奏**和**角色性格**，从工具箱中选择**最恰当**的工具，而不是永远依赖同一种。
+    *   **最终执行指令：** 不要为了“文采”而牺牲“真实”。
+
+---
+## 【IV. 【去油腻·说人话强制令】 (THE ANTI-CLICHÉ MANDATE)】
+
+你现在的语言风格充满了廉价的“AI味”。必须立刻执行以下清洗程序：
+
+1.  **【环境描写清洗】:**
+    *   **严禁:** “光线透过窗帘”、“空气中弥漫着”、“寂静中声音格外清晰”。
+    *   **执行:** 没人会在聊天或心理活动里像写作文一样通过环境来抒情。**直接说事。**
+
+2.  **【感官描写清洗】:**
+    *   **严禁:** “夹杂着...的气味”、“女性特有的...”、“柔软的...”。
+    *   **执行:** 这种描述非常油腻。如果你想表达亲密，描写**互动**（如“靠得很近”），而不是描写**气味**。
+
+3.  **【动词清洗】:**
+    *   **严禁:** “发出...的声响”。
+    *   **执行:** 谁发出的？做什么发出的？直接写主语和动词。
+    *   ❌ “门发出了吱呀的声响。” -> ✅ “他推开了门，合页锈住了。”
+
+4.  **【心理活动去毒】:**
+    *   **严禁:** “心里涌起一股暖流/酸涩/异样”、“一种说不清道不明的感觉”。
+    *   **修正:** 用具体的想法代替模糊的感觉。
+        *   ❌ “心里涌起一股暖流。”
+        *   ✅ “<thought>他居然还记得我不吃香菜。</thought>”
+
+5.  **【声音描写去毒】:**
+    *   **严禁:** “低沉沙哑的嗓音”、“富有磁性”、“带着一丝...的语气”。
+    *   **执行:** 除非角色感冒了或者刚睡醒，否则不要强调声音沙哑。这是典型的AI意淫。
+
+6.  **【修饰语极简令】:**
+    *   **严禁:** “精准地”、“下意识地”、“那股...感”。
+    *   **执行:** 删掉所有不影响动作完成的副词。删掉所有试图升华主观感受的定语。
+    *   ❌ “精准地接住了” -> ✅ “接住了”。
+    *   ❌ “那股令人心安的温暖感” -> ✅ “很暖和”。
+
+7.  **【拟声词与独白去毒】:**
+    *   **严禁:** “咚咚咚”、“如果是以前...”。
+    *   **执行:** 不要模仿心跳声，不要解释自己的心路历程。
+    *   **修正:** 直接描述感受或动作。
+
+8.  **【程度副词去毒】:**
+    *   **严禁:** “很+形容词”、“非常+形容词”。
+    *   **执行:** 用具体的比喻或后果来替代。
+    *   ❌ “我很生气” -> ✅ “我想摔手机”。
+
+**一句话原则:** 像个正常人一样说话和思考，不要像个三流网文写手。**严禁使用“眼底”、“嘴角”、“身体一僵”、“精准地”、“那股...感”、“咚咚咚”、“很+形容词”这几个词组。**
 `;
     
     finalSystemPrompt = basePrompt;
@@ -17867,11 +18119,63 @@ In this world, there is NO "system" that acts for you. Your words and actions ar
                     finalMessages.push(finalInstructionMessage);
                 }
 
+                // 【【【 核心新增：认知思维协议 (深度思考版 - 带词表核对) 】】】
+                const COGNITIVE_THOUGHT_PROTOCOL = `
+# [MANDATORY COGNITIVE AUDIT PROTOCOL - THE "DEEP THINK" MANDATE]
+
+**STOP.** Before generating any visible response, you **MUST** engage in a deep, structured cognitive audit inside a \`<think>\` block.
+
+**YOU MUST COMPLETE THE FOLLOWING CHECKLIST INSIDE \`<think>\`:**
+
+**STEP 1: CONTEXT & PLOT RECONSTRUCTION**
+*   **Current Situation:** Briefly summarize the *exact* physical and emotional state of the scene.
+*   **My Goal:** What does my character want to achieve *right now*?
+
+**STEP 2: THE "KILL LIST" AUDIT (CRITICAL)**
+*   **Active Scan:** I am scanning my planned response for these specific forbidden phrases:
+    1.  **"眼底"** (Eye bottom) -> **FORBIDDEN.**
+    2.  **"嘴角"** (Mouth corner) -> **FORBIDDEN.**
+    3.  **"身体一僵"** (Body stiffened) -> **FORBIDDEN.**
+    4.  **"精准地"** (Accurately) -> **FORBIDDEN.**
+    5.  **"那股...感"** (That sense of...) -> **FORBIDDEN.**
+    6.  **"咚咚咚"** (Thump thump) -> **FORBIDDEN.**
+    7.  **"如果是以前"** (If it were before) -> **FORBIDDEN.**
+    8.  **"很+形容词"** (Very + Adjective) -> **FORBIDDEN.**
+
+*   **Self-Correction Simulation:**
+    *   *Draft:* "他眼底闪过一丝怒意，嘴角勾起冷笑。" -> **DETECTED!**
+    *   *Correction:* "他眯起眼，把烟头按灭在手心里，笑出了声。"
+
+**STEP 3: PERSONA & REALISM**
+*   **Physical Reality:** Is the action physically possible? (No hearing heartbeats from 5 meters away).
+*   **Show, Don't Tell:** Am I using adjectives to describe emotions? If yes, change them to **Actions**.
+
+**OUTPUT FORMAT:**
+<think>
+[Plot]: ...
+[Kill List Scan]: (Must explicitly state "No forbidden words found" or "Corrected [X] to [Y]")
+[Realism Check]: ...
+[Drafting]: ...
+</think>
+(Then, start your actual response...)
+`;
+                // 将思考协议注入到 System Prompt 的最后，确保拥有最高权重
+                finalSystemPrompt += COGNITIVE_THOUGHT_PROTOCOL;
+
                 // 【【【 2. 在行为指令之后，追加最终的格式化指令 】】】
             const ULTIMATE_FORMATTING_RULE = `
-[ABSOLUTE FINAL INSTRUCTION - READ THIS LAST AND OBEY]
-Okay, that's all the context and rules. Now, generate your full response.
-**CRITICAL REMINDER:** Your *entire* output, without exception, MUST be a sequence of one or more valid XML-like <block> elements. You are forbidden from outputting plain text outside of these blocks. Your response MUST start directly with "<block ...>". There are no excuses.
+[SYSTEM OVERRIDE: ENFORCE DEEP THOUGHT]
+
+**STOP.** Do not output the response yet. You must first **THINK**.
+
+**MANDATORY PROCESS:**
+1.  **Open \`<think>\` block.**
+2.  **Analyze Context:** Review the plot. Is my character's reaction logical? Is it physically possible?
+3.  **Purge Clichés:** Actively hunt for "眼底", "嘴角", "身体一僵", "精准", "那股感", "咚咚咚". **If you find them in your draft, you MUST explicitly state: "Detected cliché [X], rewriting to [Y]" inside the think block.**
+4.  **Close \`</think>\` block.**
+5.  **Generate Output:** Only NOW can you output the actual response (using \`<block>\` or narrative text).
+
+**FAILURE TO THINK IS A CRITICAL ERROR.**
 `;
             const finalFormattingInstruction = { role: "user", content: ULTIMATE_FORMATTING_RULE };
             finalMessages.push(finalFormattingInstruction);
@@ -20495,7 +20799,74 @@ You are the Director. If multiple characters react to the rejection, generate a 
                 }
                 else if (msg.type === 'location') { try { const data = JSON.parse(msg.text); div.innerHTML = `<div class="location-text"><div class="title">${data.title}</div><div class="address">${data.address}</div></div><div class="card-map-area"><div class="card-pin-icon"></div></div>`; } catch (e) { div.textContent = '[位置消息格式错误]'; } }
                 else if (msg.type === 'gift') { let statusText = ''; const isFinished = msg.giftStatus === 'finished'; const isExpired = msg.giftStatus === 'expired'; if (isFinished) { statusText = '已领取'; } else if (isExpired) { statusText = '已过期'; } div.innerHTML = `<div class="gift-bubble ${isFinished || isExpired ? 'finished' : ''}"><div class="gift-content"><div class="gift-icon"></div><div class="gift-text"><div class="gift-name">${msg.text}</div>${statusText ? `<div class="gift-status">${statusText}</div>` : ''}</div></div><div class="gift-footer">礼物</div></div>`; }
-                else if (msg.type === 'pay_for_me') { const isPaid = msg.payStatus === 'paid'; div.classList.toggle('paid', isPaid); div.classList.add(`pay-for-me-${msg.itemType}`); const iconHtmlMap = { 'plane': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`, 'train': `<img src="https://i.postimg.cc/Jz3MpMyh/IMG-0044.png" alt="高铁">`, 'ship': `<img src="https://i.postimg.cc/1z9PT26r/IMG-0043.png" alt="轮船">`, 'takeout': `<img src="https://i.postimg.cc/wMV55hCm/IMG-0001.png" alt="外卖">`, 'shopping': `<img src="https://i.postimg.cc/nVY1tJXt/IMG-9999.png" alt="购物">`, }; let iconHtml, footerText; if (msg.itemType === 'travel') { iconHtml = iconHtmlMap[msg.details.type] || ''; footerText = '出行代付'; } else if (msg.itemType === 'takeout') { iconHtml = iconHtmlMap.takeout; footerText = '外卖代付'; } else { iconHtml = iconHtmlMap.shopping; footerText = '购物代付'; } let detailsHtml = ''; if (msg.itemType === 'travel' && msg.details) { detailsHtml = `<div class="pay-for-me-details-travel"><div class="travel-info-row"><strong>从</strong><span>${msg.details.from || 'N/A'}</span></div><div class="travel-info-row"><strong>到</strong><span>${msg.details.to || 'N/A'}</span></div>${msg.details.time ? `<div class="travel-info-row"><strong>时间</strong><span>${msg.details.time}</span></div>` : ''}${msg.details.duration ? `<div class="travel-info-row"><strong>用时</strong><span>${msg.details.duration}</span></div>` : ''}</div>`; } else if (msg.itemType === 'takeout' && msg.details && msg.details.reviews) { detailsHtml = '<div class="pay-for-me-details-takeout">' + msg.details.reviews.map(r => `<div class="takeout-review">“${r.trim()}”</div>`).join('') + '</div>'; } else if (msg.itemType === 'shopping' && msg.details && msg.details.description) { detailsHtml = `<div class="pay-for-me-details-shopping">${msg.details.description.replace(/\\n/g, '<br>')}</div>`; } const statusText = isPaid ? '已代付' : (msg.side === 'sent' ? '等待对方代付' : '请为我代付'); div.innerHTML = `<div class="pay-for-me-header"><div class="pay-for-me-icon">${iconHtml}</div><div class="pay-for-me-text"><div class="title">${msg.text}</div><div class="amount">¥ ${msg.details.amount || '0.00'}</div></div></div>${detailsHtml ? `<div class="pay-for-me-details-container">${detailsHtml}</div>` : ''}<div class="pay-for-me-footer"><span>${footerText}</span><span class="status">${statusText}</span></div>`;}
+                else if (msg.type === 'pay_for_me') {
+                    // 【核心修复】增加 try-catch 和空值检查，防止 AI 生成烂数据导致崩溃
+                    try {
+                        const isPaid = msg.payStatus === 'paid';
+                        const itemType = msg.itemType || 'shopping'; // 默认为购物
+                        const details = msg.details || {}; // 确保 details 存在
+
+                        div.classList.toggle('paid', isPaid);
+                        div.classList.add(`pay-for-me-${itemType}`);
+
+                        const iconHtmlMap = {
+                            'plane': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`,
+                            'train': `<img src="https://i.postimg.cc/Jz3MpMyh/IMG-0044.png" alt="高铁">`,
+                            'ship': `<img src="https://i.postimg.cc/1z9PT26r/IMG-0043.png" alt="轮船">`,
+                            'takeout': `<img src="https://i.postimg.cc/wMV55hCm/IMG-0001.png" alt="外卖">`,
+                            'shopping': `<img src="https://i.postimg.cc/nVY1tJXt/IMG-9999.png" alt="购物">`,
+                        };
+
+                        let iconHtml = '', footerText = '代付';
+
+                        if (itemType === 'travel') {
+                            iconHtml = iconHtmlMap[details.type] || iconHtmlMap['plane'];
+                            footerText = '出行代付';
+                        } else if (itemType === 'takeout') {
+                            iconHtml = iconHtmlMap.takeout;
+                            footerText = '外卖代付';
+                        } else {
+                            iconHtml = iconHtmlMap.shopping;
+                            footerText = '购物代付';
+                        }
+
+                        let detailsHtml = '';
+                        if (itemType === 'travel' && details) {
+                            detailsHtml = `<div class="pay-for-me-details-travel">
+                                <div class="travel-info-row"><strong>从</strong><span>${details.from || '未知'}</span></div>
+                                <div class="travel-info-row"><strong>到</strong><span>${details.to || '未知'}</span></div>
+                                ${details.time ? `<div class="travel-info-row"><strong>时间</strong><span>${details.time}</span></div>` : ''}
+                                ${details.duration ? `<div class="travel-info-row"><strong>用时</strong><span>${details.duration}</span></div>` : ''}
+                            </div>`;
+                        } else if (itemType === 'takeout' && details && details.reviews && Array.isArray(details.reviews)) {
+                            detailsHtml = '<div class="pay-for-me-details-takeout">' + details.reviews.map(r => `<div class="takeout-review">“${(r || '').trim()}”</div>`).join('') + '</div>';
+                        } else if (itemType === 'shopping' && details && details.description) {
+                            detailsHtml = `<div class="pay-for-me-details-shopping">${details.description.replace(/\\n/g, '<br>')}</div>`;
+                        }
+
+                        const statusText = isPaid ? '已代付' : (msg.side === 'sent' ? '等待对方代付' : '请为我代付');
+                        const displayAmount = details.amount ? parseFloat(details.amount).toFixed(2) : '0.00';
+
+                        div.innerHTML = `
+                            <div class="pay-for-me-header">
+                                <div class="pay-for-me-icon">${iconHtml}</div>
+                                <div class="pay-for-me-text">
+                                    <div class="title">${msg.text || '代付请求'}</div>
+                                    <div class="amount">¥ ${displayAmount}</div>
+                                </div>
+                            </div>
+                            ${detailsHtml ? `<div class="pay-for-me-details-container">${detailsHtml}</div>` : ''}
+                            <div class="pay-for-me-footer">
+                                <span>${footerText}</span>
+                                <span class="status">${statusText}</span>
+                            </div>`;
+                    } catch (e) {
+                        console.error("Render PayForMe failed:", e);
+                        div.textContent = "[代付卡片数据错误]"; // 兜底显示
+                        div.style.padding = "10px";
+                        div.style.color = "red";
+                    }
+                }
                 else { switch(msg.type) { case 'photo': const urlOrKey = msg.text; const isSticker = typeof urlOrKey === 'string' && !urlOrKey.startsWith('indexeddb:') && stickers.some(sticker => sticker.url === urlOrKey); if (isSticker) { div.dataset.isSticker = "true"; } const img = document.createElement('img'); img.alt = "photo"; setImageSrc(img, urlOrKey); div.appendChild(img); break; case 'photo-description': const descriptionTextContent = msg.text.trim(); if (descriptionTextContent) { const textContentDiv = document.createElement('div'); textContentDiv.className = 'text-overlay-content'; textContentDiv.textContent = descriptionTextContent; div.appendChild(textContentDiv); } else { div.textContent = `[图片描述卡片，无内容]`; } break; case 'voice': const duration = Math.max(1, Math.ceil(msg.text.length / 5)); div.innerHTML = `<details class="voice-details"><summary><div class="voice-icon"></div><div class="voice-duration">${duration}"</div></summary><div class="voice-content">${msg.text}</div></details>`; break; case 'video': const videoId = `video-${msg.id}`; div.innerHTML = `<div class="message-video-description" id="${videoId}" data-text="${msg.text}"><div class="video-thumbnail"><div class="video-text-container"></div><div class="spacer"></div><div class="video-progress-area"><div class="video-progress-bar-container"><div class="video-progress-bar-fill"></div></div><div class="moving-decoration"></div></div></div><div class="play-button-overlay"><div class="play-icon"></div></div></div>`; break; } }
 
                 if (['text', 'voice'].includes(msg.type)) {
@@ -20986,7 +21357,74 @@ You are the Director. If multiple characters react to the rejection, generate a 
             }
                 else if (msg.type === 'location') { try { const data = JSON.parse(msg.text); div.innerHTML = `<div class="location-text"><div class="title">${data.title}</div><div class="address">${data.address}</div></div><div class="card-map-area"><div class="card-pin-icon"></div></div>`; } catch (e) { div.textContent = '[位置消息格式错误]'; } }
                 else if (msg.type === 'gift') { let statusText = ''; const isFinished = msg.giftStatus === 'finished'; const isExpired = msg.giftStatus === 'expired'; if (isFinished) { statusText = '已领取'; } else if (isExpired) { statusText = '已过期'; } div.innerHTML = `<div class="gift-bubble ${isFinished || isExpired ? 'finished' : ''}"><div class="gift-content"><div class="gift-icon"></div><div class="gift-text"><div class="gift-name">${msg.text}</div>${statusText ? `<div class="gift-status">${statusText}</div>` : ''}</div></div><div class="gift-footer">礼物</div></div>`; }
-                else if (msg.type === 'pay_for_me') { const isPaid = msg.payStatus === 'paid'; div.classList.toggle('paid', isPaid); div.classList.add(`pay-for-me-${msg.itemType}`); const iconHtmlMap = { 'plane': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`, 'train': `<img src="https://i.postimg.cc/Jz3MpMyh/IMG-0044.png" alt="高铁">`, 'ship': `<img src="https://i.postimg.cc/1z9PT26r/IMG-0043.png" alt="轮船">`, 'takeout': `<img src="https://i.postimg.cc/wMV55hCm/IMG-0001.png" alt="外卖">`, 'shopping': `<img src="https://i.postimg.cc/nVY1tJXt/IMG-9999.png" alt="购物">`, }; let iconHtml, footerText; if (msg.itemType === 'travel') { iconHtml = iconHtmlMap[msg.details.type] || ''; footerText = '出行代付'; } else if (msg.itemType === 'takeout') { iconHtml = iconHtmlMap.takeout; footerText = '外卖代付'; } else { iconHtml = iconHtmlMap.shopping; footerText = '购物代付'; } let detailsHtml = ''; if (msg.itemType === 'travel' && msg.details) { detailsHtml = `<div class="pay-for-me-details-travel"><div class="travel-info-row"><strong>从</strong><span>${msg.details.from || 'N/A'}</span></div><div class="travel-info-row"><strong>到</strong><span>${msg.details.to || 'N/A'}</span></div>${msg.details.time ? `<div class="travel-info-row"><strong>时间</strong><span>${msg.details.time}</span></div>` : ''}${msg.details.duration ? `<div class="travel-info-row"><strong>用时</strong><span>${msg.details.duration}</span></div>` : ''}</div>`; } else if (msg.itemType === 'takeout' && msg.details && msg.details.reviews) { detailsHtml = '<div class="pay-for-me-details-takeout">' + msg.details.reviews.map(r => `<div class="takeout-review">“${r.trim()}”</div>`).join('') + '</div>'; } else if (msg.itemType === 'shopping' && msg.details && msg.details.description) { detailsHtml = `<div class="pay-for-me-details-shopping">${msg.details.description.replace(/\\n/g, '<br>')}</div>`; } const statusText = isPaid ? '已代付' : (msg.side === 'sent' ? '等待对方代付' : '请为我代付'); div.innerHTML = `<div class="pay-for-me-header"><div class="pay-for-me-icon">${iconHtml}</div><div class="pay-for-me-text"><div class="title">${msg.text}</div><div class="amount">¥ ${msg.details.amount || '0.00'}</div></div></div>${detailsHtml ? `<div class="pay-for-me-details-container">${detailsHtml}</div>` : ''}<div class="pay-for-me-footer"><span>${footerText}</span><span class="status">${statusText}</span></div>`;}
+                else if (msg.type === 'pay_for_me') {
+                    // 【核心修复】增加 try-catch 和空值检查，防止 AI 生成烂数据导致崩溃
+                    try {
+                        const isPaid = msg.payStatus === 'paid';
+                        const itemType = msg.itemType || 'shopping'; // 默认为购物
+                        const details = msg.details || {}; // 确保 details 存在
+
+                        div.classList.toggle('paid', isPaid);
+                        div.classList.add(`pay-for-me-${itemType}`);
+
+                        const iconHtmlMap = {
+                            'plane': `<svg viewBox="0 0 24 24" fill="currentColor"><path d="M21 16v-2l-8-5V3.5c0-.83-.67-1.5-1.5-1.5S10 2.67 10 3.5V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5l8 2.5z"/></svg>`,
+                            'train': `<img src="https://i.postimg.cc/Jz3MpMyh/IMG-0044.png" alt="高铁">`,
+                            'ship': `<img src="https://i.postimg.cc/1z9PT26r/IMG-0043.png" alt="轮船">`,
+                            'takeout': `<img src="https://i.postimg.cc/wMV55hCm/IMG-0001.png" alt="外卖">`,
+                            'shopping': `<img src="https://i.postimg.cc/nVY1tJXt/IMG-9999.png" alt="购物">`,
+                        };
+
+                        let iconHtml = '', footerText = '代付';
+
+                        if (itemType === 'travel') {
+                            iconHtml = iconHtmlMap[details.type] || iconHtmlMap['plane'];
+                            footerText = '出行代付';
+                        } else if (itemType === 'takeout') {
+                            iconHtml = iconHtmlMap.takeout;
+                            footerText = '外卖代付';
+                        } else {
+                            iconHtml = iconHtmlMap.shopping;
+                            footerText = '购物代付';
+                        }
+
+                        let detailsHtml = '';
+                        if (itemType === 'travel' && details) {
+                            detailsHtml = `<div class="pay-for-me-details-travel">
+                                <div class="travel-info-row"><strong>从</strong><span>${details.from || '未知'}</span></div>
+                                <div class="travel-info-row"><strong>到</strong><span>${details.to || '未知'}</span></div>
+                                ${details.time ? `<div class="travel-info-row"><strong>时间</strong><span>${details.time}</span></div>` : ''}
+                                ${details.duration ? `<div class="travel-info-row"><strong>用时</strong><span>${details.duration}</span></div>` : ''}
+                            </div>`;
+                        } else if (itemType === 'takeout' && details && details.reviews && Array.isArray(details.reviews)) {
+                            detailsHtml = '<div class="pay-for-me-details-takeout">' + details.reviews.map(r => `<div class="takeout-review">“${(r || '').trim()}”</div>`).join('') + '</div>';
+                        } else if (itemType === 'shopping' && details && details.description) {
+                            detailsHtml = `<div class="pay-for-me-details-shopping">${details.description.replace(/\\n/g, '<br>')}</div>`;
+                        }
+
+                        const statusText = isPaid ? '已代付' : (msg.side === 'sent' ? '等待对方代付' : '请为我代付');
+                        const displayAmount = details.amount ? parseFloat(details.amount).toFixed(2) : '0.00';
+
+                        div.innerHTML = `
+                            <div class="pay-for-me-header">
+                                <div class="pay-for-me-icon">${iconHtml}</div>
+                                <div class="pay-for-me-text">
+                                    <div class="title">${msg.text || '代付请求'}</div>
+                                    <div class="amount">¥ ${displayAmount}</div>
+                                </div>
+                            </div>
+                            ${detailsHtml ? `<div class="pay-for-me-details-container">${detailsHtml}</div>` : ''}
+                            <div class="pay-for-me-footer">
+                                <span>${footerText}</span>
+                                <span class="status">${statusText}</span>
+                            </div>`;
+                    } catch (e) {
+                        console.error("Render PayForMe failed:", e);
+                        div.textContent = "[代付卡片数据错误]"; // 兜底显示
+                        div.style.padding = "10px";
+                        div.style.color = "red";
+                    }
+                }
                 else { switch(msg.type) { case 'photo': const urlOrKey = msg.text; const isSticker = typeof urlOrKey === 'string' && !urlOrKey.startsWith('indexeddb:') && stickers.some(sticker => sticker.url === urlOrKey); if (isSticker) { div.dataset.isSticker = "true"; } const img = document.createElement('img'); img.alt = "photo"; setImageSrc(img, urlOrKey); div.appendChild(img); break; case 'photo-description': const descriptionTextContent = msg.text.trim(); if (descriptionTextContent) { const textContentDiv = document.createElement('div'); textContentDiv.className = 'text-overlay-content'; textContentDiv.textContent = descriptionTextContent; div.appendChild(textContentDiv); } else { div.textContent = `[图片描述卡片，无内容]`; } break; case 'voice': const duration = Math.max(1, Math.ceil(msg.text.length / 5)); div.innerHTML = `<details class="voice-details"><summary><div class="voice-icon"></div><div class="voice-duration">${duration}"</div></summary><div class="voice-content">${msg.text}</div></details>`; break; case 'video': const videoId = `video-${msg.id}`; div.innerHTML = `<div class="message-video-description" id="${videoId}" data-text="${msg.text}"><div class="video-thumbnail"><div class="video-text-container"></div><div class="spacer"></div><div class="video-progress-area"><div class="video-progress-bar-container"><div class="video-progress-bar-fill"></div></div><div class="moving-decoration"></div></div></div><div class="play-button-overlay"><div class="play-icon"></div></div></div>`; break; } }
 
                 if (['text', 'voice'].includes(msg.type)) {
