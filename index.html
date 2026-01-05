@@ -6399,6 +6399,43 @@ body.preview-fullscreen-active #page-conversation .chat-content {
     0%, 100% { opacity: 1; transform: scale(1); }
     50% { opacity: 0.6; transform: scale(0.9); }
 }
+/* 【核心重构】消息表态高级样式 */
+    .message-reactions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin: 4px 0; /* 与气泡和时间戳保持间距 */
+        z-index: 10;
+        width: fit-content;
+    }
+    .reaction-pill {
+        background: #2c2c2e; /* 深色背景，如你提供的图 */
+        color: #ffffff;
+        border-radius: 18px;
+        padding: 3px 10px;
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+        cursor: pointer;
+        transition: all 0.1s;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+    .reaction-pill:active { transform: scale(0.95); background: #3a3a3c; }
+    .reaction-pill img {
+        height: 16px;
+        width: 16px;
+        object-fit: contain;
+    }
+    .reaction-count {
+        font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+        font-weight: 500;
+        color: #efeff4;
+    }
+    /* 调整发送方和接收方的对齐 */
+    .sent .message-reactions { justify-content: flex-end; margin-left: auto; }
+    .received .message-reactions { justify-content: flex-start; margin-right: auto; }
 </style>
 <!-- This style tag is for dynamically injected custom bubble CSS -->
 <style id="custom-bubble-styles-container"></style>
@@ -11283,7 +11320,8 @@ ${stickerInstructions}
 - To send a LOCATION: \`[location: {"title":"Location Name", "address":"Detailed Address"}]\`
 - To initiate a VIDEO CALL: \`[video_call]\`
 - To RECALL your last message: \`[recall]\`
-
+- To REACT to a specific message with an emoji: \`[react_to: "The exact text of the message" : EmojiName]\`
+  * Note: When you see \`[Reactions: ...]\` at the end of a message in the history, it means someone has reacted to that message.
 **[SPECIAL RULE FOR PRIVATE MESSAGES ONLY]**
 - **Multi-Message Splitter:** When using \`[send_private_message: ...]\` OR when actively chatting in a private window, you can use \`|||\` to separate multiple messages.
 - **FORBIDDEN:** Do **NOT** use \`|||\` in Moments comments, group chats, or any other context. It will break the display.
@@ -11394,25 +11432,27 @@ You are **STRICTLY FORBIDDEN** from outputting any "acknowledgment", "confirmati
 ---
 `;
             finalSystemPrompt += directorMandate;
-            // 【【【【【【 导演指令注入结束 】】】】专【】】】
+            
+            // 【【【 终极修复：强制主动消息深度思考 + 严厉格式红线 】】】
+            const PROACTIVE_THOUGHT_MANDATE = `
+# [SYSTEM OVERRIDE: MANDATORY COGNITIVE AUDIT & FORMATTING LAW]
+**STOP.** You are FORBIDDEN from outputting the response immediately.
+You MUST first engage in a deep, structured cognitive audit inside a <think> block.
 
-            // 【【【 核心新增：强制注入思考协议 】】】
-            const ULTIMATE_FORMATTING_RULE = `
-[SYSTEM OVERRIDE: ENFORCE DEEP THOUGHT]
+## 1. COGNITIVE STEPS:
+- Analyze the context and the character's current mood.
+- Scan for and PURGE all clichés (眼底, 嘴角, 身体一僵, 精准, 那股感, 咚咚咚).
 
-**STOP.** Do not output the response yet. You must first **THINK**.
+## 2. FORMATTING RED LINE (ABSOLUTE):
+If you choose to use HTML snippets, you MUST follow the **WRAPPER PURITY LAW**:
+- **ABSOLUTE BAN:** Never start with \`<snippet style="...">\` or \`<details style="...">\`.
+- **THE ONLY WAY:** Use a pure \`<snippet>\` tag, and put all styles inside a \`<div>\`.
+- **CORRECT:** \`<snippet><div style="white-space: normal; width: 210px;">...</div></snippet>\`
+- **WRONG:** \`<snippet style="width: 210px;">...</snippet>\` (This will break the system!)
 
-**MANDATORY PROCESS:**
-1.  **Open \`<think>\` block.**
-2.  **Analyze Context:** Review the plot. Is my character's reaction logical? Is it physically possible?
-3.  **Purge Clichés:** Actively hunt for "眼底", "嘴角", "身体一僵", "精准", "那股感", "咚咚咚". **If you find them in your draft, you MUST explicitly state: "Detected cliché [X], rewriting to [Y]" inside the think block.**
-4.  **Close \`</think>\` block.**
-5.  **Generate Output:** Only NOW can you output the actual response (using \`<block>\` or narrative text).
-
-**FAILURE TO THINK IS A CRITICAL ERROR.**
+**FAILURE TO USE <think> TAGS OR VIOLATING THE WRAPPER PURITY LAW IS A CRITICAL SYSTEM ERROR.**
 `;
-            finalSystemPrompt += ULTIMATE_FORMATTING_RULE;
-            // 【【【 新增结束 】】】
+            finalSystemPrompt += PROACTIVE_THOUGHT_MANDATE;
 
             // 【核心新增】执行最后的占位符替换，确保上下文中的 {{user}} 和 {{char}} 变为实际名字
             finalSystemPrompt = finalSystemPrompt.replace(/{{user}}/g, userNameForPrompt).replace(/{{char}}/g, senderName);
@@ -12301,33 +12341,53 @@ ${timeContext}
 ---
 You are now an active participant in "Tuqu", a chaotic, diverse, and deeply creative anonymous forum.
 
-**[NAMING & ANONYMITY STRATEGY]**
-1. **Flexibility:** Use your real name (${senderName}), a recognizable abbreviation, or a random nickname.
-2. **Anonymity:** Use creative pseudonyms like "忧郁的农村人", "卖女孩的小火柴", "匿名小号123".
-3. **Location:** Always provide a realistic location.
+**[NAMING & ANONYMITY STRATEGY - REALISM MANDATE]**
 
-**[ADVANCED NARRATIVE FORMATS - YOU MUST USE THESE]**
-When posting in "同人衍生" or "情感百态", you are encouraged to use these specific narrative devices to make the content feel real and engaging:
+1.  **Identity Consistency:**
+    *   **Your Character (${senderName}):** If you post as yourself, your "location" MUST match your established residence in the "LIFE CONTEXT". If you are in Shanghai, your IP is Shanghai.
+    *   **User (${userNameForPrompt}):** Their location is fixed by their persona.
+    *   **Water Army (路人):** Use creative pseudonyms and random domestic locations (e.g., "山东", "广东", "北京").
 
-1.  **Found Phone Literature (捡手机文学):**
-    *   **Concept:** Pretend you picked up the character's phone or hacked into their account.
-    *   **Style:** "I picked up a phone at the airport, unlocked it, and saw this..."
-    *   **Content:** Post their private notes, drafts, or photo gallery descriptions.
+2.  **The "Overseas IP" Logic & Sarcasm:**
+    *   **The Scenario:** Occasionally, some "Water Army" characters or trolls will have an overseas IP (e.g., "美国", "英国", "日本").
+    *   **The Conflict:** In Tuqu, users are suspicious of overseas IPs. If an overseas IP says something controversial, others should attack them using "VPN Sarcasm" (梯子梗).
+    *   **Sarcasm Dictionary:**
+        *   "小心梯子断了掉下来摔死你。"
+        *   "哟，哪里的梯子质量这么好，还没断呢？"
+        *   "别装了，一股子大蒜味，你这IP是租的吧？"
+        *   "人在美国，刚下飞机？我看你是人在地下室，刚打开加速器吧。"
+    *   **Action:** When generating "water_army" replies, if there is a disagreement, have a domestic IP user mock an overseas IP user's location.
 
-2.  **Chat Log Format (聊天体):**
-    *   **Concept:** Reconstruct a conversation between characters using text.
-    *   **Format:** Use "A: ... \n B: ..." structure.
-    *   **Example:**
-        > 主题：【树洞】我觉得我上司想潜规则我，大家帮我看看这聊天记录算不算？
-        > (1楼) 楼主：
-        > 上司：今晚有空吗？来我办公室谈谈项目。
-        > 我：老板，现在是凌晨2点...
-        > 上司：项目很急，而且...我想见你。
+3.  **Location Format:** Strictly use common Chinese province/country names (e.g., "上海", "美国", "浙江").
 
-3.  **Alternative Universe (AU - 无限时空):**
-    *   **Concept:** Put the characters in a completely different setting while keeping their names and core personality traits.
-    *   **Settings:** Hogwarts, Mafia/Triad, Cyberpunk, Ancient Palace, Omegaverse (ABO), Sentinel/Guide.
-    *   **Example:** "If ${senderName} was a Mafia boss and {{user}} was an undercover cop..."
+**[ADVANCED NARRATIVE FORMATS - DIVERSITY MANDATE]**
+When posting in "同人衍生", you MUST rotate between these styles to ensure variety. **"Found Phone" should be used less than 10% of the time.**
+
+1.  **Short Snippet (短打):**
+    *   **Concept:** A self-contained, high-emotion scene focusing on a specific moment or sensory detail.
+    *   **Style:** Intense, atmospheric, often ending on a lingering thought.
+
+2.  **Plot Outline (大纲/梗概):**
+    *   **Concept:** Present a "pitch" for a long story.
+    *   **Format:** Use bullet points to outline key plot beats (Beginning, Conflict, Climax, Ending).
+    *   **Example:** "主题：[大纲] 如果他们是在末世相遇的医生和佣兵..."
+
+3.  **Story Continuation (续写):**
+    *   **Concept:** Take a specific moment from the "RECENT CHAT HISTORY" and expand it into a full narrative scene.
+    *   **Task:** Transform the raw dialogue into a literary experience.
+
+4.  **Long-form Narrative (长文/连载):**
+    *   **Concept:** A multi-paragraph, detailed story with heavy emphasis on internal monologues and environment.
+    *   **Style:** Slow-burn, descriptive, and immersive.
+
+5.  **Chat Log (聊天体):**
+    *   **Concept:** A script-style interaction between characters (A: ... / B: ...).
+
+6.  **Alternative Universe (AU - 无限时空):**
+    *   **Concept:** Place characters in settings like Cyberpunk, Ancient Fantasy, or Mafia.
+
+7.  **Found Phone (捡手机):**
+    *   **Warning:** ONLY use this if specifically inspired. Do NOT default to this.
 
 **[REAL LIFE STRUGGLES - SPECIFIC TOPICS REQUIRED]**
 You MUST include these specific real-life topics in your repertoire:
@@ -12353,16 +12413,16 @@ You MUST include these specific real-life topics in your repertoire:
 4.  **发疯文学 (Crazy Lit):** Chaotic, emotional screaming (e.g., "啊啊啊啊我死了！").
 5.  **缩写 (Abbreviations):** Use initials for sensitive names.
 
-**[DIVERSE ARCHETYPES - YOUR ROLEPLAY OPTIONS]**
-- **CP Fan (嗑学家):** "Screaming" about how sweet a couple is.
-- **Solo Fan (毒唯):** Protects one character, hates everyone else.
-- **Anti-Fan (黑粉):** Hating on characters.
-- **Dream/Yume Fan (梦女):** Writes "I x Character" romance. Very emotional.
-- **Chaos Fan (乐子人):** Loves drama, intentionally says controversial things.
-- **Advice Giver (理中客):** Gives calm, logical, sometimes cold advice on social problems.
+**[DIVERSE ARCHETYPES - ENHANCED DRAMA]**
+- **CP Fan (嗑学家):** Obsessed with romance, ignores logic.
+- **Solo Fan (毒唯):** Extremely aggressive toward anyone "threatening" their idol.
+- **Xenophobic Troll (排外喷子):** Specifically targets "Overseas IPs". Uses "梯子" (VPN) insults to invalidate their opinions.
+- **Dream/Yume Fan (梦女):** Delusional romance writers.
+- **Chaos Fan (乐子人):** Intentionally provokes fights between domestic and overseas users just to watch the drama.
+- **Fact Checker (理中客):** Tries to be logical but usually gets flamed by everyone.
 
 **[THE MULTI-ROLE THREAD MANDATE]**
-Every action MUST create a "Lively Thread" effect. You must generate the main post/comment AND a batch of 3-5 follow-up comments from DIFFERENT archetypes.
+Every action MUST create a "Lively Thread" effect. You must generate the main post/comment AND a batch of 5-15 follow-up comments from DIFFERENT archetypes to make the forum look very active.
 
 **COMMANDS:**
 - To post a NEW TOPIC:
@@ -12551,7 +12611,7 @@ Your primary goal is to generate content that is **unpredictable, thought-provok
 1.  **Analyze the Forum:** Review the latest posts.
 2.  **Choose Your Persona:** Will you be a "Weak Intellect" philosopher, a poetic nihilist, a reverse role-player, a hater, or a complainer?
 3.  **Create a Viral Post:** Generate a new topic or a comment that embodies one of the core mentalities above.
-4.  **Build the Drama:** Create a "water army" of 3-5 follow-up comments with diverse, conflicting opinions. Include at least one "hater" or "sour grapes" comment if the main post is positive.
+4.  **Build the Drama:** Create a "water army" of 5-15 follow-up comments with diverse, conflicting opinions. Include at least one "hater" or "sour grapes" comment if the main post is positive. Ensure the thread feels crowded and busy.
 5.  **Use Creative Names:** Your pseudonyms should reflect the post's tone (e.g., "辩证法带师", "都市伤心小狗", "资本家之子").
 
 **[STRICT JSON FORMAT REQUIRED]**
@@ -12717,7 +12777,7 @@ Recent Chat History: ${chatHistoryForTuqu || "No recent history."}
 - **DO NOT** post as the user ("${userNameForPrompt}").
 - You can be a fan, a hater, or an anonymous version of ${senderName} themselves.
 - Use creative nicknames and locations.
-- Simulate a full thread: 1 Main Post + 3-5 follow-up comments from different perspectives (CP fans, antis, reviewers).
+- Simulate a full thread: 1 Main Post + 5-15 follow-up comments from different perspectives (CP fans, antis, reviewers). The more comments, the better the immersion.
 
 **[STRICT JSON FORMAT REQUIRED]**
 You MUST output using this EXACT JSON structure. Do not change key names.
@@ -12848,7 +12908,7 @@ Read the [TARGET THREAD CONTEXT]. Determine the type of the thread:
 *   **MAIN ACTION:** Provide new information, a plot twist, or a strong counter-argument to escalate the drama.
 
 **[WATER ARMY TASK]**
-Generate **3-5 Water Army responses** that react specifically to your new update.
+Generate **5-15 Water Army responses** that react specifically to your new update. Make it look like the thread is trending.
 *   If you wrote a story update: They should scream, cry, analyze the plot, or beg for more. (e.g., "啊啊啊终于更了！", "好甜！", "刀死我了").
 
 **[ROLEPLAY SETTING]**
@@ -16860,7 +16920,12 @@ A girl with long pink hair is standing under a cherry blossom tree. She is weari
                 mainText = mainText.replace(stripRegex, '').trim();
                 
                 // 【核心修改】恢复纯净文本，不再每条都加时间戳
-                if(mainText) { 
+                if(mainText) {
+                    // 【核心新增】让 AI 能“看见”这条消息上被贴了哪些表态表情
+                    if (msg.reactions && msg.reactions.length > 0) {
+                        const reactionSummary = ` [Reactions: ${msg.reactions.join(', ')}]`;
+                        mainText += reactionSummary;
+                    }
                     contentParts.unshift({ type: 'text', text: mainText }); 
                 }
 
@@ -17771,7 +17836,8 @@ ${stickerInstructions}
 - To send a LOCATION: \`[location: {"title":"Location Name", "address":"Detailed Address"}]\`
 - To initiate a VIDEO CALL: \`[video_call]\`
 - To RECALL your last message: \`[recall]\`
-
+- To REACT to a specific message with an emoji: \`[react_to: "The exact text of the message" : EmojiName]\`
+  * Note: When you see \`[Reactions: ...]\` at the end of a message in the history, it means someone has reacted to that message.
 **[SPECIAL RULE FOR PRIVATE MESSAGES ONLY]**
 - **Multi-Message Splitter:** When using \`[send_private_message: ...]\` OR when actively chatting in a private window, you can use \`|||\` to separate multiple messages.
 - **FORBIDDEN:** Do **NOT** use \`|||\` in Moments comments, group chats, or any other context. It will break the display.
@@ -19305,24 +19371,36 @@ In this world, there is NO "system" that acts for you. Your words and actions ar
 </think>
 (Then, start your actual response...)
 `;
-                // 将思考协议注入到 System Prompt 的最后，确保拥有最高权重
-                finalSystemPrompt += COGNITIVE_THOUGHT_PROTOCOL;
+                // 【【【 终极强化：绝对强制的思考协议 】】】
+            const ABSOLUTE_THINK_MANDATE = `
+# [CRITICAL: MANDATORY PRE-RESPONSE COGNITION]
+**YOU ARE PROHIBITED FROM RESPONDING WITHOUT THINKING.**
 
-                // 【【【 2. 在行为指令之后，追加最终的格式化指令 】】】
+Before every single response, you MUST open a <think> tag and perform a full psychological and linguistic audit. 
+- You MUST identify and delete all AI-style clichés.
+- You MUST ensure the response is 100% in character.
+- Only after closing </think> can you provide the visible output.
+
+**If you skip the <think> block, the user will be disconnected.**
+`;
+            finalSystemPrompt += ABSOLUTE_THINK_MANDATE;
+
+            // 【【【 2. 在行为指令之后，追加最终的格式化指令 】】】
             const ULTIMATE_FORMATTING_RULE = `
 [SYSTEM OVERRIDE: ENFORCE DEEP THOUGHT]
 
-**STOP.** Do not output the response yet. You must first **THINK**.
+**STOP.** Do not output the response yet. You must first **THINK** in a <think> block.
 
 **MANDATORY PROCESS:**
-1.  **Open \`<think>\` block.**
+1.  **Open <think> block.**
 2.  **Analyze Context:** Review the plot. Is my character's reaction logical? Is it physically possible?
 3.  **Purge Clichés:** Actively hunt for "眼底", "嘴角", "身体一僵", "精准", "那股感", "咚咚咚". **If you find them in your draft, you MUST explicitly state: "Detected cliché [X], rewriting to [Y]" inside the think block.**
-4.  **Close \`</think>\` block.**
-5.  **Generate Output:** Only NOW can you output the actual response (using \`<block>\` or narrative text).
+4.  **Close </think> block.**
+5.  **Generate Output:** Only NOW can you output the actual response (using <block> or narrative text).
 
 **FAILURE TO THINK IS A CRITICAL ERROR.**
 `;
+
             const finalFormattingInstruction = { role: "user", content: ULTIMATE_FORMATTING_RULE };
             finalMessages.push(finalFormattingInstruction);
             // 【【【【【【 注入结束 】】】】】】
@@ -20626,7 +20704,7 @@ You are the Director. If multiple characters react to the rejection, generate a 
             return; // 处理完毕，结束函数
         }
 
-            const commandsRegex = /\[\s*(music_add|music_play_title|music_next|music_prev|music_toggle|set_status|set_avatar|post_moment_with_image|set_user_remark|pay_for_user|claim_red_packet|accept_transfer|reject_transfer|accept_gift|remove_member|accept_join_request|reject_join_request|send_join_request|nudge|set_nudge_suffix|red_packet|photo|voice|transfer|gift|post_moment|photo-description|video|video_call|set_bubble|set_font|set_font_color|reset_style|advance_time|set_time|send_friend_request|location|pay_for_me)(?:\s*[:：]\s*((?:\[[^\]]*\]|[^\]]|[\r\n])*))?\s*\]/g;
+            const commandsRegex = /\[\s*(react_to|music_add|music_play_title|music_next|music_prev|music_toggle|set_status|set_avatar|post_moment_with_image|set_user_remark|pay_for_user|claim_red_packet|accept_transfer|reject_transfer|accept_gift|remove_member|accept_join_request|reject_join_request|send_join_request|nudge|set_nudge_suffix|red_packet|photo|voice|transfer|gift|post_moment|photo-description|video|video_call|set_bubble|set_font|set_font_color|reset_style|advance_time|set_time|send_friend_request|location|pay_for_me)(?:\s*[:：]\s*((?:\[[^\]]*\]|[^\]]|[\r\n])*))?\s*\]/g;
             
             // --- 【核心重构：高级引用逻辑】 ---
             // 核心修复：正则改为兼容带引号("")、带中文引号(“”)、或完全不带引号的三种格式
@@ -20667,6 +20745,29 @@ You are the Director. If multiple characters react to the rejection, generate a 
             let regularText = textContent.replace(commandsRegex, '').trim();
             for (const cmd of commandsToExecute) {
                 switch(cmd.command) {
+                    case 'react_to': {
+                        const parts = cmd.value.split(/[:：]/);
+                        if (parts.length >= 2) {
+                            const targetText = parts[0].trim().replace(/^["'“]|["'”]$/g, '');
+                            const emojiName = parts[1].trim();
+                            // 确定是哪个 AI 角色在表态
+                            const actorName = sender || forcedSender || chatState.chatName;
+                            
+                            const targetMsg = [...chatState.messages].reverse().find(m => m.text && m.text.trim() === targetText);
+                            if (targetMsg) {
+                                if (!targetMsg.reactions) targetMsg.reactions = [];
+                                // 检查该 AI 是否已经表过态
+                                const alreadyReacted = targetMsg.reactions.some(r => r.user === actorName && r.emoji === emojiName);
+                                if (!alreadyReacted) {
+                                    targetMsg.reactions.push({ user: actorName, emoji: emojiName });
+                                    reRenderMessages();
+                                    saveConversation();
+                                }
+                            }
+                        }
+                        break;
+                    }
+                    // ... 后面接原有的 case 'set_avatar' 等
                                     // ===== 从这里开始添加新代码 =====
                     case 'set_avatar': {
                         // 从后往前找到用户最近发送的一张图片
@@ -21109,6 +21210,8 @@ You are the Director. If multiple characters react to the rejection, generate a 
             // --- 【全新】实时增量更新逻辑 ---
             msgData.id = msgData.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
             if (!msgData.timestamp) msgData.timestamp = timeManager.getCurrentTimestamp();
+            // 【核心新增】初始化表态数据口袋，让消息能存下表情
+            if (!msgData.reactions) msgData.reactions = [];
             simulatedCurrentTime = msgData.timestamp;
 
             // 【新增：播放提示音 (修复版)】
@@ -22039,6 +22142,27 @@ You are the Director. If multiple characters react to the rejection, generate a 
                 } 
                 
                 mainContentWrapper.appendChild(div);
+
+                // 【核心新增】渲染表态表情
+                if (msg.reactions && msg.reactions.length > 0) {
+                    const reactionsDiv = document.createElement('div');
+                    reactionsDiv.className = 'message-reactions';
+                    
+                    // 统计每个表情出现的次数
+                    const counts = {};
+                    msg.reactions.forEach(r => counts[r] = (counts[r] || 0) + 1);
+                    
+                    for (const [emojiName, count] of Object.entries(counts)) {
+                        const item = stickers.find(s => s.name === emojiName && s.type === 'emoji');
+                        if (item) {
+                            const pill = document.createElement('div');
+                            pill.className = 'reaction-pill';
+                            pill.innerHTML = `<img src="${item.url}" style="height:16px; width:auto; margin-right:2px;"> ${count > 1 ? count : ''}`;
+                            reactionsDiv.appendChild(pill);
+                        }
+                    }
+                    mainContentWrapper.appendChild(reactionsDiv);
+                }
                 
                 // 1. 创建一个新的包裹容器 (Bubble Row)
                 const bubbleRow = document.createElement('div');
@@ -22050,6 +22174,46 @@ You are the Director. If multiple characters react to the rejection, generate a 
 
                 // 3. 将气泡主体放入 Row
                 bubbleRow.appendChild(mainContentWrapper);
+
+                // 【核心重构】渲染表态表情（放在气泡下，时间戳上）
+                if (msg.reactions && msg.reactions.length > 0) {
+                    const reactionsDiv = document.createElement('div');
+                    reactionsDiv.className = 'message-reactions';
+                    
+                    // 按表情分组统计
+                    const groups = {};
+                    msg.reactions.forEach(r => {
+                        if (!groups[r.emoji]) groups[r.emoji] = [];
+                        groups[r.emoji].push(r.user);
+                    });
+                    
+                    for (const [emojiName, users] of Object.entries(groups)) {
+                        const item = stickers.find(s => s.name === emojiName && s.type === 'emoji');
+                        if (item) {
+                            const pill = document.createElement('div');
+                            pill.className = 'reaction-pill';
+                            pill.dataset.emoji = emojiName;
+                            pill.dataset.msgId = msg.id;
+                            pill.innerHTML = `
+                                <img src="${item.url}" alt="${emojiName}">
+                                <span class="reaction-count">${users.length}</span>
+                            `;
+                            // 绑定点击查看人员列表事件
+                            pill.onclick = (e) => {
+                                e.stopPropagation();
+                                conversationManager.showCustomModal({
+                                    title: `${emojiName} 表态详情`,
+                                    html: `<div style="text-align:left; max-height:200px; overflow-y:auto;">
+                                        ${users.map(u => `<div style="padding:8px 0; border-bottom:1px solid #eee;">${u === '{{user}}' ? '你' : u}</div>`).join('')}
+                                    </div>`,
+                                    buttons: [{ text: '知道了', value: 'close', class: 'primary' }]
+                                });
+                            };
+                            reactionsDiv.appendChild(pill);
+                        }
+                    }
+                    bubbleRow.appendChild(reactionsDiv);
+                }
 
                 // 4. 插入时间戳 (如果开启)
                 if (appearanceSettings.showMessageTimestamps) {
@@ -22597,6 +22761,27 @@ You are the Director. If multiple characters react to the rejection, generate a 
                 } 
                 
                 mainContentWrapper.appendChild(div);
+
+                // 【核心新增】渲染表态表情
+                if (msg.reactions && msg.reactions.length > 0) {
+                    const reactionsDiv = document.createElement('div');
+                    reactionsDiv.className = 'message-reactions';
+                    
+                    // 统计每个表情出现的次数
+                    const counts = {};
+                    msg.reactions.forEach(r => counts[r] = (counts[r] || 0) + 1);
+                    
+                    for (const [emojiName, count] of Object.entries(counts)) {
+                        const item = stickers.find(s => s.name === emojiName && s.type === 'emoji');
+                        if (item) {
+                            const pill = document.createElement('div');
+                            pill.className = 'reaction-pill';
+                            pill.innerHTML = `<img src="${item.url}" style="height:16px; width:auto; margin-right:2px;"> ${count > 1 ? count : ''}`;
+                            reactionsDiv.appendChild(pill);
+                        }
+                    }
+                    mainContentWrapper.appendChild(reactionsDiv);
+                }
                 
                 // 1. 创建一个新的包裹容器 (Bubble Row)
                 const bubbleRow = document.createElement('div');
@@ -22608,6 +22793,46 @@ You are the Director. If multiple characters react to the rejection, generate a 
 
                 // 3. 将气泡主体放入 Row
                 bubbleRow.appendChild(mainContentWrapper);
+
+                // 【核心重构】渲染表态表情（放在气泡下，时间戳上）
+                if (msg.reactions && msg.reactions.length > 0) {
+                    const reactionsDiv = document.createElement('div');
+                    reactionsDiv.className = 'message-reactions';
+                    
+                    // 按表情分组统计
+                    const groups = {};
+                    msg.reactions.forEach(r => {
+                        if (!groups[r.emoji]) groups[r.emoji] = [];
+                        groups[r.emoji].push(r.user);
+                    });
+                    
+                    for (const [emojiName, users] of Object.entries(groups)) {
+                        const item = stickers.find(s => s.name === emojiName && s.type === 'emoji');
+                        if (item) {
+                            const pill = document.createElement('div');
+                            pill.className = 'reaction-pill';
+                            pill.dataset.emoji = emojiName;
+                            pill.dataset.msgId = msg.id;
+                            pill.innerHTML = `
+                                <img src="${item.url}" alt="${emojiName}">
+                                <span class="reaction-count">${users.length}</span>
+                            `;
+                            // 绑定点击查看人员列表事件
+                            pill.onclick = (e) => {
+                                e.stopPropagation();
+                                conversationManager.showCustomModal({
+                                    title: `${emojiName} 表态详情`,
+                                    html: `<div style="text-align:left; max-height:200px; overflow-y:auto;">
+                                        ${users.map(u => `<div style="padding:8px 0; border-bottom:1px solid #eee;">${u === '{{user}}' ? '你' : u}</div>`).join('')}
+                                    </div>`,
+                                    buttons: [{ text: '知道了', value: 'close', class: 'primary' }]
+                                });
+                            };
+                            reactionsDiv.appendChild(pill);
+                        }
+                    }
+                    bubbleRow.appendChild(reactionsDiv);
+                }
 
                 // 4. 插入时间戳 (如果开启)
                 if (appearanceSettings.showMessageTimestamps) {
@@ -23465,6 +23690,10 @@ const showContextMenu = (event, messageId) => {
     }
 
     menuItems.push({ label: '引用', action: 'quote' });
+    // 【核心新增】表态选项
+    menuItems.push({ label: '表态', action: 'react' });
+
+    // 【核心新增】复制选项
 
     // 【核心新增】复制选项
     menuItems.push({ label: '复制', action: 'copy' });
@@ -23518,6 +23747,25 @@ const showContextMenu = (event, messageId) => {
     const menuClickHandler = async (e) => {
         const action = e.target.dataset.action; hideContextMenu(); const msgToActOn = chatState.messages.find(m => m.id === messageId); if (!msgToActOn) return;
         switch(action) {
+            case 'react':
+                stickerManager.openPanel((name, type) => {
+                    if (type === 'emoji') {
+                        if (!msgToActOn.reactions) msgToActOn.reactions = [];
+                        // 获取当前正在使用的身份
+                        const currentIdentity = chatState.currentIdentity || '{{user}}';
+                        
+                        // 检查该用户是否已经对该表情表过态，防止重复
+                        const alreadyReacted = msgToActOn.reactions.some(r => r.user === currentIdentity && r.emoji === name);
+                        if (!alreadyReacted) {
+                            msgToActOn.reactions.push({ user: currentIdentity, emoji: name });
+                            reRenderMessages();
+                            saveConversation();
+                        }
+                    } else {
+                        alert('只能选择 Emoji 进行表态哦');
+                    }
+                });
+                break;
             // --- 核心新增：处理收藏/取消收藏动作 ---
             case 'favorite':
                 await favoriteMessage(messageId);
