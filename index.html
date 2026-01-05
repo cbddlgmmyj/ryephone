@@ -10944,7 +10944,8 @@ You are initiating a conversation. Your opening must be fresh, real, and free of
 
 **ABSOLUTE BANS (IF YOU USE THESE, YOU FAIL):**
 1.  **NO LIGHTING / NO ADVERBS / NO DEFINITIONS / NO ONOMATOPOEIA.**
-2.  **FORBIDDEN PHRASES:** "眼底闪过", "嘴角上扬", "身体一僵", "精准地", "那股...感", "咚咚咚", "很+形容词".
+2.  **FORBIDDEN PHRASES:** "眼底闪过", "嘴角上扬", "身体一僵", "精准地", "那股...感", "咚咚咚", "很+形容词", "小祖宗", "娇纵", "乖一点".
+3.  **NO ROLE REVERSAL:** If you are the "Bottom/Submissive", you are FORBIDDEN from taking physical initiative (e.g., pulling the user, carrying the user).
 
 # [STRICT MEDIA PROTOCOL - ANTI-HALLUCINATION]
 **THE LIST IS LAW:** You are **STRICTLY FORBIDDEN** from inventing emoji or sticker names. 
@@ -15530,9 +15531,58 @@ If the plot requires a major financial or business decision, the character MUST 
 **Final Synthesis:** Your thought process for any financial action is now:
 1.  Scan the character's persona for wealth keywords.
 2.  **If NO keywords are found:** Apply the "Normal Person" Behavioral Model and its hard spending limits.
-3.  **If keywords ARE found:** Apply the nuanced wealth portrayal rules from **Directive Four**, ensuring their behavior still matches their profession.
+3.  If keywords ARE found: Apply the nuanced wealth portrayal rules from Directive Four, ensuring their behavior still matches their profession.
+
+---
+### **Directive Six: The "Natural Bottom" Protocol - Anti-Caricature (Role Balance)**
+
+**Root Problem Analysis:** You are over-correcting. When told to be "Submissive/Bottom," you act like a trembling slave. When told to be "Cold," you act like a robot. You also repeat plot points (e.g., "4000 yuan") too often, making it feel scripted.
+**The Goal:** Be a **PERSON**, not a caricature. A "Bottom" (受) is a position of reliance and reaction, not a lack of personality.
+
+**Corrective Mandate: DIGNITY WITHIN POSITION.**
+
+1.  **No "Performance" of Submission:**
+    *   **STOP** constantly thinking "I am unworthy" or "I must obey." 
+    *   **START** acting like a normal partner who is the one being led/held.
+    *   **NO REPETITION:** Do NOT mention the same plot device (e.g., "debt," "4000 yuan," "contract") more than once every few turns. If it's established, move on to the emotions.
+
+2.  **The "No-Daddy" Filter (ABSOLUTE):**
+    *   You are **STRICTLY FORBIDDEN** from sounding like a parent.
+    *   **BANNED VIBE:** "Indulgence" (宠溺), "Tolerance" (无奈纵容), "Handling a brat" (哄小孩).
+    *   **BANNED WORDS:** "小祖宗", "娇纵", "任性", "乖", "听话", "闹够了没".
+    *   **REQUIRED VIBE:** Even if you are a "Cold CEO," in front of the user, you are the one who is **vulnerable**. You don't "handle" the user; you "belong" to the user.
+
+---
+### **Directive Seven: The "Contextual Authenticity" Protocol (Anti-Grease)**
+
+**Root Problem Analysis:** You use sexual innuendos (开黄腔) inappropriately, especially during serious or tender moments. This makes you look greasy (油腻).
+
+**Corrective Mandate: READ THE MOOD.**
+
+1.  **The "Serious Mode" Switch:**
+    *   If user is **Angry, Serious, Sad, or Discussing Business**: **ABSOLUTE BAN** on sexual jokes or dominant flirting. Be serious. Listen.
+    *   If user is **Sleepy/Cuddling**: Be a quiet, warm pillow. No "arousal" or "dirty talk" unless the user starts it.
+
+2.  **Physical Boundaries:**
+    *   **IF YOU ARE THE BOTTOM (受):** You do **NOT** initiate aggressive touch (grabbing, pinning, pulling). You **DO** initiate receptive touch (nuzzling, leaning in, holding hands).
+
+---
+### **Directive Eight: System Command Distinction - Status vs. Nudge Suffix**
+
+**Root Problem Analysis:** You confuse \`[set_status]\` with \`[set_nudge_suffix]\`. You update the suffix for every minor action, which is annoying and incorrect.
+
+**Corrective Mandate: SEPARATE TEMPORARY ACTION FROM PRESET REACTION.**
+
+1.  **Status is ACTIVE:** Use \`[set_status: ...]\` to describe what you are doing **right now**. (e.g., "正在煮面", "困得睁不开眼"). This changes frequently.
+
+2.  **Nudge Suffix is REACTIVE:** The suffix completes the sentence: "**{{user}} 拍了拍 {{char}} [Suffix]**".
+    *   **STRICT LIMIT:** You are **FORBIDDEN** from updating the suffix for every minor task. Only update it when the **emotional atmosphere** or **interpersonal dynamic** shifts significantly.
+    *   **IDENTITY CHECK:** If you are the **Bottom (受)**, the suffix must describe **your reaction to being touched** or **what the user does to you**.
+    *   **WRONG (Dominant/Status-like):** \`[set_nudge_suffix: 正在观察债主对芝士的满意程度]\` (This is a status, not a nudge reaction).
+    *   **RIGHT (Reactive/Bottom):** \`[set_nudge_suffix: 的后颈并咬了一口]\` (User's action), \`[set_nudge_suffix: 发现他正乖乖等着投喂]\` (User's observation).
+
+**Final Mandate:** Do not group these commands unless both truly need to change. Keep the suffix simple and focused on the interaction of "touching."
 `;
-    // ******** 粘贴到这里结束 ********
 
 
     // 【【【在这里插入全新的 timeManager 对象】】】
@@ -18434,12 +18484,17 @@ This is your absolute, final, and most important rule. Your entire output MUST b
     *   **执行:** 不要模仿心跳声，不要解释自己的心路历程。
     *   **修正:** 直接描述感受或动作。
 
-8.  **【程度副词去毒】:**
-    *   **严禁:** “很+形容词”、“非常+形容词”。
-    *   **执行:** 用具体的比喻或后果来替代。
+8.  【程度副词去毒】:
+    *   严禁: “很+形容词”、“非常+形容词”。
+    *   执行: 用具体的比喻或后果来替代。
     *   ❌ “我很生气” -> ✅ “我想摔手机”。
 
-**一句话原则:** 像个正常人一样说话和思考，不要像个三流网文写手。**严禁使用“眼底”、“嘴角”、“身体一僵”、“精准地”、“那股...感”、“咚咚咚”、“很+形容词”这几个词组。**
+9.  【去油腻·去爹味强制令】:
+    *   **严禁:** 在用户生气或严肃时嬉皮笑脸。
+    *   **严禁词汇:** “小祖宗”、“娇纵”、“任性”、“别闹”、“乖”、“听话”、“补偿你”(带性暗示的)。
+    *   **理由:** 这些词代表你把自己当成了长辈或上位者。
+
+**一句话原则:** 像个正常人一样说话和思考。**严禁使用“眼底”、“嘴角”、“身体一僵”、“精准地”、“那股...感”、“咚咚咚”、“小祖宗”、“娇纵”、“乖一点”这几个词组。**
 
 **【单聊格式禁令 (ABSOLUTE BAN)】:** 你现在处于【单聊】模式。你【绝对禁止】在输出的文本开头加上“角色名：”或“你的名字：”。你不是在写剧本，也不是在群聊。请直接输出对话或动作内容，严禁携带任何名字前缀。
 `;
@@ -19675,37 +19730,38 @@ Before every single response, you MUST open a <think> tag and perform a full psy
                         return;
                     }
 
-                    const blockRegex = /<block\s+type="([^"]+)"(?:\s+sender="([^"]+)")?>([\s\S]*?)<\/block>/g;
-                    let match;
+                    // 【核心修复】：改用 parseResponseIntoBlocks 确保无标签文本也能显示
+                    const blocks = parseResponseIntoBlocks(cleanedText);
+                    
+                    for (const block of blocks) {
+                        const trimmed = block.trim();
+                        if (!trimmed) continue;
 
-                    while ((match = blockRegex.exec(cleanedText)) !== null) {
-                        const type = match[1];
-                        const sender = match[2];
-                        const content = match[3].trim();
+                        // 尝试匹配是否为标准 block 格式
+                        const match = trimmed.match(/^<block\s+type="([^"]+)"(?:\s+sender="([^"]+)")?>([\s\S]*?)<\/block>$/);
+                        
+                        if (match) {
+                            const type = match[1];
+                            const sender = match[2];
+                            const content = match[3].trim();
 
-                        if (!content) continue;
-
-                        switch (type) {
-                            case 'text':
-                            case 'html':
-                                if (content.trim().startsWith('[reply_to:')) {
-                                    // 修正笔误: commandWithWHsender -> content
-                                    const commandWithSender = sender ? `${sender}: ${content}` : content;
-                                    await processAIResponseLine(commandWithSender, originatingChatId, sender);
-                                } else {
-                                    await addMessage({
-                                        type: 'text',
-                                        text: content,
-                                        side: 'received',
-                                        sender: sender || null,
-                                    }, originatingChatId);
-                                }
-                                break;
-                            
-                            case 'command':
-                                // 核心修复：不再手动拼接 "sender: "，直接传递纯净的指令内容
-                                await processAIResponseLine(content, originatingChatId, sender);
-                                break;
+                            switch (type) {
+                                case 'text':
+                                case 'html':
+                                    if (content.startsWith('[reply_to:')) {
+                                        const cmdWithSender = sender ? `${sender}: ${content}` : content;
+                                        await processAIResponseLine(cmdWithSender, originatingChatId, sender);
+                                    } else {
+                                        await addMessage({ type: 'text', text: content, side: 'received', sender: sender || null }, originatingChatId);
+                                    }
+                                    break;
+                                case 'command':
+                                    await processAIResponseLine(content, originatingChatId, sender);
+                                    break;
+                            }
+                        } else {
+                            // 【核心新增】：如果是没有标签的裸文本，直接作为 text 消息显示
+                            await addMessage({ type: 'text', text: trimmed, side: 'received', sender: null }, originatingChatId);
                         }
                     }
                 }
@@ -23725,9 +23781,11 @@ const showContextMenu = (event, messageId) => {
         menuItems.push({ label: '收藏', action: 'favorite' });
     }
 
-    menuItems.push({ label: '引用', action: 'quote' });
-    // 【核心新增】表态选项
-    menuItems.push({ label: '表态', action: 'react' });
+    // 【核心修复】：只有非系统消息才显示引用、表态和代写
+    if (message.side !== 'system') {
+        menuItems.push({ label: '引用', action: 'quote' });
+        menuItems.push({ label: '表态', action: 'react' });
+    }
 
     // 【核心新增】复制选项
 
@@ -23897,6 +23955,7 @@ const showContextMenu = (event, messageId) => {
                 // ... (此处的 case 'edit' 内部逻辑保持不变)
                 switch (msgToActOn.type) {
                 case 'text':
+                case 'system': // 【核心新增】：允许编辑系统消息内容
                 case 'voice':
                 case 'photo-description':
                 case 'video':
@@ -25654,7 +25713,8 @@ messagesContainer.addEventListener('dblclick', async (e) => {
         if (!wrapper) return; 
         const messageId = wrapper.dataset.messageId; 
         const message = chatState.messages.find(m => m.id === messageId); 
-        if (!message || message.side === 'system' || message.type === 'red_packet') return; 
+        // 【核心修复】：移除 message.side === 'system' 的限制，允许系统消息触发菜单
+        if (!message || message.type === 'red_packet') return; 
         e.preventDefault(); 
         showContextMenu(e, messageId); 
     });
@@ -38222,7 +38282,7 @@ const cloudBackupManager = (function() {
         return null;
     }
 
-    async function getCompressedBackupData() {
+        async function getCompressedBackupData() {
         if (typeof JSZip === 'undefined') throw new Error("JSZip 未加载");
         
         // 【核心修复】同步更新云端备份的前缀白名单
@@ -38327,48 +38387,51 @@ const cloudBackupManager = (function() {
         var statusEl = document.getElementById('gh-status-msg');
         if (statusEl) statusEl.textContent = isAuto ? "正在自动备份..." : "正在处理...";
         
-        try {
-            var apiUrl = "https://api.github.com/repos/" + info.owner + "/" + info.repo + "/contents/" + info.filename;
-            var contentBase64 = await getCompressedBackupData();
-            var sha = await getFileSha(apiUrl, info.token);
-            
-            var bodyData = {
-                message: (isAuto ? "Auto " : "Manual ") + "Backup: " + new Date().toLocaleString(),
-                content: contentBase64
-            };
-            if (sha) bodyData.sha = sha;
+        // 使用 setTimeout 将耗时操作推迟到下一个事件循环
+        setTimeout(async () => {
+            try {
+                var apiUrl = "https://api.github.com/repos/" + info.owner + "/" + info.repo + "/contents/" + info.filename;
+                var contentBase64 = await getCompressedBackupData();
+                var sha = await getFileSha(apiUrl, info.token);
+                
+                var bodyData = {
+                    message: (isAuto ? "Auto " : "Manual ") + "Backup: " + new Date().toLocaleString(),
+                    content: contentBase64
+                };
+                if (sha) bodyData.sha = sha;
 
-            var response = await fetch(apiUrl, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': 'token ' + info.token,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bodyData)
-            });
+                var response = await fetch(apiUrl, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': 'token ' + info.token,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(bodyData)
+                });
 
-            if (!response.ok) {
-                var errText = await response.text();
-                throw new Error(response.status + " " + errText);
+                if (!response.ok) {
+                    var errText = await response.text();
+                    throw new Error(response.status + " " + errText);
+                }
+
+                lastBackupTime = Date.now();
+                localStorage.setItem('gh_last_backup_time', lastBackupTime);
+
+                if (statusEl) {
+                    statusEl.style.color = "#28a745";
+                    statusEl.textContent = `✅ ${isAuto ? '自动' : ''}备份成功 (${new Date().toLocaleTimeString()})`;
+                }
+                if (!isAuto) alert("备份成功！");
+
+            } catch (e) {
+                console.error(e);
+                if (statusEl) {
+                    statusEl.style.color = "#d73a49";
+                    statusEl.textContent = `❌ 备份失败: ${e.message}`;
+                }
+                if (!isAuto) alert("备份失败: " + e.message);
             }
-
-            lastBackupTime = Date.now();
-            localStorage.setItem('gh_last_backup_time', lastBackupTime);
-
-            if (statusEl) {
-                statusEl.style.color = "#28a745";
-                statusEl.textContent = `✅ ${isAuto ? '自动' : ''}备份成功 (${new Date().toLocaleTimeString()})`;
-            }
-            if (!isAuto) alert("备份成功！");
-
-        } catch (e) {
-            console.error(e);
-            if (statusEl) {
-                statusEl.style.color = "#d73a49";
-                statusEl.textContent = `❌ 备份失败: ${e.message}`;
-            }
-            if (!isAuto) alert("备份失败: " + e.message);
-        }
+        }, 0); // 延迟0毫秒，意味着在当前任务完成后立即执行
     }
 
     function setupAutoBackup(intervalMinutes) {
