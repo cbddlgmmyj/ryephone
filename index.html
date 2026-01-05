@@ -38282,7 +38282,7 @@ const cloudBackupManager = (function() {
         return null;
     }
 
-        async function getCompressedBackupData() {
+    async function getCompressedBackupData() {
         if (typeof JSZip === 'undefined') throw new Error("JSZip 未加载");
         
         // 【核心修复】同步更新云端备份的前缀白名单
@@ -38387,51 +38387,48 @@ const cloudBackupManager = (function() {
         var statusEl = document.getElementById('gh-status-msg');
         if (statusEl) statusEl.textContent = isAuto ? "正在自动备份..." : "正在处理...";
         
-        // 使用 setTimeout 将耗时操作推迟到下一个事件循环
-        setTimeout(async () => {
-            try {
-                var apiUrl = "https://api.github.com/repos/" + info.owner + "/" + info.repo + "/contents/" + info.filename;
-                var contentBase64 = await getCompressedBackupData();
-                var sha = await getFileSha(apiUrl, info.token);
-                
-                var bodyData = {
-                    message: (isAuto ? "Auto " : "Manual ") + "Backup: " + new Date().toLocaleString(),
-                    content: contentBase64
-                };
-                if (sha) bodyData.sha = sha;
+        try {
+            var apiUrl = "https://api.github.com/repos/" + info.owner + "/" + info.repo + "/contents/" + info.filename;
+            var contentBase64 = await getCompressedBackupData();
+            var sha = await getFileSha(apiUrl, info.token);
+            
+            var bodyData = {
+                message: (isAuto ? "Auto " : "Manual ") + "Backup: " + new Date().toLocaleString(),
+                content: contentBase64
+            };
+            if (sha) bodyData.sha = sha;
 
-                var response = await fetch(apiUrl, {
-                    method: 'PUT',
-                    headers: {
-                        'Authorization': 'token ' + info.token,
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(bodyData)
-                });
+            var response = await fetch(apiUrl, {
+                method: 'PUT',
+                headers: {
+                    'Authorization': 'token ' + info.token,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(bodyData)
+            });
 
-                if (!response.ok) {
-                    var errText = await response.text();
-                    throw new Error(response.status + " " + errText);
-                }
-
-                lastBackupTime = Date.now();
-                localStorage.setItem('gh_last_backup_time', lastBackupTime);
-
-                if (statusEl) {
-                    statusEl.style.color = "#28a745";
-                    statusEl.textContent = `✅ ${isAuto ? '自动' : ''}备份成功 (${new Date().toLocaleTimeString()})`;
-                }
-                if (!isAuto) alert("备份成功！");
-
-            } catch (e) {
-                console.error(e);
-                if (statusEl) {
-                    statusEl.style.color = "#d73a49";
-                    statusEl.textContent = `❌ 备份失败: ${e.message}`;
-                }
-                if (!isAuto) alert("备份失败: " + e.message);
+            if (!response.ok) {
+                var errText = await response.text();
+                throw new Error(response.status + " " + errText);
             }
-        }, 0); // 延迟0毫秒，意味着在当前任务完成后立即执行
+
+            lastBackupTime = Date.now();
+            localStorage.setItem('gh_last_backup_time', lastBackupTime);
+
+            if (statusEl) {
+                statusEl.style.color = "#28a745";
+                statusEl.textContent = `✅ ${isAuto ? '自动' : ''}备份成功 (${new Date().toLocaleTimeString()})`;
+            }
+            if (!isAuto) alert("备份成功！");
+
+        } catch (e) {
+            console.error(e);
+            if (statusEl) {
+                statusEl.style.color = "#d73a49";
+                statusEl.textContent = `❌ 备份失败: ${e.message}`;
+            }
+            if (!isAuto) alert("备份失败: " + e.message);
+        }
     }
 
     function setupAutoBackup(intervalMinutes) {
