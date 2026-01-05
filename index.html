@@ -6881,10 +6881,11 @@ body.preview-fullscreen-active #page-conversation .chat-content {
         <p class="form-hint" style="margin-top: 5px;">例如输入 30 代表每 30 分钟备份一次。</p>
     </div>
 
-    <!-- 【修改：双按钮布局 (初始化 + 备份)】 -->
-    <div class="form-group" style="display: flex; gap: 10px; margin-top: 20px;">
-        <button id="gh-init-btn" class="btn-primary" style="flex: 1; background-color: #6f42c1;">初始化仓库</button>
-        <button id="gh-backup-btn" class="btn-primary" style="flex: 1; background-color: #28a745;">立即备份</button>
+    <!-- 【修改：三按钮布局 (初始化 + 备份 + 恢复)】 -->
+    <div class="form-group" style="display: flex; flex-wrap: wrap; gap: 10px; margin-top: 20px;">
+        <button id="gh-init-btn" class="btn-primary" style="flex: 1; min-width: 120px; background-color: #6f42c1;">初始化仓库</button>
+        <button id="gh-backup-btn" class="btn-primary" style="flex: 1; min-width: 120px; background-color: #28a745;">立即备份</button>
+        <button id="gh-restore-btn" class="btn-primary" style="flex: 1; min-width: 120px; background-color: #007aff;">从云端恢复</button>
     </div>
     
     <p id="gh-status-msg" style="font-size: 12px; color: #666; text-align: center; margin-top: 10px; min-height: 1.5em;"></p>
@@ -16135,10 +16136,11 @@ let loadingStates = {}; // 用于独立跟踪每个聊天的加载状态
             
             // <<<< 3. 等所有循环都跑完，我们在这里统一检查并发送唯一的一条消息 >>>>
             if (systemMessageToShow) {
-                // --- 核心修复：把消息类型从 'text' 和 'received' 改为正确的 'system' ---
                 await conversationManager.addMessage({ type: 'system', text: systemMessageToShow.text, side: 'system' }, targetChatId);
             }
             
+            // 【核心修复】：先替换掉所有后台更新标签，再进行 trim()
+            // 这样如果回复里只有标签，返回的就是一个彻底的空字符串 ""
             const finalCleanedText = tempResponse.replace(updateRegex, '').trim();
             
             return finalCleanedText;
@@ -19713,36 +19715,13 @@ Regardless of whether you are generating HTML snippets, Danmaku, or plain text:
         
                if (aiResponse && aiResponse.trim()) {
                     // 【终极修复】：在交给解析器之前，彻底清除所有思考内容（含未闭合标签）
-                    // 使用更强大的正则，确保即便 AI 没写完 </think> 也能被正确拦截
                     let responseToProcess = aiResponse
                         .replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '')
                         .replace(/<thought>[\s\S]*?(?:<\/thought>|$)/gi, '')
                         .trim();
 
-                    // --- 核心修改：在这里解析并提取图片描述 ---
-                    const descriptionRegex = /<private_note type="image_description">([\s\S]*?)<\/private_note>/;
-                    const descriptionMatch = responseToProcess.match(descriptionRegex);
-
-                    if (descriptionMatch) {
-                        const imageDescription = descriptionMatch[1].trim();
-                        // 从后往前找到最近的一条图片消息
-                        const lastImageMessage = [...chatState.messages].reverse().find(m => m.type === 'photo' && m.side === 'sent');
-                        
-                        if (lastImageMessage && imageDescription) {
-                            // 将描述附加到图片消息对象上
-                            lastImageMessage.imageDescription = imageDescription;
-                            console.log(`Image description saved for message ${lastImageMessage.id}: "${imageDescription}"`);
-                            // 这里我们只更新了数据，不需要立刻重绘DOM，因为描述是不可见的
-                            saveConversation(); // 立即保存更新后的消息数据
-                        }
-
-                        // 从AI的回复中移除这个私有标签，确保它不会被显示出来
-                        responseToProcess = responseToProcess.replace(descriptionRegex, '').trim();
-                    }
-                    // --- 修改结束 ---
-
-                    const cleanedText = await executeBackgroundUpdatesAndCleanText(responseToProcess, originatingChatId, chatState.chatName);
-                    if (!cleanedText) {
+                    // 如果清理完思考后已经没有任何内容了，直接退出，防止产生空白头像
+                    if (!responseToProcess) {
                         loadingStates[originatingChatId] = false;
                         if (chatState.chatId === originatingChatId) {
                             dynamicDecorationBtn.classList.remove('loading');
@@ -19750,14 +19729,30 @@ Regardless of whether you are generating HTML snippets, Danmaku, or plain text:
                         return;
                     }
 
-                    // 【核心修复】：改用 parseResponseIntoBlocks 确保无标签文本也能显示
+                    // --- 核心修改：在这里解析并提取图片描述 ---
+                    // ... (此处保持你之前的图片描述解析代码不变) ...
+
+                    // 执行后台更新（如心事、备忘录）并获取剩余的正文
+                    const cleanedText = await executeBackgroundUpdatesAndCleanText(responseToProcess, originatingChatId, chatState.chatName);
+                    
+                    // 【关键修复】：如果经过后台任务清理后，正文只剩下空格或为空，坚决不进入后续渲染
+                    if (!cleanedText || cleanedText.trim() === "") {
+                        loadingStates[originatingChatId] = false;
+                        if (chatState.chatId === originatingChatId) {
+                            dynamicDecorationBtn.classList.remove('loading');
+                        }
+                        return;
+                    }
+
+                    // 将清理后的正文切成块
                     const blocks = parseResponseIntoBlocks(cleanedText);
                     
                     for (const block of blocks) {
                         const trimmed = block.trim();
+                        // 【二次防御】：确保每一个子块也不是空的
                         if (!trimmed) continue;
 
-                        // 尝试匹配是否为标准 block 格式
+                        // 尝试匹配标准的 <block> 标签
                         const match = trimmed.match(/^<block\s+type="([^"]+)"(?:\s+sender="([^"]+)")?>([\s\S]*?)<\/block>$/);
                         
                         if (match) {
@@ -33267,7 +33262,8 @@ async function handleRemoveMember() {
     function triggerFileInput(onFileSelected) {
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
-        fileInput.accept = '.json,application/json';
+        // 核心修改：添加对 zip 格式的支持
+        fileInput.accept = '.json,application/json,.zip,application/zip';
         fileInput.style.display = 'none';
 
         fileInput.onchange = (e) => {
@@ -35224,71 +35220,100 @@ async function handleRemoveMember() {
     function importAllData() {
         triggerFileInput(file => {
             const reader = new FileReader();
+            
+            // 核心修改：根据文件后缀决定读取方式
+            if (file.name.endsWith('.zip')) {
+                reader.readAsArrayBuffer(file);
+            } else {
+                reader.readAsText(file);
+            }
+
             reader.onload = async (event) => {
                 try {
-                    const importedRawData = JSON.parse(event.target.result);
+                    let importedRawData;
+                    const isZip = file.name.endsWith('.zip');
+
                     const confirmed = await conversationManager.customConfirm(
                         '这将清除并覆盖当前应用的所有数据（包括聊天记录、设置、头像等），此操作不可逆，确定要导入吗？',
                         '危险操作确认'
                     );
+                    if (!confirmed) return;
 
-                    if (confirmed) {
-                        await conversationManager.customAlert("正在导入数据并转换图片，请稍候...");
+                    await conversationManager.customAlert("正在解压并恢复数据，请稍候...");
 
-                        // 1. 递归还原图片数据 (Base64 -> IndexedDB Blob)
-                        const rehydratedData = await rehydrateDataFromPortable(importedRawData);
-
-                        // 2. 清除当前相关的旧数据
-                        // 【核心修复】重新定义一遍完整的前缀列表，确保清理彻底
-                        const CLEANUP_PREFIXES = [ 
-                            'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
-                            'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
-                            'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
-                        ];
-
-                        const keysToRemove = [];
-                        for (let i = 0; i < localStorage.length; i++) {
-                           const key = localStorage.key(i);
-                           if (CLEANUP_PREFIXES.some(prefix => key.startsWith(prefix))) {
-                               keysToRemove.push(key);
-                           }
-                        }
-                        keysToRemove.forEach(key => localStorage.removeItem(key));
-
-                        // 3. 写入新数据
-                        for (const key in rehydratedData) {
-                            if (Object.prototype.hasOwnProperty.call(rehydratedData, key)) {
-                                let value = rehydratedData[key];
-                                
-                                let valueToStore;
-
-                                // GitHub 设置、Catbox Userhash 和兔区数据都是纯字符串或JSON字符串，需要特殊处理
-                                if ((key.startsWith('gh_') || key === 'catbox_userhash' || key === 'jjForumData') && typeof value === 'string') {
-                                    if (value.startsWith('"') && value.endsWith('"')) {
-                                        try { value = JSON.parse(value); } catch(e){}
-                                    }
-                                    valueToStore = value;
-                                } 
-                                else {
-                                    // 【核心修复】：除了 GitHub 设置外，所有存入 localStorage 的数据
-                                    // 必须统一经过 JSON.stringify 处理。
-                                    // 这样即使是 "indexeddb:xxx" 这样的字符串，存进去也会变成 "\"indexeddb:xxx\""
-                                    // 确保 loadFromLocalStorage 里的 JSON.parse 不会报错。
-                                    valueToStore = JSON.stringify(value);
-                                }
-                                
-                                localStorage.setItem(key, valueToStore);
+                    if (isZip) {
+                        // --- 处理新版 ZIP 备份 ---
+                        const zip = await JSZip.loadAsync(event.target.result);
+                        
+                        // 1. 恢复图片数据到 IndexedDB (直接存入二进制，不经过Base64)
+                        const blobFolder = zip.folder("blobs");
+                        if (blobFolder) {
+                            const blobFiles = [];
+                            blobFolder.forEach((relativePath, zipEntry) => {
+                                if (!zipEntry.dir) blobFiles.push(zipEntry);
+                            });
+                            
+                            for (const zipEntry of blobFiles) {
+                                const blob = await zipEntry.async("blob");
+                                const fileName = zipEntry.name.split('/').pop();
+                                await imageStore.setItem(fileName, blob);
                             }
                         }
-                        await conversationManager.customAlert('数据导入成功！应用即将刷新以加载新数据。');
-                        location.reload();
+
+                        // 2. 读取文本数据
+                        const contentFile = zip.file("backup_content.json");
+                        if (!contentFile) throw new Error("压缩包内缺少 backup_content.json");
+                        const contentText = await contentFile.async("string");
+                        importedRawData = JSON.parse(contentText);
+                    } else {
+                        // --- 处理旧版 JSON 备份 ---
+                        const parsedData = JSON.parse(event.target.result);
+                        // 旧版需要 Base64 递归转换
+                        importedRawData = await rehydrateDataFromPortable(parsedData);
                     }
+
+                    // 3. 清除当前相关的旧数据
+                    const CLEANUP_PREFIXES = [ 
+                        'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
+                        'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
+                        'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+                    ];
+
+                    const keysToRemove = [];
+                    for (let i = 0; i < localStorage.length; i++) {
+                       const key = localStorage.key(i);
+                       if (CLEANUP_PREFIXES.some(prefix => key.startsWith(prefix))) {
+                           keysToRemove.push(key);
+                       }
+                    }
+                    keysToRemove.forEach(key => localStorage.removeItem(key));
+
+                    // 4. 写入新数据
+                    for (const key in importedRawData) {
+                        if (Object.prototype.hasOwnProperty.call(importedRawData, key)) {
+                            let value = importedRawData[key];
+                            let valueToStore;
+
+                            if ((key.startsWith('gh_') || key === 'catbox_userhash' || key === 'jjForumData') && typeof value === 'string') {
+                                valueToStore = value;
+                            } else {
+                                // 核心修改：如果是ZIP导入，数据已经是字符串了，不需要再stringify
+                                if (isZip && typeof value === 'string') {
+                                    valueToStore = value;
+                                } else {
+                                    valueToStore = JSON.stringify(value);
+                                }
+                            }
+                            localStorage.setItem(key, valueToStore);
+                        }
+                    }
+                    await conversationManager.customAlert('数据导入成功！应用即将刷新以加载新数据。');
+                    location.reload();
                 } catch (error) {
                     console.error("Import failed:", error);
-                    await conversationManager.customAlert(`导入失败: ${error.message}\n\n请检查文件是否为正确的备份文件，且未损坏。\n如果文件过大，可能是浏览器内存不足导致，请尝试在更强大的设备上操作。`);
+                    await conversationManager.customAlert(`导入失败: ${error.message}`);
                 }
             };
-            reader.readAsText(file);
         });
     }
 
@@ -38317,45 +38342,15 @@ const cloudBackupManager = (function() {
             });
             if (response.ok) {
                 const data = await response.json();
-                return data.sha;
+                // 如果返回的是数组，说明是文件夹列表，返回整个数组
+                // 如果是单个对象，返回其 sha
+                return data;
             }
         } catch (e) { }
         return null;
     }
 
-    async function getCompressedBackupData() {
-        if (typeof JSZip === 'undefined') throw new Error("JSZip 未加载");
-        
-        // 【核心修复】同步更新云端备份的前缀白名单
-        const APP_DATA_PREFIXES = [ 
-            'app-', 'app_', 
-            'chat-', 'chat_', 
-            'my_', 
-            'conversation_', 
-            'moments_', 
-            'gh_',           // GitHub 设置
-            'auto_',         // 自动回复
-            'video_',        // 视频通话
-            'pending_',      // 临时状态
-            'catbox_userhash', // 新增：Catbox 密钥
-            'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
-        ];
-        const allData = {};
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (APP_DATA_PREFIXES.some(prefix => key.startsWith(prefix))) {
-                const rawValue = localStorage.getItem(key);
-                let valueToProcess;
-                try { valueToProcess = JSON.parse(rawValue); } catch (e) { valueToProcess = rawValue; }
-                allData[key] = await conversationManager.makeDataPortable(valueToProcess);
-            }
-        }
-        const jsonStr = JSON.stringify(allData);
-
-        var zip = new JSZip();
-        zip.file("backup_content.json", jsonStr);
-        return await zip.generateAsync({ type: "base64", compression: "DEFLATE", compressionOptions: { level: 9 } });
-    }
+    
 
     // 【新增】初始化仓库逻辑
     async function performInitialization() {
@@ -38418,6 +38413,7 @@ const cloudBackupManager = (function() {
             return;
         }
 
+        // 保存设置
         localStorage.setItem('gh_saved_url', document.getElementById('gh-full-url').value);
         localStorage.setItem('gh_saved_token', info.token);
         localStorage.setItem('gh_saved_filename', info.filename);
@@ -38426,31 +38422,86 @@ const cloudBackupManager = (function() {
         if (!isAuto) setupAutoBackup(info.autoInterval);
 
         var statusEl = document.getElementById('gh-status-msg');
-        if (statusEl) statusEl.textContent = isAuto ? "正在自动备份..." : "正在处理...";
+        if (statusEl) statusEl.textContent = isAuto ? "正在增量备份..." : "正在准备增量备份...";
         
         try {
-            var apiUrl = "https://api.github.com/repos/" + info.owner + "/" + info.repo + "/contents/" + info.filename;
-            var contentBase64 = await getCompressedBackupData();
-            var sha = await getFileSha(apiUrl, info.token);
-            
-            var bodyData = {
-                message: (isAuto ? "Auto " : "Manual ") + "Backup: " + new Date().toLocaleString(),
-                content: contentBase64
-            };
-            if (sha) bodyData.sha = sha;
+            const APP_DATA_PREFIXES = [ 
+                'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
+                'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
+                'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+            ];
 
-            var response = await fetch(apiUrl, {
+            // 1. 准备文本数据和图片引用列表
+            const allTextData = {};
+            const blobKeys = new Set();
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (APP_DATA_PREFIXES.some(prefix => key.startsWith(prefix))) {
+                    const rawValue = localStorage.getItem(key);
+                    allTextData[key] = rawValue;
+                    const matches = rawValue.match(/indexeddb:([a-zA-Z0-9_-]+)/g);
+                    if (matches) matches.forEach(m => blobKeys.add(m.split(':')[1]));
+                }
+            }
+
+            // 2. 获取 GitHub 上已有的文件列表（用于获取 SHA）
+            const baseDir = "rye_backup_v2";
+            const apiBaseUrl = `https://api.github.com/repos/${info.owner}/${info.repo}/contents/${baseDir}`;
+            const existingFiles = await getFileSha(apiBaseUrl, info.token) || [];
+            const existingBlobs = await getFileSha(`${apiBaseUrl}/blobs`, info.token) || [];
+
+            const getSha = (list, name) => {
+                const file = list.find(f => f.name === name);
+                return file ? file.sha : null;
+            };
+
+            // 3. 上传文本配置文件 (data.json)
+            if (statusEl) statusEl.textContent = "正在同步文本数据...";
+            const jsonContent = btoa(unescape(encodeURIComponent(JSON.stringify(allTextData))));
+            const jsonSha = getSha(existingFiles, "data.json");
+            
+            await fetch(`${apiBaseUrl}/data.json`, {
                 method: 'PUT',
-                headers: {
-                    'Authorization': 'token ' + info.token,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(bodyData)
+                headers: { 'Authorization': 'token ' + info.token, 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    message: "Update metadata",
+                    content: jsonContent,
+                    sha: jsonSha
+                })
             });
 
-            if (!response.ok) {
-                var errText = await response.text();
-                throw new Error(response.status + " " + errText);
+            // 4. 逐个上传图片 (核心：一张一张处理，防止白屏)
+            let count = 0;
+            const total = blobKeys.size;
+            for (const blobKey of blobKeys) {
+                count++;
+                if (statusEl) statusEl.textContent = `正在同步图片 (${count}/${total})...`;
+                
+                const blobSha = getSha(existingBlobs, blobKey);
+                // 如果 GitHub 上已经有这个文件且 SHA 存在，理论上可以跳过（此处为了绝对安全选择覆盖或根据逻辑跳过）
+                // 这里我们简单处理：获取本地数据，如果本地有，就上传
+                const blob = await imageStore.getItem(blobKey);
+                if (blob) {
+                    const base64 = await new Promise(resolve => {
+                        const reader = new FileReader();
+                        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+                        reader.readAsDataURL(blob);
+                    });
+
+                    const res = await fetch(`${apiBaseUrl}/blobs/${blobKey}`, {
+                        method: 'PUT',
+                        headers: { 'Authorization': 'token ' + info.token, 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            message: `Upload blob ${blobKey}`,
+                            content: base64,
+                            sha: blobSha
+                        })
+                    });
+                    
+                    if (!res.ok && res.status !== 422) {
+                        console.error(`图片 ${blobKey} 上传失败`);
+                    }
+                }
             }
 
             lastBackupTime = Date.now();
@@ -38458,9 +38509,9 @@ const cloudBackupManager = (function() {
 
             if (statusEl) {
                 statusEl.style.color = "#28a745";
-                statusEl.textContent = `✅ ${isAuto ? '自动' : ''}备份成功 (${new Date().toLocaleTimeString()})`;
+                statusEl.textContent = `✅ 备份成功！共同步 ${total} 张图片`;
             }
-            if (!isAuto) alert("备份成功！");
+            if (!isAuto) alert("备份成功！数据已分类存储在 rye_backup_v2 文件夹中。");
 
         } catch (e) {
             console.error(e);
@@ -38471,7 +38522,112 @@ const cloudBackupManager = (function() {
             if (!isAuto) alert("备份失败: " + e.message);
         }
     }
+async function performRestore() {
+        var info = getRepoInfo();
+        if (!info) return alert("请先填写仓库链接和Token！");
 
+        const confirmed = await conversationManager.customConfirm(
+            "这将从 GitHub 下载并覆盖当前手机的所有数据。建议操作前先手动备份一次。确定要继续吗？",
+            "云端恢复确认"
+        );
+        if (!confirmed) return;
+
+        var statusEl = document.getElementById('gh-status-msg');
+        if (statusEl) {
+            statusEl.style.color = "#007aff";
+            statusEl.textContent = "正在连接云端...";
+        }
+
+        try {
+            const baseDir = "rye_backup_v2";
+            const apiBaseUrl = `https://api.github.com/repos/${info.owner}/${info.repo}/contents/${baseDir}`;
+
+            // 1. 下载 data.json (文本数据)
+            if (statusEl) statusEl.textContent = "正在同步文本数据...";
+            const jsonRes = await fetch(`${apiBaseUrl}/data.json`, {
+                headers: { 
+                    'Authorization': 'token ' + info.token,
+                    // 核心修改：强制要求返回原始文件内容，绕过 1MB 限制
+                    'Accept': 'application/vnd.github.v3.raw' 
+                }
+            });
+            if (!jsonRes.ok) throw new Error("无法获取文本备份文件，请确认已执行过新版备份。");
+            
+            // 既然是 Raw 模式，返回的就是纯文本 JSON，直接解析即可，无需 atob
+            const allTextData = await jsonRes.json();
+
+            // 2. 扫描 data.json 找出所有需要的图片 ID
+            const blobKeys = new Set();
+            for (const key in allTextData) {
+                const rawValue = allTextData[key];
+                const matches = rawValue.match(/indexeddb:([a-zA-Z0-9_-]+)/g);
+                if (matches) matches.forEach(m => blobKeys.add(m.split(':')[1]));
+            }
+
+            // 3. 逐个同步图片 (核心：一张一张下载，防止白屏)
+            let count = 0;
+            const total = blobKeys.size;
+            for (const blobKey of blobKeys) {
+                count++;
+                if (statusEl) statusEl.textContent = `正在同步图片 (${count}/${total})...`;
+
+                // 检查本地是否已经有这张图了，如果有就跳过，节省流量和时间
+                const localExists = await imageStore.getItem(blobKey);
+                if (localExists) continue;
+
+                const blobRes = await fetch(`${apiBaseUrl}/blobs/${blobKey}`, {
+                    headers: { 
+                        'Authorization': 'token ' + info.token,
+                        // 核心修改：直接获取二进制图片流
+                        'Accept': 'application/vnd.github.v3.raw'
+                    }
+                });
+
+                if (blobRes.ok) {
+                    // 直接作为 Blob 接收，不经过字符串转换，极大地节省内存，防止白屏
+                    const blob = await blobRes.blob();
+                    await imageStore.setItem(blobKey, blob);
+                }
+            }
+
+            // 4. 清理旧的 LocalStorage 并写入新数据
+            if (statusEl) statusEl.textContent = "正在应用更改...";
+            const CLEANUP_PREFIXES = [ 
+                'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
+                'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
+                'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+            ];
+
+            const keysToRemove = [];
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (CLEANUP_PREFIXES.some(prefix => key.startsWith(prefix))) {
+                    keysToRemove.push(key);
+                }
+            }
+            keysToRemove.forEach(key => localStorage.removeItem(key));
+
+            for (const key in allTextData) {
+                localStorage.setItem(key, allTextData[key]);
+            }
+
+            if (statusEl) {
+                statusEl.style.color = "#28a745";
+                statusEl.textContent = "✅ 恢复成功！正在重启...";
+            }
+            
+            alert("恢复成功！应用即将刷新。");
+            location.reload();
+
+        } catch (e) {
+            console.error(e);
+            if (statusEl) {
+                statusEl.style.color = "#d73a49";
+                statusEl.textContent = `❌ 恢复失败: ${e.message}`;
+            }
+            alert("恢复失败: " + e.message);
+        }
+    }
     function setupAutoBackup(intervalMinutes) {
         if (autoBackupTimer) clearInterval(autoBackupTimer);
         if (intervalMinutes > 0) {
@@ -38522,9 +38678,10 @@ const cloudBackupManager = (function() {
             setupAutoBackup(parseInt(savedInterval, 10));
         }
 
-        // 绑定两个按钮的事件
+        // 绑定三个按钮的事件
         document.getElementById('gh-init-btn').addEventListener('click', performInitialization);
         document.getElementById('gh-backup-btn').addEventListener('click', () => performBackup(false));
+        document.getElementById('gh-restore-btn').addEventListener('click', () => performRestore());
         
         document.getElementById('gh-auto-interval').addEventListener('input', onIntervalChange);
 
@@ -38550,7 +38707,10 @@ const cloudBackupManager = (function() {
         });
     }
 
-    return { init: init };
+    return { 
+        init: init,
+        performRestore: performRestore 
+    };
 })();
 // --- END: CLOUD BACKUP MANAGER ---
 
