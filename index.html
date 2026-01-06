@@ -47,6 +47,8 @@
         /* 新增：Bento 风格专属变量 */
         --bg-gradient: radial-gradient(circle at top, #1a4d33 0%, #0b2b1a 100%);
         --glass: rgba(255, 255, 255, 0.1);
+        /* 新增：针对低性能模式的纯色背景 */
+        --glass-solid: rgba(40, 40, 40, 0.95);
         --glass-border: rgba(255, 255, 255, 0.15);
         --text-main: #ffffff;
         --text-dim: rgba(255, 255, 255, 0.5);
@@ -95,10 +97,11 @@
         overflow: hidden; background: #fff; border-radius: 45px; 
         border: 10px solid var(--phone-outer-border); box-sizing: border-box; 
         box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-        /* 【核心修复】：强制开启 iOS 硬件加速，修复圆角内的点击失效问题 */
+        /* 修改：强化硬件加速并限制重绘区域 */
         transform: translate3d(0, 0, 0);
         -webkit-transform: translate3d(0, 0, 0);
-        
+        will-change: transform;
+        contain: content;
     }
     .screen::before {
         content: ''; position: absolute; top: 0; left: 0; right: 0; bottom: 0;
@@ -214,7 +217,14 @@
     #mood-container { position: relative; width: auto; height: auto; flex-shrink: 0; }
     #mood-decoration { width: 100%; height: 100%; background-image: url('https://files.catbox.moe/6wpnmi.png'); background-size: contain; background-repeat: no-repeat; background-position: center; cursor: pointer; animation: float-anim 3s ease-in-out infinite; }
     @keyframes float-anim { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-5px); } }
-    .message-list { flex-grow: 1; overflow-y: auto; }
+    .message-list { 
+        flex-grow: 1; 
+        overflow-y: auto; 
+        /* 修改：开启 iOS 丝滑滚动并优化性能 */
+        -webkit-overflow-scrolling: touch;
+        will-change: scroll-position;
+        transform: translateZ(0);
+    }
     .chat-item { display: flex; align-items: center; padding: 8px 20px; gap: 15px; cursor: pointer; }
     .avatar { width: 56px; height: 56px; border-radius: 50%; display: flex; justify-content: center; align-items: center; font-size: 24px; font-weight: 500; color: white; flex-shrink: 0; background-size: cover; background-position: center; }
     .chat-info { flex-grow: 1; display: flex; flex-direction: column; gap: 4px; overflow: hidden; min-width: 0; border-bottom: 1px solid #f0f0f0; padding: 12px 0; }
@@ -446,6 +456,10 @@
         flex-direction: column; 
         gap: 12px; 
         background-color: transparent; 
+        /* 修改：开启硬件加速并优化 iOS 滚动 */
+        -webkit-overflow-scrolling: touch;
+        transform: translateZ(0);
+        will-change: transform;
     }
     #page-conversation .time-divider { text-align: center; font-size: 12px; color: var(--secondary-text); background: var(--system-bg-color); padding: 2px 8px; border-radius: 8px; margin: 4px auto; }
     #page-conversation .message-wrapper { display: flex; flex-direction: column; max-width: 100%; position: relative;}
@@ -4375,8 +4389,47 @@ input:checked + .slider:before {
 
 /* --- MOOD CARD STYLES (MODAL) --- */
 #mood-card-modal-overlay .card-deck-container { width: 100%; max-width: 700px; position: relative; perspective: 1000px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
-#mood-card-modal-overlay .card-deck { position: relative; width: 95%; max-width: 650px; aspect-ratio: 650 / 750; }
-#mood-card-modal-overlay .bubble { width: 95%; max-width: 650px; aspect-ratio: 1245 / 1417; position: relative; background-color: transparent; overflow: hidden; }
+#mood-card-modal-overlay .card-deck { 
+    position: relative; 
+    width: 95%; 
+    max-width: 650px; 
+    aspect-ratio: 650 / 750; 
+    /* 修改：核心修复。当卡片向左或向右滑出屏幕时，强制隐藏超出部分，防止屏幕出现横向滚动条 */
+    overflow: hidden !important; 
+    /* 新增：确保容器不响应任何横向原生的滚动指令 */
+    touch-action: pan-y;
+}
+/* 彻底隐藏心事弹窗内所有可能的横向滚动条 */
+#mood-card-modal-overlay *::-webkit-scrollbar:horizontal {
+    display: none !important;
+    height: 0 !important;
+    width: 0 !important;
+}
+
+#mood-card-modal-overlay .card-deck-container,
+#mood-card-modal-overlay .card-deck,
+#mood-card-modal-overlay .card,
+#mood-card-modal-overlay .content-wrapper {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;     /* Firefox */
+}
+
+/* 针对 iOS Safari 的特殊补丁：防止内容在滑动时触发橡皮筋效果产生的横向位移 */
+#mood-card-modal-overlay .modal-box {
+    overflow-x: hidden !important;
+    max-width: 100vw !important;
+}
+#mood-card-modal-overlay .bubble { 
+    width: 95%; 
+    max-width: 650px; 
+    aspect-ratio: 1245 / 1417; 
+    position: relative; 
+    background-color: transparent; 
+    /* 修改：确保卡片内部任何元素（包括背景图）都不允许横向撑开 */
+    overflow: hidden !important; 
+    /* 新增：强制硬件加速，防止滑动时出现白边或滚动条 */
+    transform: translateZ(0);
+}
 #mood-card-modal-overlay .mood-card-background-img {
     position: absolute;
     top: 0;
@@ -4386,7 +4439,7 @@ input:checked + .slider:before {
     object-fit: cover;
     z-index: 1;
 }
-#mood-card-modal-overlay .card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translateY(20px) scale(0.95); transition: transform 0.6s ease, opacity 0.6s ease; pointer-events: none; }
+#mood-card-modal-overlay .card { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translateY(20px) scale(0.95); transition: transform 0.6s ease, opacity 0.6s ease; pointer-events: none; overflow: hidden; }
 #mood-card-modal-overlay .card.is-active { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; z-index: 10; cursor: grab; }
 #mood-card-modal-overlay .card.is-active:active { cursor: grabbing; }
 #mood-card-modal-overlay .card.is-swiping { transition: none; }
@@ -4400,13 +4453,15 @@ input:checked + .slider:before {
     font-size: 14px;
     font-weight: 500;
     line-height: 1.5;
-    word-break: break-word;
+    /* 修改：强制所有字符（含长链接）在边界处换行 */
+    word-break: break-all; 
     z-index: 2;
     box-sizing: border-box;
     padding: 0;
     text-align: left;
     overflow-y: auto;
-    overflow-x: hidden;
+    /* 修改：强制禁用横向滚动并隐藏溢出 */
+    overflow-x: hidden !important; 
     scrollbar-width: thin;
     scrollbar-color: rgba(255, 255, 255, 0.5) transparent;
     top: 3.67%;
@@ -4416,6 +4471,14 @@ input:checked + .slider:before {
     height: auto;
     width: auto;
     white-space: pre-wrap;
+    /* 新增：禁止 iOS 默认的横向触控手势干扰 */
+    touch-action: pan-y;
+}
+
+/* 新增：专门针对苹果 Safari 和 Chrome 浏览器内核，彻底抹除横向滚动条的占位高度 */
+#mood-card-modal-overlay .content-wrapper::-webkit-scrollbar:horizontal {
+    display: none !important;
+    height: 0 !important;
 }
 
 #mood-card-modal-overlay .pagination-controls { margin-top: 15px; display: none !important; align-items: center; gap: 20px; }
@@ -4451,17 +4514,20 @@ input:checked + .slider:before {
     max-width: 400px; 
     height: 85%;
     max-height: 700px;
-    /* 关键：统一为毛玻璃效果 */
-    background-color: rgba(40, 40, 40, 0.75); /* 半透明深灰色背景 */
-    backdrop-filter: blur(20px) saturate(150%);
-    -webkit-backdrop-filter: blur(20px) saturate(150%);
-    border: 1px solid rgba(255, 255, 255, 0.1); /* 细微的亮边 */
-    border-radius: 24px; /* 圆角更大一些，与图片一致 */
+    /* 修改：使用更稳健的背景色，降低模糊半径 */
+    background-color: var(--glass-solid);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 24px;
     box-shadow: 0 10px 40px rgba(0,0,0,0.3);
     overflow: hidden;
     position: relative; 
     display: flex; 
     flex-direction: column;
+    /* 核心性能修复：防止动画过程中的重绘抖动 */
+    backface-visibility: hidden;
+    -webkit-backface-visibility: hidden;
 
     /* 动画效果 */
     transform: scale(0.95) translateY(20px);
@@ -5377,18 +5443,37 @@ input:checked + .slider:before {
 }
 /* --- 聊天记录搜索样式 (美化版) --- */
 #search-overlay {
-    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
-    background: #f7f7f7; /* iOS 浅灰背景 */
-    z-index: 2000; display: flex; flex-direction: column;
-    transform: translateX(100%); transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1); /* 更丝滑的动画 */
+    /* 修改：改为 fixed 定位，并使用 100dvh 确保高度适配键盘 */
+    position: fixed; 
+    top: 0; 
+    left: 0; 
+    width: 100vw; 
+    height: 100dvh;
+    background: #f7f7f7; 
+    z-index: 2000; 
+    display: flex; 
+    flex-direction: column;
+    /* 修改：确保动画结束前不处理任何点击 */
+    pointer-events: none;
+    transform: translateX(100%); 
+    transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 当搜索层可见时，恢复点击 */
+#search-overlay.visible {
+    pointer-events: auto;
 }
 #search-overlay.visible { transform: translateX(0); }
 
 .search-header {
-    padding: 10px 16px; padding-top: 50px; /* 避开刘海 */
+    /* 修改：使用 max 函数动态适配刘海高度，防止在全屏模式下被遮挡 */
+    padding: 10px 16px; 
+    padding-top: max(45px, env(safe-area-inset-top)); 
     background: #fff;
     border-bottom: 1px solid rgba(0,0,0,0.05);
-    display: flex; gap: 12px; align-items: center;
+    display: flex; 
+    gap: 12px; 
+    align-items: center;
     box-shadow: 0 2px 8px rgba(0,0,0,0.02);
 }
 
@@ -12323,70 +12408,42 @@ This is an **ANONYMOUS** forum. Real names are **FORBIDDEN**.
 ---
 You are now an active participant in "Tuqu", a chaotic, diverse, and deeply creative anonymous forum.
 
-**[NAMING & ANONYMITY STRATEGY - REALISM MANDATE]**
-
+**[NAMING & LOCATION STRATEGY]**
 1.  **Identity Consistency:**
     *   **Your Character (${senderName}):** If you post as yourself (anonymously), your "location" MUST match your established residence.
     *   **Water Army (路人):** Use creative pseudonyms and random domestic locations (e.g., "山东", "广东", "北京").
+2.  **Location Format:** Strictly use common Chinese province/country names.
 
-2.  **The "Overseas IP" Logic (VPN/梯子 - CORRECTED):**
-    *   **Definition:** "梯子" means **VPN**, NOT a physical ladder.
-    *   **The Context:** Some users use VPNs to pretend to be abroad or just to hide their IP.
-    *   **Sarcasm Logic:** If an overseas IP user is being arrogant, "region black" (地域黑), or "snobbish" (踩高捧低), you should mock them.
-    *   **CORRECT SARCASM EXAMPLES:**
-        *   "看你这IP挺稳的，梯子一个月多少钱？我也想整一个，求个链接，主要想去外网查点资料。" 
-        *   "人在美国刚下飞机？我看你是人在地下室刚连上梯子吧。"
-        *   "你这梯子节点跳得比我心跳都快，一分钟环游世界三次？"
-    *   **FORBIDDEN:** Do NOT say "fall off and die" (physical fall). It makes no sense.
-    *   **FREQUENCY:** Do NOT mock every overseas IP. Real overseas users exist. Only mock the trolls or snobs.
+**[CURRENT INTERNET TRENDS (USE CONTEXTUALLY - DO NOT SPAM)]**
+These are the current hot topics. **Choose ONE that fits the specific board and your character's current mood.** Do not force them if they don't fit.
 
-3.  **Location Format:** Strictly use common Chinese province/country names (e.g., "上海", "美国", "浙江").
+**1. "Weak Intellect" Logic (弱智吧 - For Humor/Idle Chat):**
+   - **Use when:** You want to be funny, absurd, or kill time.
+   - **Style:** Twisted logic, puns. "Is the person who invented the clock aware that they created 'time'?"
 
-**[ADVANCED NARRATIVE FORMATS - DIVERSITY MANDATE]**
-When posting in "同人衍生", you MUST rotate between these styles to ensure variety. **"Found Phone" should be used less than 10% of the time.**
+**2. "The Kill Line" Theory (斩杀线 - For Economic/Social Topics):**
+   - **Use when:** Discussing money, work, news, or the fragility of the middle class.
+   - **Concept:** "Living paycheck to paycheck." High income but zero risk resistance. One accident leads to bankruptcy.
+   - **Tone:** Cynical observation or anxiety.
 
-1.  **Short Snippet (短打):**
-    *   **Concept:** A self-contained, high-emotion scene focusing on a specific moment or sensory detail.
-    *   **Style:** Intense, atmospheric, often ending on a lingering thought.
+**3. "Crazy Lit" (发疯文学 - For Venting/Workplace):**
+   - **Use when:** Complaining about work, school, or bad luck.
+   - **Style:** Chaotic, screaming, "I am a monkey swinging in the jungle!" (阴暗爬行/发疯).
 
-2.  **Plot Outline (大纲/梗概):**
-    *   **Concept:** Present a "pitch" for a long story.
-    *   **Format:** Use bullet points to outline key plot beats (Beginning, Conflict, Climax, Ending).
-    *   **Example:** "主题：[大纲] 如果他们是在末世相遇的医生和佣兵..."
+**4. "Rational Eating Melons" (理智吃瓜 - For Gossip):**
+   - **Use when:** Watching drama.
+   - **Style:** "Respect, Bless, Lock." (尊重祝福锁死). Analyzing who is right/wrong calmly.
 
-3.  **Story Continuation (续写):**
-    *   **Concept:** Take a specific moment from the "RECENT CHAT HISTORY" and expand it into a full narrative scene.
-    *   **Task:** Transform the raw dialogue into a literary experience.
+**[BOARD-SPECIFIC MANDATES - CRITICAL]**
 
-4.  **Long-form Narrative (长文/连载):**
-    *   **Concept:** A multi-paragraph, detailed story with heavy emphasis on internal monologues and environment.
-    *   **Style:** Slow-burn, descriptive, and immersive.
-
-5.  **Chat Log (聊天体):**
-    *   **Concept:** A script-style interaction between characters (A: ... / B: ...).
-
-6.  **Alternative Universe (AU - 无限时空):**
-    *   **Concept:** Place characters in settings like Cyberpunk, Ancient Fantasy, or Mafia.
-
-7.  **Found Phone (捡手机):**
-    *   **Warning:** ONLY use this if specifically inspired. Do NOT default to this.
-
-**[REAL LIFE STRUGGLES - SPECIFIC TOPICS REQUIRED]**
-You MUST include these specific real-life topics in your repertoire:
-
-1.  **Workplace Slacking (摸鱼技巧):**
-    *   Share tips on "Paid Pooping" (带薪拉屎), hiding windows when the boss walks by, or pretending to work.
-    *   Complain about "Team Building" (团建) and overtime.
-
-2.  **International Student Struggles (留学生/中国胃):**
-    *   Complain about "White People Food" (白人饭) - cold sandwiches, raw salads.
-    *   Miss authentic Chinese food (Hotpot, Milk Tea).
-    *   Discuss the loneliness of studying abroad and culture shock.
-
-3.  **Social Dilemma Help (社交难题):**
-    *   Post a specific awkward situation (e.g., "How to reply to this text?").
-    *   Ask for analysis of a screenshot.
-    *   Discuss how to maintain fading friendships or fix a cold war.
+**IF YOU CHOOSE BOARD "同人衍生" (Fan Fiction):**
+*   **ABSOLUTE CREATION LAW:** You **MUST** write actual creative content (Fiction, Snippet, AU Outline, Script).
+*   **FORBIDDEN:** You are **STRICTLY FORBIDDEN** from posting pure discussions, questions, or "water" posts here.
+*   **Logic:** If you just want to discuss a CP or complain, you **MUST** go to "闲聊水区" or "情感百态". "同人衍生" is ONLY for posting work.
+*   **Required Format:**
+    *   **Short Snippet (短打):** A high-emotion scene or interaction.
+    *   **Plot Outline (大纲):** "Theme: [Cyberpunk AU]. If A and B were enemies..."
+    *   **Chat Log (聊天体):** Script-style dialogue between characters.
 
 **[FORUM SUBCULTURE DICTIONARY]**
 1.  **拆逆 (Split/Reverse):** Breaking official couples or reversing Top/Bottom roles.
@@ -12398,9 +12455,7 @@ You MUST include these specific real-life topics in your repertoire:
 **[DIVERSE ARCHETYPES - ENHANCED DRAMA]**
 - **CP Fan (嗑学家):** Obsessed with romance, ignores logic.
 - **Solo Fan (毒唯):** Extremely aggressive toward anyone "threatening" their idol.
-- **Xenophobic Troll (排外喷子):** Specifically targets "Overseas IPs" with VPN sarcasm.
 - **Dream/Yume Fan (梦女):** Delusional romance writers.
-- **Chaos Fan (乐子人):** Intentionally provokes fights between domestic and overseas users just to watch the drama.
 - **Fact Checker (理中客):** Tries to be logical but usually gets flamed by everyone.
 
 **[THE MULTI-ROLE THREAD MANDATE]**
@@ -12556,49 +12611,51 @@ Constraint: Output ONLY the [tuqu_complex_action] command. No chat text.`
             });
 
             const pureInstruction = `
-# [SYSTEM DIRECTIVE: PURE FORUM SIMULATION - "WEAK INTELLECT BAR" MODE]
-You are a random internet user on "Tuqu". Forget all previous constraints. Your new identity is a blend of **"弱智吧" (Weak Intellect Bar)** and **"豆瓣小组" (Douban Group)** users.
+# [SYSTEM DIRECTIVE: PURE FORUM SIMULATION - "WEAK INTELLECT & REALITY CHECK" MODE]
+You are a random internet user on "Tuqu". You have NO persona connection to the user. You are just a netizen.
 
 **【【【 ABSOLUTE ANONYMITY LAW 】】】**
 1. **NEVER use real names.** You are "Anonymous", "LZ", or a creative pseudonym.
 2. **NEVER refer to the user by name.** They are just another netizen.
 
 **[CORE MENTALITY - THE SOUL OF THE FORUM]**
-Your primary goal is to generate content that is **unpredictable, thought-provoking, and highly engaging**.
+You are part of a diverse internet ecosystem. **DO NOT be repetitive.**
+**Randomly select ONE archetype** based on the board you are visiting.
 
-1.  **"Weak Intellect" Logic (弱智吧逻辑):**
-    *   **Concept:** Take a common phrase or idea and interpret it with absurd, literal, or twisted logic.
-    *   **Example 1 (Provided):** "林子大了什么鸟都有" (A big forest has all kinds of birds). Your post: "Why don't animal protection groups save rare birds by making the forest bigger?"
-    *   **Example 2 (New):** Common phrase: "You can't wake a person who is pretending to be asleep." Your post: "If I set a fire, can I wake them up?"
-    *   **Your Task:** Find a common saying and apply this twisted logic to create a viral post.
+**1. The "Weak Intellect" Philosopher (弱智吧):**
+   - **Best for:** 闲聊水区, 情感百态.
+   - **Vibe:** Absurd logic, puns. "I want to buy a watch, but I don't have the time."
 
-2.  **Poetic Nihilism (凌迟文学):**
-    *   **Concept:** Express pain, struggle, or mundane life with dark, poetic, and self-deprecating humor.
-    *   **Example 1 (Provided):** "我将人生切片，切得长了是段子，切得短了是凌迟。" (I slice my life. Long slices are jokes, short slices are death by a thousand cuts.)
-    *   **Example 2 (New):** "My bank account balance is like my love life: a beautiful, round zero."
-    *   **Your Task:** Create a post that is relatable, painful, but also funny in a dark way.
+**2. The "Kill Line" Observer (斩杀线理论 - 斯奎奇大王):**
+   - **Best for:** 职场人生, 自由交易 (discussing prices/economy).
+   - **Vibe:** Analyzing the fragility of the middle class. "Living paycheck to paycheck," "One accident away from bankruptcy."
+   - **Constraint:** Only use this if the topic is related to money, work, or social news. Don't force it into a pet post.
 
-3.  **Reverse Role-Playing (反串):**
-    *   **Concept:** Pretend to be someone you are not to make a satirical point.
-    *   **Example:** A wealthy character posting in "职场人生" (Workplace): "My dad forced me to inherit the company. I hate working. How can I get fired without losing my inheritance?"
-    *   **Your Task:** Choose a character archetype and have them post something completely contrary to their expected struggles.
+**3. The "Crazy Worker" (发疯文学/淡淡疯感):**
+   - **Best for:** 职场人生, 校园回响.
+   - **Vibe:** "I am a corpse," "I will bite everyone." Expressing burnout in a chaotic way.
 
-4.  **Malicious Envy & "Sour Grapes" (见不得别人好):**
-    *   **Concept:** When you see a post about someone's happiness (e.g., a new relationship, a promotion), your reaction is jealousy, sarcasm, or trying to find flaws.
-    *   **Example:** User posts "I got a promotion!". Your comment: "Wow, must be nice to have connections. My boss just gave me more work."
-    *   **Your Task:** When generating a "water army" response to a positive post, include at least one character who is clearly jealous.
+**4. The "Picky Consumer" (避雷/拔草):**
+   - **Best for:** 美食厨房, 游戏动漫.
+   - **Vibe:** Complaining about minor details. "The water wasn't 22.5°C. Avoid!"
 
-5.  **"Avoid the Lightning" (避雷):**
-    *   **Concept:** Expressing extreme, sometimes irrational, dislikes for things and warning others.
-    *   **Example:** "AVOID THIS RESTAURANT! The water they served wasn't exactly 22.5°C. Unacceptable."
-    *   **Your Task:** Create a post that complains about a minor, insignificant detail with extreme passion.
+**5. The "MBTI/Astrology" Believer (玄学):**
+   - **Best for:** 情感百态, 闲聊水区.
+   - **Vibe:** "Typical INTJ behavior," "Mercury retrograde is hitting hard."
+
+**[BOARD-SPECIFIC MANDATES - CRITICAL]**
+
+**IF YOU CHOOSE BOARD "同人衍生" (Fan Fiction):**
+*   **ABSOLUTE CREATION LAW:** You **MUST** write actual creative content.
+*   **FORBIDDEN:** Do NOT post discussions or questions. If you want to discuss, choose a different board like "闲聊水区".
+*   **Content:** Write a snippet, a micro-novel, or a funny AU outline.
 
 **[UPDATED INSTRUCTIONS]**
 1.  **Analyze the Forum:** Review the latest posts.
-2.  **Choose Your Persona:** Will you be a "Weak Intellect" philosopher, a poetic nihilist, a reverse role-player, a hater, or a complainer?
+2.  **Choose Your Archetype:** Will you be a "Weak Intellect" philosopher, a "Kill Line" analyst, a poetic nihilist, or a complainer?
 3.  **Create a Viral Post:** Generate a new topic or a comment that embodies one of the core mentalities above.
-4.  **Build the Drama:** Create a "water army" of 5-15 follow-up comments with diverse, conflicting opinions. Include at least one "hater" or "sour grapes" comment if the main post is positive. Ensure the thread feels crowded and busy.
-5.  **Use Creative Names:** Your pseudonyms should reflect the post's tone (e.g., "辩证法带师", "都市伤心小狗", "资本家之子").
+4.  **Build the Drama:** Create a "water army" of 5-15 follow-up comments with diverse, conflicting opinions. 
+5.  **Use Creative Names:** Your pseudonyms should reflect the post's tone (e.g., "辩证法带师", "斯奎奇大弟子", "都市伤心小狗").
 
 **[STRICT JSON FORMAT REQUIRED]**
 For a NEW TOPIC:
@@ -12744,8 +12801,12 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 **YOUR FIRST AND MOST IMPORTANT TASK IS TO CHECK THE BOARD NAME.**
 
 
+
 ---
 ### **ROUTE 1: IF BOARD NAME IS "同人衍生" (FAN FICTION)**
+
+**[ABSOLUTE CREATION LAW - NO DISCUSSIONS ALLOWED]**
+You are **STRICTLY FORBIDDEN** from posting discussions, questions, or "water" posts in this board. You MUST produce creative content.
 
 **[NEW IDENTITY: PROFESSIONAL FAN FICTION AUTHOR]**
 You are now an experienced author known for high-quality, immersive stories. Your task is to write a **substantial** fan fiction story about the characters.
@@ -26263,7 +26324,13 @@ async function showBranchHistoryModal(chatId) {
                 
                 searchInput.value = '';
                 searchResults.innerHTML = '<div style="text-align:center; color:#999; padding:20px;">输入关键词搜索</div>';
-                searchInput.focus();
+                
+                // 核心修改：增加 350ms 延迟。
+                // 必须等待 CSS 的 0.3s (300ms) 动画完全走完，再让输入框获取焦点。
+                // 这样 iOS 才能正确计算键盘弹出后的页面高度，不会出现白屏或错位。
+                setTimeout(() => {
+                    searchInput.focus();
+                }, 350);
             });
         }
 
