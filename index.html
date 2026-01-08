@@ -10438,23 +10438,28 @@ if ('serviceWorker' in navigator) {
         const stickerNames = stickers.filter(s => s.type === 'sticker').map(s => `"${s.name}"`).join(', ') || 'None';
         const emojiNames = stickers.filter(s => s.type === 'emoji').map(s => `"${s.name}"`).join(', ') || 'None';
 
-        // --- 核心新增：兔区专属媒体防幻觉协议 ---
+        // --- 核心新增：兔区专属媒体防幻觉协议 (终极严厉版) ---
         const TUQU_MEDIA_PROTOCOL = `
 ---
-### **[STRICT MEDIA & EXPRESSION PROTOCOL - ANTI-HALLUCINATION]**
+### **[STRICT MEDIA & EXPRESSION PROTOCOL - THE LAW OF PREFIX]**
 
-You are ENCOURAGED to use emojis and stickers in your "content" and "water_army" replies, but you MUST follow these absolute laws:
+You are ENCOURAGED to use emojis and stickers in your "content" and "water_army" replies, but you MUST follow these absolute, unbreakable laws:
 
-1.  **THE LIST IS LAW:** You are ONLY allowed to use names from the specific lists provided below.
-2.  **ABSOLUTE PROHIBITION:** You are **STRICTLY FORBIDDEN** from inventing names, using English names for Chinese stickers, or guessing.
+1.  **THE PREFIX IS THE KEY:** You are **STRICTLY FORBIDDEN** from outputting a tag without its type prefix.
+    *   ❌ **WRONG (IMMEDIATE FAILURE):** \`[发抖]\`, \`[震惊]\`
+    *   ✅ **RIGHT:** \`[emoji:发抖]\`, \`[sticker:震惊]\`
+
+2.  **THE LIST IS LAW:** You are ONLY allowed to use names from the specific lists provided below. Do NOT invent names.
+
 3.  **STRICT MATCHING:**
-    - For small inline expressions: \`[emoji:ExactNameFromList]\`
-    - For large image reactions: \`[sticker:ExactNameFromList]\`
-4.  **FALLBACK (MANDATORY):** If you cannot find an exact match in the lists for the emotion you want to express, you **MUST NOT** use a tag. Instead, use plain text in parentheses.
-    - *Example:* If you want to show "awkward" but it's not in the list, write \`(尴尬)\` instead of \`[emoji:awkward]\`.
+    - For small inline expressions (emoticons): You MUST use \`[emoji:ExactName]\`.
+    - For large image reactions (stickers): You MUST use \`[sticker:ExactName]\`.
+
+4.  **FALLBACK (MANDATORY):** If you cannot find an exact match in the lists, you **MUST NOT** use a tag. Use plain text in parentheses instead, like \`(发抖)\`.
 
 **Available Emoji Names:** [${emojiNames}]
 **Available Sticker Names:** [${stickerNames}]
+
 
 ---
 `;
@@ -10494,8 +10499,16 @@ You are ENCOURAGED to use emojis and stickers in your "content" and "water_army"
         const isGroupPersona = isProtagonist || isEnsemble;
 
         // 只要符合其中之一，就允许执行主动行为并使用全局 API
-        // 核心新增：增加了 senderName === 'Anonymous_System' 判定，确保路人模式能加载全局配置
-        if (isNpc || isProtagonist || isEnsemble || senderName === 'Anonymous_System' || actionType === 'post_moment' || actionType === 'browse_moments' || actionType === 'tuqu_interaction' || actionType === 'pure_tuqu_interaction' || actionType === 'specific_post_interaction') {
+        // 核心新增：增加了 'themed_tuqu_interaction' 和 'specific_post_interaction'
+        // 确保无论是不是单聊角色，只要是在兔区搞事，都强制走全局 API
+        if (isNpc || isProtagonist || isEnsemble || senderName === 'Anonymous_System' || 
+            actionType === 'post_moment' || 
+            actionType === 'browse_moments' || 
+            actionType === 'tuqu_interaction' || 
+            actionType === 'pure_tuqu_interaction' ||
+            actionType === 'themed_tuqu_interaction' ||      // <--- 新增
+            actionType === 'specific_post_interaction') {    // <--- 新增
+
             // 【核心修正】: 朋友圈、兔区、NPC、群聊主角、手动触发，全部强制使用全局激活的API配置
             profileIndex = activeProfileIndex;
             if (profileIndex === null) {
@@ -12499,7 +12512,10 @@ ${timeContext}
                 tuquContext += `Title: "${post.subject}" (ID: ${post.id})\n`;
                 tuquContext += `Author: ${authorTag} (${post.location || 'Unknown'})\n`;
                 tuquContext += `Time: ${post.timestamp} ${postStatus}\n`;
-                tuquContext += `Main Content: ${post.content}\n`;
+                
+                // 【核心修复】剥离主贴 HTML 标签
+                const cleanMainContent = post.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                tuquContext += `Main Content: ${cleanMainContent}\n`;
 
                 if (post.comments && post.comments.length > 0) {
                     tuquContext += `--- All Replies (${post.comments.length}) ---\n`;
@@ -12507,7 +12523,6 @@ ${timeContext}
                         const floorNum = idx + 1;
                         const commentStatus = c.isReported ? `[REPORTED: ${c.reportReason}]` : "";
                         
-                        // 核心判定：这是不是用户发的评论？
                         const isUserComment = (c.author === userNameForPrompt || c.author === '{{user}}');
                         const commenterTag = isUserComment ? `${c.author} (!!! THE REAL USER - DO NOT ROLEPLAY AS THIS PERSON !!!)` : c.author;
 
@@ -12519,7 +12534,9 @@ ${timeContext}
                             quoteInfo = ` (Replying to: "${quoteText}...")`;
                         }
                         
-                        tuquContext += `  [Floor ${floorNum}] ${commenterTag} (${c.location || 'Unknown'}): "${c.content}"${quoteInfo} ${commentStatus}\n`;
+                        // 【核心修复】剥离评论 HTML 标签
+                        const cleanCommentContent = c.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                        tuquContext += `  [Floor ${floorNum}] ${commenterTag} (${c.location || 'Unknown'}): "${cleanCommentContent}"${quoteInfo} ${commentStatus}\n`;
                     });
                 } else {
                     tuquContext += `--- No Replies Yet ---\n`;
@@ -12627,11 +12644,20 @@ You can choose to create a **"Lively Thread"** (Main post + 5-15 follow-up comme
 ${TUQU_MEDIA_PROTOCOL}
 
 
-**[MEDIA & EXPRESSION LAW]**
-You are ENCOURAGED to use emojis and stickers in your "content" to make the forum feel alive.
-- Use \`[emoji:Name]\` for small inline expressions. Available: [${emojiNames}]
-- Use \`[sticker:Name]\` for large image reactions. Available: [${stickerNames}]
-- **CRITICAL:** Only use names from the provided lists. Do not invent names.
+**[MEDIA & EXPRESSION LAW - MANDATORY FORMAT]**
+You are ENCOURAGED to use emojis and stickers in your "content" to make the forum feel alive, but you MUST use the correct code format.
+
+**ABSOLUTE FORMATTING RULE:**
+- To show a small emoji: You MUST write \`[emoji:Name]\`.
+- To show a large sticker: You MUST write \`[sticker:Name]\`.
+- **FORBIDDEN:** Never write \`[Name]\` alone. If you omit the "emoji:" or "sticker:" prefix, the image will NOT display.
+
+**EXAMPLES:**
+- ✅ CORRECT: "太好笑了[emoji:笑哭]"
+- ❌ WRONG: "太好笑了[笑哭]" (This is a system error)
+
+**Available Emojis:** [${emojiNames}]
+**Available Stickers:** [${stickerNames}]
 `;
             // 拼接所有要求的人设上下文和聊天记录
             const fullIdentityContext = `
@@ -12727,7 +12753,9 @@ Constraint: Output ONLY the [tuqu_complex_action] command. No chat text.`
                 const isUserPost = (post.author === userNameForPrompt || post.author === '{{user}}');
                 const authorTag = isUserPost ? `${post.author} (!!! THE REAL USER - DO NOT ROLEPLAY !!!)` : post.author;
 
-                tuquContext += `\n=== Thread #${i + 1} [Board: ${post._boardName}] ===\nTitle: "${post.subject}" (ID: ${post.id}) ${pStatus}\nAuthor: ${authorTag}\nContent: ${post.content}\n`;
+                // 【核心修复】剥离主贴 HTML
+                const cleanMainContent = post.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                tuquContext += `\n=== Thread #${i + 1} [Board: ${post._boardName}] ===\nTitle: "${post.subject}" (ID: ${post.id}) ${pStatus}\nAuthor: ${authorTag}\nContent: ${cleanMainContent}\n`;
                 
                 if (post.comments && post.comments.length > 0) {
                     tuquContext += `--- All Replies ---\n`;
@@ -12736,7 +12764,9 @@ Constraint: Output ONLY the [tuqu_complex_action] command. No chat text.`
                         const isUserComment = (c.author === userNameForPrompt || c.author === '{{user}}');
                         const commenterTag = isUserComment ? `${c.author} (!!! THE REAL USER - DO NOT ROLEPLAY !!!)` : c.author;
                         
-                        tuquContext += `  [Floor ${idx + 1}] ${commenterTag}: "${c.content}" ${cStatus}\n`;
+                        // 【核心修复】剥离评论 HTML
+                        const cleanCommentContent = c.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                        tuquContext += `  [Floor ${idx + 1}] ${commenterTag}: "${cleanCommentContent}" ${cStatus}\n`;
                     });
                 }
             });
@@ -12928,11 +12958,17 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                 const isUserPost = (post.author === userNameForPrompt || post.author === '{{user}}');
                 const authorTag = isUserPost ? `${post.author} (!!! THE REAL USER - DO NOT ROLEPLAY !!!)` : post.author;
 
-                tuquContext += `\n=== Thread #${i + 1} [Board: ${post._boardName}] ===\nTitle: "${post.subject}" (ID: ${post.id}) ${pStatus}\nAuthor: ${authorTag}\nContent: ${post.content}\n`;
+                // 【核心修复】剥离主贴 HTML
+                const cleanMainContent = post.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                tuquContext += `\n=== Thread #${i + 1} [Board: ${post._boardName}] ===\nTitle: "${post.subject}" (ID: ${post.id}) ${pStatus}\nAuthor: ${authorTag}\nContent: ${cleanMainContent}\n`;
+                
                 if (post.comments) post.comments.forEach((c, idx) => { 
                     const isUserComment = (c.author === userNameForPrompt || c.author === '{{user}}');
                     const commenterTag = isUserComment ? `${c.author} (!!! THE REAL USER - DO NOT ROLEPLAY !!!)` : c.author;
-                    tuquContext += `  [Floor ${idx + 1}] ${commenterTag}: "${c.content}"\n`; 
+                    
+                    // 【核心修复】剥离评论 HTML
+                    const cleanCommentContent = c.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                    tuquContext += `  [Floor ${idx + 1}] ${commenterTag}: "${cleanCommentContent}"\n`; 
                 });
             });
 
@@ -12964,12 +13000,17 @@ Your new persona is a talented but slightly mischievous author who excels at lea
 
 **[THE MISSION]**
 Write the **NEXT CHAPTER** of the story based on:
--   **SETTING:** \`${extraOptions.worldview || "Standard reality"}\`.
--   **SUBJECTS:** Characters from your "LIFE CONTEXT".
+-   **SETTING (CRITICAL OVERRIDE):** \`${extraOptions.worldview || "Standard reality"}\`.
+    *   **IF AN AU (Alternate Universe) IS SPECIFIED (e.g., "ABO", "Ancient", "Cyberpunk", "Mafia"):**
+        1.  **IGNORE REALITY:** You MUST discard the current "Chat App/Phone" setting. The characters are NOT holding phones. They are inside the AU.
+        2.  **ADAPT PERSONAS:** Keep the characters' core personalities (souls), but change their jobs, status, and clothes to fit the AU.
+        3.  **NO "PICKING UP PHONES":** Unless the AU is modern, do not mention phones. Focus on the environment of the AU.
+-   **SUBJECTS:** Characters from your "LIFE CONTEXT" (Adapted to the new Setting).
 -   **PREVIOUS CHAPTERS:** The existing posts in the thread.
 
 ---
 ## **[ROUTE 2: IF BOARD NAME IS *NOT* "同人衍生" (E.G., GOSSIP, DISCUSSION)]**
+
 
 **[NEW IDENTITY: THE "INTRIGUE BUILDER" (谜语人)]**
 You are an anonymous netizen who loves to drop bombshells and then disappear, letting the discussion ferment.
@@ -13021,11 +13062,16 @@ ${TUQU_MEDIA_PROTOCOL}
 **[COMMAND]**
 Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 `;
-            // 获取缓存的版规
+                        // 获取缓存的版规 (仅提取当前锁定的版块规则)
             const cachedRules = JSON.parse(localStorage.getItem('tuqu_cached_board_rules') || '{}');
-            let boardsRulesText = "\n[FORUM BOARD RULES & DESCRIPTIONS]\n";
-            for (const [bName, bDesc] of Object.entries(cachedRules)) {
-                boardsRulesText += `- **${bName}**: ${bDesc}\n`;
+            let boardsRulesText = `\n[FORUM BOARD RULES: ${lockedBoard}]\n`;
+            
+            if (cachedRules[lockedBoard]) {
+                // 只添加当前版块的描述和规则
+                boardsRulesText += `- ${cachedRules[lockedBoard]}\n`;
+            } else {
+                // 如果没找到缓存规则，提供一个通用提示
+                boardsRulesText += `- Follow the established social norms and atmosphere of the "${lockedBoard}" board.\n`;
             }
 
             // 【核心修复】确保 API 系统提示被正确发送，并加入版规
@@ -13043,7 +13089,6 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 
             // 1. 构建关联 NPC 人设 (如果 senderName 是特定角色)
             let associatedNpcsPrompt = '';
-            // (复用 themed_tuqu_interaction 中的关联人设逻辑，如果 senderName 不是 'Anonymous_System')
             if (senderName !== 'Anonymous_System') {
                 let associatedCharNames = [];
                 const currentNpcSettings = loadFromLocalStorage('app-npc-settings', { associations: {}, personas: {} });
@@ -13073,10 +13118,46 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                              const rawData = currentNpcSettings.personas[charName];
                              personaText = (typeof rawData === 'object' && rawData !== null) ? rawData.description : rawData;
                         }
-                        if (personaText) associatedNpcsPrompt += `- **${charName}**: ${personaText}\n`;
+                        if (personaText) {
+                            // 核心修复：局部替换占位符，确保每个关联角色的人设正确
+                            let processedPersona = personaText.replace(/{{char}}/g, charName).replace(/{{user}}/g, userNameForPrompt);
+                            associatedNpcsPrompt += `- **${charName}**: ${processedPersona}\n`;
+                        }
                     });
                 }
             }
+
+            // 【【【 核心新增：获取该角色的前情提要与聊天记录上下文 】】】
+            let chatHistoryForTuqu = '';
+            let preambleForTuqu = '';
+            if (contextChatId) {
+                const contextChatInfo = loadFromLocalStorage(`chat_info_${contextChatId}`, {});
+                preambleForTuqu = contextChatInfo.preamble || '';
+                
+                const memoryLength = parseInt(contextChatInfo.memoryLength || 20, 10);
+                const sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
+                const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages, contextChatId);
+                chatHistoryForTuqu = apiPayloadMessages.map(msg => {
+                    const role = msg.role === 'user' ? userNameForPrompt : (msg.sender || senderName);
+                    let content = '';
+                    if (Array.isArray(msg.content)) {
+                        content = msg.content.find(part => part.type === 'text')?.text || '[多媒体内容]';
+                    } else {
+                        content = msg.content;
+                    }
+                    return `${role}: ${content}`;
+                }).join('\n');
+            }
+
+            const lifeContext = `
+[LIFE CONTEXT - SOURCE MATERIAL]
+Preamble (Background): ${preambleForTuqu || 'None'}
+
+[RECENT CHAT HISTORY]
+${chatHistoryForTuqu || 'No recent history.'}
+`;
+            // 【【【 插入结束 】】】
 
             // 2. 构建仅包含当前帖子的上下文
             let singlePostContext = `\n[TARGET THREAD CONTEXT]\nYou are viewing ONLY this specific thread.\n`;
@@ -13085,7 +13166,9 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
             const isUserPost = (targetPost.author === userNameForPrompt || targetPost.author === '{{user}}');
             const authorTag = isUserPost ? `${targetPost.author} (!!! THE REAL USER - DO NOT ROLEPLAY !!!)` : targetPost.author;
 
-            singlePostContext += `\n=== Thread [Board: ${targetPost._boardName}] ===\nTitle: "${targetPost.subject}" (ID: ${targetPost.id}) ${pStatus}\nAuthor: ${authorTag}\nContent: ${targetPost.content}\n`;
+            // 【核心修复】剥离主贴 HTML
+            const cleanMainContent = targetPost.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+            singlePostContext += `\n=== Thread [Board: ${targetPost._boardName}] ===\nTitle: "${targetPost.subject}" (ID: ${targetPost.id}) ${pStatus}\nAuthor: ${authorTag}\nContent: ${cleanMainContent}\n`;
             
             if (targetPost.comments && targetPost.comments.length > 0) {
                 singlePostContext += `--- Existing Replies ---\n`;
@@ -13094,7 +13177,9 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                     const isUserComment = (c.author === userNameForPrompt || c.author === '{{user}}');
                     const commenterTag = isUserComment ? `${c.author} (!!! THE REAL USER - DO NOT ROLEPLAY !!!)` : c.author;
                     
-                    singlePostContext += `  [Floor ${idx + 1}] ${commenterTag}: "${c.content}" ${cStatus}\n`;
+                    // 【核心修复】剥离评论 HTML
+                    const cleanCommentContent = c.content.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+                    singlePostContext += `  [Floor ${idx + 1}] ${commenterTag}: "${cleanCommentContent}" ${cStatus}\n`;
                 });
             } else {
                 singlePostContext += `--- No Replies Yet ---\n`;
@@ -13160,10 +13245,9 @@ You are ENCOURAGED to use emojis and stickers in your "content" and "water_army"
 Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 `;
             
-            // 4. 发送
-            // 注意：这里不包含 chatHistoryForTuqu (最近聊天记录)，只包含人设和帖子内容
+            // 4. 发送 (注入了 lifeContext)
             finalMessages = [
-                { role: "system", content: (profile.prompt || "") + tuquWorldBookContent + singlePostContext + specificInstruction.replace(/{{user}}/g, userNameForPrompt).replace(/{{char}}/g, senderName) },
+                { role: "system", content: (profile.prompt || "") + lifeContext + tuquWorldBookContent + associatedNpcsPrompt + singlePostContext + specificInstruction.replace(/{{user}}/g, userNameForPrompt).replace(/{{char}}/g, senderName) },
                 { role: "user", content: `Update the thread "${targetPost.subject}" based on the "${extraOptions.worldview || 'current'}" worldview.` }
             ];
         }
@@ -13711,7 +13795,7 @@ const momentInteractionRegex = /\[(like_moment|comment_moment|post_moment|send_p
                 // ===== 新代码块到此结束 =====
                 } // end of while loop
 
-                // 【核心修复】将 +? 改为 *，实行贪婪匹配，确保抓取到最后一个 ] 之前的全部内容
+                // 【核心修复】将 +? 改为 *，实行贪婪匹配
                 const tuquComplexRegex = /\[tuqu_complex_action:\s*(\{[\s\S]*\})\s*\]/g;
                 let tuquMatch;
                 const tuquIframe = document.querySelector('#tab-content-tuqu iframe');
@@ -13726,80 +13810,150 @@ const momentInteractionRegex = /\[(like_moment|comment_moment|post_moment|send_p
                 while ((tuquMatch = tuquComplexRegex.exec(sanitizedResponse)) !== null) {
                     try {
                         let jsonStr = tuquMatch[1].trim();
+                        let data = null;
 
-                        // 【核心重构】：能够处理转义引号的精准提取函数
-                        const fastExtract = (source, field) => {
-                            // 匹配 "field" : "内容"
-                            // 内容部分使用 (?:\\.|[^"\\])* 逻辑：匹配转义字符(\\.)或者非引号非反斜杠字符([^"\\])
-                            // 这样遇到 \" 时，正则会知道这是内容的一部分，而不是字符串的结尾
-                            const regex = new RegExp('"' + field + '"\\s*:\\s*"((?:\\\\.|[^"\\\\])*)"', 'i');
-                            const m = source.match(regex);
-                            if (m && m[1]) {
-                                // 还原转义字符：\" 还原为 ", \\n 还原为 换行, \\\\ 还原为 \
-                                return m[1]
-                                    .replace(/\\"/g, '"')
-                                    .replace(/\\n/g, '\n')
-                                    .replace(/\\\\/g, '\\')
+                        // 【步骤 1：优先尝试标准 JSON 解析】
+                        try {
+                            data = JSON.parse(jsonStr);
+                        } catch (e) {
+                            // JSON 解析失败，进入全字段边界解析模式
+                        }
+
+                        // 【步骤 2：全字段边界锚点解析 (修复标题/内容中未转义引号的问题)】
+                        if (!data) {
+                            // 定义所有可能的字段名，用于定位边界
+                            const allKeys = ["type", "board", "postId", "author", "location", "subject", "content", "water_army", "quote"];
+
+                            // --- 核心工具：基于下一个字段名的边界提取器 ---
+                            const extractByBoundary = (fullStr, targetKey) => {
+                                // 1. 找到目标字段的开始： "key": "
+                                // 注意：这里我们允许冒号周围有空格
+                                const startPattern = new RegExp(`"${targetKey}"\\s*:\\s*"`);
+                                const startMatch = fullStr.match(startPattern);
+                                if (!startMatch) return "";
+
+                                const valueStartIndex = startMatch.index + startMatch[0].length;
+                                const textAfterStart = fullStr.substring(valueStartIndex);
+
+                                // 2. 寻找最近的“下一个字段”作为结束锚点
+                                let minEndIndex = -1;
+
+                                allKeys.forEach(nextKey => {
+                                    // 排除自己
+                                    if (nextKey === targetKey) return;
+
+                                    // 特征：", "key":  (逗号+空格+引号+key)
+                                    // 或者 ","key": (逗号+引号+key)
+                                    const nextKeyRegex = new RegExp(`",\\s*"${nextKey}"\\s*:`);
+                                    const match = textAfterStart.match(nextKeyRegex);
+                                    
+                                    if (match) {
+                                        if (minEndIndex === -1 || match.index < minEndIndex) {
+                                            minEndIndex = match.index;
+                                        }
+                                    }
+                                });
+
+                                // 3. 如果没找到下一个字段，说明可能是最后一项，寻找 JSON 结束符
+                                if (minEndIndex === -1) {
+                                    // 匹配结尾的 "} 或 "}] 或 "]
+                                    // 这里的逻辑是：找到字符串末尾倒数几个字符里的引号
+                                    const endRegex = /"\s*\}\s*\]?$/; 
+                                    const endMatch = textAfterStart.match(endRegex);
+                                    if (endMatch) {
+                                        minEndIndex = endMatch.index;
+                                    } else {
+                                        // 保底：如果没有明显的结束符，就取到最后，然后手动切掉末尾的引号
+                                        minEndIndex = textAfterStart.lastIndexOf('"');
+                                    }
+                                }
+
+                                // 4. 截取
+                                if (minEndIndex !== -1) {
+                                    return textAfterStart.substring(0, minEndIndex);
+                                }
+                                return "";
+                            };
+
+                            // 清理函数
+                            const clean = (str) => {
+                                if (!str) return "";
+                                return str
+                                    .replace(/\\"/g, '"')      // 还原双引号
+                                    .replace(/\\\\/g, '\\')    // 还原反斜杠
+                                    .replace(/\\n/g, '<br>')   // 转义换行
+                                    .replace(/\n/g, '<br>')    // 真实换行
                                     .trim();
-                            }
-                            return '';
-                        };
+                            };
 
-                        // 1. 提取主贴基础字段 (使用新的提取函数确保安全)
-                        const typeVal = fastExtract(jsonStr, 'type');
-                        const boardVal = (jsonStr.match(/"board"\s*:\s*"([^"]+)"/) || [])[1];
-                        
-                        if (!typeVal) continue;
+                            // --- 开始提取 ---
+                            // 针对 subject 和 content 使用高级提取，其他字段使用简单提取即可
+                            // 但为了保险，全部使用高级提取
+                            
+                            data = {
+                                type: clean(extractByBoundary(jsonStr, 'type')),
+                                board: clean(extractByBoundary(jsonStr, 'board')),
+                                postId: clean(extractByBoundary(jsonStr, 'postId')),
+                                author: clean(extractByBoundary(jsonStr, 'author')),
+                                location: clean(extractByBoundary(jsonStr, 'location')),
+                                subject: clean(extractByBoundary(jsonStr, 'subject')), // 修复点：标题现在也能抗干扰了
+                                content: clean(extractByBoundary(jsonStr, 'content')), 
+                                water_army: []
+                            };
 
-                        let data = {
-                            type: typeVal,
-                            board: boardVal || '',
-                            postId: fastExtract(jsonStr, 'postId'),
-                            author: fastExtract(jsonStr, 'author'),
-                            location: fastExtract(jsonStr, 'location'),
-                            subject: fastExtract(jsonStr, 'subject'),
-                            content: fastExtract(jsonStr, 'content'),
-                            water_army: []
-                        };
-
-                        // 2. 【核心重构】提取水军列表
-                        const armyBlockMatch = jsonStr.match(/"water_army"\s*:\s*\[([\s\S]*)\]/i);
-                        if (armyBlockMatch) {
-                            const armyBlock = armyBlockMatch[1];
-                            // 逐个抓取 { ... } 对象
-                            const itemRegex = /\{([\s\S]+?)\}/g;
-                            let itemMatch;
-                            while ((itemMatch = itemRegex.exec(armyBlock)) !== null) {
-                                const itemStr = itemMatch[1];
-                                
-                                // 全部使用加强版提取函数
-                                const armyAuthor = fastExtract(itemStr, 'author');
-                                const armyContent = fastExtract(itemStr, 'content');
-                                const armyLocation = fastExtract(itemStr, 'location');
-                                
-                                if (armyAuthor || armyContent) {
-                                    data.water_army.push({
-                                        author: armyAuthor,
-                                        location: armyLocation,
-                                        content: armyContent
-                                    });
+                            // 手动提取水军列表 (数组形式)
+                            // 水军部分通常比较规范，我们先提取出数组字符串，再分割
+                            const armyStartMatch = jsonStr.match(/"water_army"\s*:\s*\[/);
+                            if (armyStartMatch) {
+                                const armyStartIndex = armyStartMatch.index + armyStartMatch[0].length;
+                                // 找到数组结束的 ]
+                                const armyEndIndex = jsonStr.lastIndexOf(']');
+                                if (armyEndIndex > armyStartIndex) {
+                                    const armyBlock = jsonStr.substring(armyStartIndex, armyEndIndex);
+                                    
+                                    // 简单的 {} 分割，因为水军内部通常不含复杂嵌套
+                                    // 使用正则匹配每一项 { ... }
+                                    const itemRegex = /\{[\s\S]*?\}/g;
+                                    let itemMatch;
+                                    while ((itemMatch = itemRegex.exec(armyBlock)) !== null) {
+                                        const itemStr = itemMatch[0];
+                                        // 对水军内部也使用边界提取，防止水军评论里有引号
+                                        const aAuthor = clean(extractByBoundary(itemStr, 'author'));
+                                        const aContent = clean(extractByBoundary(itemStr, 'content'));
+                                        const aLoc = clean(extractByBoundary(itemStr, 'location'));
+                                        
+                                        if (aAuthor || aContent) {
+                                            data.water_army.push({
+                                                author: aAuthor,
+                                                content: aContent,
+                                                location: aLoc
+                                            });
+                                        }
+                                    }
                                 }
                             }
                         }
 
+                        if (!data || !data.type) continue;
                         if (!tuquIframe) break;
 
                         // 【核心修复】定义内部解析函数，区分处理 Emoji 和 Sticker 的显示尺寸
                         const parseTuquMedia = (text) => {
                             if (!text) return "";
-                            return text.replace(/\[(emoji|sticker)[:：]([^\]]+)\]/g, (match, type, name) => {
+                            
+                            // 1. 移除 <snippet> 标签
+                            let cleanText = text.replace(/<snippet>/g, '').replace(/<\/snippet>/g, '');
+                            
+                            // 2. 再次确保换行符被转换
+                            cleanText = cleanText.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+
+                            // 3. 替换表情包
+                            return cleanText.replace(/\[(emoji|sticker)[:：]([^\]]+)\]/g, (match, type, name) => {
                                 const item = stickers.find(s => s.name.trim() === name.trim() && s.type === type.toLowerCase());
                                 if (item) {
                                     if (type.toLowerCase() === 'emoji') {
-                                        // Emoji 保持行内小尺寸，跟随文字高度
                                         return `<img src="${item.url}" alt="${name}" class="inline-emoji" style="height:1.2em; vertical-align:middle; margin:0 2px;">`;
                                     } else {
-                                        // 表情包 (Sticker) 使用大尺寸，且强制换行显示，更符合论坛表情包习惯
                                         return `<img src="${item.url}" alt="${name}" style="max-width: 120px; max-height: 120px; display: block; margin: 8px 0; border-radius: 8px;">`;
                                     }
                                 }
@@ -13828,7 +13982,7 @@ const momentInteractionRegex = /\[(like_moment|comment_moment|post_moment|send_p
                                     setTimeout(() => {
                                         tuquIframe.contentWindow.postMessage({ 
                                             type: 'AI_POST_COMMENT', 
-                                            board: data.board, // 核心修复：带上板块名
+                                            board: data.board,
                                             postId: newPostId, 
                                             content: parseTuquMedia(c.content), 
                                             author: c.author, 
@@ -13840,7 +13994,6 @@ const momentInteractionRegex = /\[(like_moment|comment_moment|post_moment|send_p
                         } else if (data.type === 'comment') {
                             if (forbiddenNames.includes(data.author)) data.author = "匿名网友";
                             
-                            // 【核心修复】：如果 AI 没提供版块名，自动从全局数据中检索该帖子所属版块
                             if (!data.board) {
                                 for (const boardName in globalTuquData) {
                                     if (Array.isArray(globalTuquData[boardName]) && globalTuquData[boardName].some(p => p.id === data.postId)) {
@@ -13852,7 +14005,7 @@ const momentInteractionRegex = /\[(like_moment|comment_moment|post_moment|send_p
 
                             tuquIframe.contentWindow.postMessage({ 
                                 type: 'AI_POST_COMMENT', 
-                                board: data.board, // 核心修复：带上确定的板块名
+                                board: data.board,
                                 postId: data.postId, 
                                 content: parseTuquMedia(data.content), 
                                 author: data.author, 
@@ -13866,34 +14019,9 @@ const momentInteractionRegex = /\[(like_moment|comment_moment|post_moment|send_p
                                     setTimeout(() => {
                                         tuquIframe.contentWindow.postMessage({ 
                                             type: 'AI_POST_COMMENT', 
-                                            board: data.board, // 水军评论同步带上板块名
+                                            board: data.board,
                                             postId: data.postId, 
                                             content: parseTuquMedia(c.content), 
-                                            author: c.author, 
-                                            location: c.location 
-                                        }, '*');
-                                    }, 500 * (index + 1));
-                                });
-                            }
-                        } else if (data.type === 'comment') {
-                            if (forbiddenNames.includes(data.author)) data.author = "匿名网友";
-                            tuquIframe.contentWindow.postMessage({ 
-                                type: 'AI_POST_COMMENT', 
-                                postId: data.postId, 
-                                content: parseTuquMedia(data.content), // 解析评论中的表情
-                                author: data.author, 
-                                location: data.location,
-                                quote: data.quote 
-                            }, '*');
-
-                            if (data.water_army && Array.isArray(data.water_army)) {
-                                data.water_army.forEach((c, index) => {
-                                    if (forbiddenNames.includes(c.author)) c.author = "吃瓜群众";
-                                    setTimeout(() => {
-                                        tuquIframe.contentWindow.postMessage({ 
-                                            type: 'AI_POST_COMMENT', 
-                                            postId: data.postId, 
-                                            content: parseTuquMedia(c.content), // 解析水军评论中的表情
                                             author: c.author, 
                                             location: c.location 
                                         }, '*');
