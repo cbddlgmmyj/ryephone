@@ -5098,11 +5098,16 @@ input:checked + .slider:before {
     resize: vertical;  /* 核心：允许垂直方向拖拽调整大小 */
 }
 /* --- END: 修正并美化正则替换模板的多行输入框 --- */
-/* --- START: 多选模式遮挡问题最终修复 --- */
+/* --- 多选模式遮挡问题最终修复 --- */
 #page-conversation #chat-view.multi-select-active .chat-content {
-    padding-bottom: 160px; /* 核心修改：大幅增加避让高度，确保两行按钮不遮挡消息 */
+    padding-bottom: 160px; /* 平时多选时：避让底部按钮 */
 }
-/* --- END: 多选模式遮挡问题最终修复 --- */
+
+/* 【核心新增】预览模式下：按钮隐藏了，所以把底部间距收回来，只留一点点 */
+#page-conversation #chat-view.preview-active .chat-content {
+    padding-bottom: 20px !important; 
+}
+
 /* --- START: 新增 @ 提及样式 --- */
 #page-conversation .message .mention {
     color: #5d6d94; /* 一个醒目的蓝色，与朋友圈链接颜色统一 */
@@ -6111,16 +6116,55 @@ body.preview-fullscreen-active #page-conversation .chat-content {
         margin-top: 5px;
     }
 
-/* 【【【 关键修复：预览模式下的特例 】】】 */
+    /* 【【【 关键修复：预览模式下的特例 】】】 */
     /* 当 body 同时拥有 frame-hidden (APP模式) 和 preview-fullscreen-active (预览模式) 时 */
     /* 强制解除高度限制，允许页面无限延伸，从而支持长截图 */
     body.frame-hidden.preview-fullscreen-active,
     body.frame-hidden.preview-fullscreen-active .phone,
     body.frame-hidden.preview-fullscreen-active .screen {
-        height: auto !important;       /* 解除 100vh 限制 */
-        min-height: 100vh !important;  /* 至少有一屏高 */
-        overflow: visible !important;  /* 允许溢出 */
+        height: auto !important;
+        min-height: 0 !important;      /* 【核心修改】防止内容少时强制撑出大片空白 */
+        overflow: visible !important;
+        padding-bottom: 20px !important; /* 【核心修改】全局统一留出 20px 呼吸空间 */
     }
+
+    /* 【核心新增】朋友圈预览模式下的底部修正 */
+    #moments-view.moments-preview-active .moments-feed {
+        padding-bottom: 0 !important; /* 移除 feed 自身的 padding，由外部控制 */
+    }
+
+
+    /* 【核心新增】朋友圈预览模式下的底部修正 */
+    #moments-view.moments-preview-active .moments-feed {
+        padding-bottom: 0 !important; /* 移除 feed 自身的 padding，由外部控制 */
+    }
+
+
+    /* 【核心新增】确保 iframe 容器能撑开高度 (修复版：增加 .active 限制) */
+    
+    /* 只有当兔区是【当前激活】的标签页时，才应用这些规则 */
+    body.preview-fullscreen-active #tab-content-tuqu.active {
+        height: auto !important;
+        min-height: 100vh !important;
+        overflow: visible !important;
+        display: block !important; 
+    }
+    
+    /* 如果兔区【不是】当前激活的标签页，强制隐藏，防止它跑到朋友圈下面 */
+    body.preview-fullscreen-active #tab-content-tuqu:not(.active) {
+        display: none !important;
+        height: 0 !important;
+        overflow: hidden !important;
+    }
+
+    /* iframe 样式保持不变，但只在父容器显示时生效 */
+    body.preview-fullscreen-active #tab-content-tuqu iframe {
+        min-height: 100vh !important;
+        overflow: hidden !important; 
+    }
+
+
+
 
     /* 【【【 朋友圈预览终极修复：像聊天一样无限拉长 】】】 */
     
@@ -6763,7 +6807,7 @@ body.preview-fullscreen-active #page-conversation .chat-content {
         text-shadow: none !important;
     }
 
-        /* 2. 所有顶栏、卡片变深灰 */
+            /* 2. 所有顶栏、卡片、列表容器变深灰 */
     body.dark-mode .app-header,
     body.dark-mode .list-header,
     body.dark-mode .chat-header,
@@ -6772,16 +6816,19 @@ body.preview-fullscreen-active #page-conversation .chat-content {
     body.dark-mode #action-menu,
     body.dark-mode .form-section,
     body.dark-mode .worldbook-item,
-
     body.dark-mode .user-persona-item,
     body.dark-mode .post-card,
     body.dark-mode .modal-box,
     body.dark-mode .context-menu-item,
-    body.dark-mode #message-context-menu {
+    body.dark-mode #message-context-menu,
+    body.dark-mode .tab-content,
+    body.dark-mode .message-list-app-container,
+    body.dark-mode .message-list {
         background-color: #1c1c1e !important;
         color: #e5e5ea !important;
         border-color: #2c2c2e !important;
     }
+
 
     /* 【核心新增】AI 气泡夜间模式适配 */
     body.dark-mode .message.received {
@@ -6860,14 +6907,21 @@ body.preview-fullscreen-active #page-conversation .chat-content {
         color: #e5e5ea !important;
     }
     
-    /* 5. 次要文字变浅灰 */
+    /* 5. 次要文字、空状态文字变浅灰 */
     body.dark-mode .last-message,
     body.dark-mode .timestamp,
     body.dark-mode .form-hint,
     body.dark-mode .post-content-text,
-    body.dark-mode .worldbook-item-content {
+    body.dark-mode .worldbook-item-content,
+    body.dark-mode #empty-chat-placeholder {
         color: #8e8e93 !important;
     }
+
+    /* 6. 列表分割线适配 */
+    body.dark-mode .chat-info {
+        border-bottom: 1px solid #2c2c2e !important;
+    }
+
 
 
 
@@ -6876,12 +6930,22 @@ body.preview-fullscreen-active #page-conversation .chat-content {
         background-color: #2c2c2e !important;
     }
     
-    /* 8. 聊天列表项适配 */
-    /* 普通聊天项：全黑，移除所有底边框 */
+    /* 8. 聊天列表项与底部导航适配 */
     body.dark-mode .chat-item {
         background-color: #000 !important;
         border-bottom: none !important;
     }
+    body.dark-mode .main-app-navbar {
+        background-color: #1c1c1e !important;
+        border-top: 1px solid #2c2c2e !important;
+    }
+    body.dark-mode .nav-item {
+        color: #8e8e93 !important;
+    }
+    body.dark-mode .nav-item.active {
+        color: var(--primary-color) !important;
+    }
+
 
     /* 置顶聊天项：深灰色，移除所有底边框 */
     body.dark-mode .chat-item.pinned {
@@ -10752,10 +10816,48 @@ if ('serviceWorker' in navigator) {
 
     // 新增：监听来自兔区 iframe 的数据同步
     window.addEventListener('message', async function(event) {
+            // 【核心新增】处理全屏预览指令
+            if (event.data && event.data.type === 'ENTER_FULLSCREEN_PREVIEW') {
+                document.body.classList.add('preview-fullscreen-active');
+                // 强制让兔区所在的 tab-content 解除限制
+                const tuquTab = document.getElementById('tab-content-tuqu');
+                if (tuquTab) tuquTab.style.height = 'auto';
+                return;
+            }
+            if (event.data && event.data.type === 'EXIT_FULLSCREEN_PREVIEW') {
+                document.body.classList.remove('preview-fullscreen-active');
+                // 恢复兔区 tab 的高度限制
+                const tuquTab = document.getElementById('tab-content-tuqu');
+                if (tuquTab) tuquTab.style.height = '100%';
+                
+                // 顺便重置 iframe 高度
+                const iframe = document.querySelector('#tab-content-tuqu iframe');
+                if (iframe) iframe.style.height = '100%';
+                return;
+            }
+            
+            // 【核心新增】接收 iframe 发来的高度并应用
+            if (event.data && event.data.type === 'UPDATE_IFRAME_HEIGHT') {
+                const iframe = document.querySelector('#tab-content-tuqu iframe');
+                if (iframe) {
+                    // 【核心修复】直接使用精确高度，不要加缓冲，防止底部留白
+                    iframe.style.height = event.data.height + 'px';
+                }
+                return;
+            }
+
+            if (event.data && event.data.type === 'RESET_IFRAME_HEIGHT') {
+                const iframe = document.querySelector('#tab-content-tuqu iframe');
+                if (iframe) iframe.style.height = '100%';
+                return;
+            }
+
+
             if (event.data && event.data.type === 'FORUM_DATA_SYNC') {
                 globalTuquData = event.data.data;
                 console.log('[系统] 兔区数据已同步到主系统。');
             } else if (event.data && event.data.type === 'OPEN_TUQU_SHARE_PICKER') {
+
                 const post = event.data.post;
                 const chats = chatList.map(c => {
                     const info = loadFromLocalStorage(`chat_info_${c.id}`, {});
@@ -10770,12 +10872,42 @@ if ('serviceWorker' in navigator) {
                 });
                 if (result && result.value === 'send') {
                     const targetChatId = result.target.closest('.modal-box').querySelector('#share-target-select').value;
-                    // 【关键优化】：只存储最核心的 ID 和标题，不存储全文
+                    
+                    // --- 1. 定义一个清洗函数，把 HTML 换行转为文本换行，去掉标签 ---
+                    const cleanHtml = (html) => {
+                        if (!html) return "";
+                        return html
+                            .replace(/<br\s*\/?>/gi, '\n') // 把 <br> 变成真正的换行符
+                            .replace(/<[^>]+>/g, '')       // 删掉所有 HTML 标签
+                            .replace(/&nbsp;/g, ' ')       // 替换空格
+                            .trim();
+                    };
+
+                    // --- 2. 拼接完整内容：标题 + 主楼 + 所有评论 ---
+                    let fullTranscript = `【版块】${post.board}\n【标题】${post.subject}\n【楼主】${post.author}\n\n【主楼正文】\n${cleanHtml(post.content)}\n`;
+
+                    if (post.comments && post.comments.length > 0) {
+                        fullTranscript += `\n--- 评论区 (共${post.comments.length}楼) ---\n`;
+                        post.comments.forEach((c, index) => {
+                            // 格式：[1楼] 作者: 内容
+                            fullTranscript += `[${index + 1}楼] ${c.author}: ${cleanHtml(c.content)}\n`;
+                        });
+                    } else {
+                        fullTranscript += `\n(暂无评论)\n`;
+                    }
+
+                    // --- 3. 将这个巨大的文本存入数据库，防止卡顿 ---
+                    const contentBlob = new Blob([fullTranscript], { type: 'text/plain' });
+                    const contentKey = `tuqu-full-text-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+                    await imageStore.setItem(contentKey, contentBlob);
+
                     const slimPost = {
                         id: post.id,
                         subject: post.subject,
-                        board: post.board
+                        board: post.board,
+                        content: `indexeddb:${contentKey}` // 这里只存一个引用 Key
                     };
+
                     await conversationManager.addMessage({ 
                         type: 'tuqu_share', 
                         side: 'sent', 
@@ -10784,6 +10916,7 @@ if ('serviceWorker' in navigator) {
                     }, targetChatId);
                     alert('已成功分享到聊天');
                 }
+
 
 
 
@@ -18024,23 +18157,40 @@ let isLoadingMore = false;
                 let helpText = "";
 
                 if (isGroup) {
-                    // --- 情况 A: 群聊逻辑 ---
+                    // --- 情况 A: 群聊逻辑 (全维度身份扫描) ---
+                    // 1. 获取正式成员
                     const groupMembers = loadFromLocalStorage(`chat_members_${currentChatId}`, []);
                     
-                    // 过滤：只保留在群成员列表中的身份
+                    // 2. 获取群聊主角名单
+                    const protagonists = (chatInfo.groupPersonas || []).map(p => p.name);
+                    
+                    // 3. 获取备注中的群演名单 (支持中英文逗号和空格)
+                    const ensemble = (chatInfo.remark || '').split(/[,，\s]+/).filter(Boolean);
+                    
+                    // 4. 合并所有潜在身份并去重
+                    const allPotentialNames = [...new Set([...groupMembers, ...protagonists, ...ensemble])];
+
                     identities = [
                         { name: '{{user}}', type: '原本的用户', avatar: myAvatar },
-                        ...allUserPersonas.filter(p => groupMembers.includes(p.name)),
-                        ...allNpcs.filter(n => groupMembers.includes(n.name)),
-                        ...allDynamicChars.filter(d => groupMembers.includes(d.name))
+                        ...allUserPersonas.filter(p => allPotentialNames.includes(p.name)),
+                        ...allNpcs.filter(n => allPotentialNames.includes(n.name)),
+                        ...allDynamicChars.filter(d => allPotentialNames.includes(d.name))
                     ];
+
+                    // 5. 补全那些“仅存在于群聊人设或备注中”但在全局列表里还没建立实体的角色
+                    allPotentialNames.forEach(name => {
+                        if (name !== '{{user}}' && !identities.some(id => id.name === name)) {
+                            identities.push({ name: name, type: '群聊角色', avatar: null });
+                        }
+                    });
 
                     helpText = `
                         <div style="background:#f8f9fa; border:1px solid #e9ecef; color:#495057; padding:12px; border-radius:8px; font-size:12px; margin-bottom:15px; line-height:1.6;">
                             <strong>群聊身份切换指引：</strong><br>
-                            身份切换仅限于当前群成员列表内的用户、NPC或角色。若您本人不在群聊名单中则无法发言，但若切换至在群成员，变身后即可正常参与对话。
+                            您可以变身为群成员、群聊主角或备注中定义的群演角色。切换后，您发送的消息将以该角色身份呈现。
                         </div>
                     `;
+
                 } else {
                     // --- 情况 B: 单聊逻辑 ---
                     const associatedNpcNames = loadFromLocalStorage(`chat_associated_npcs_${currentChatId}`, []);
@@ -18071,11 +18221,28 @@ let isLoadingMore = false;
                     </div>
                 `).join('');
 
-                // 4. 异步加载头像
+                // 4. 异步加载头像 (多级联动查找)
                 identities.forEach((id, index) => {
                     const el = list.querySelector(`#id-avatar-item-${index}`);
-                    if (el) setImageSrc(el, id.avatar || generateDefaultAvatar(id.name));
+                    if (!el) return;
+
+                    let avatarToSet = id.avatar;
+
+                    // 如果对象本身没带头像，去群聊主角设置里找
+                    if (!avatarToSet && isGroup) {
+                        const p = (chatInfo.groupPersonas || []).find(gp => gp.name === id.name);
+                        if (p && p.avatar) avatarToSet = p.avatar;
+                    }
+
+                    // 如果还没找到，去全局 NPC 设置里找
+                    if (!avatarToSet) {
+                        const npcData = (npcSettings.personas && npcSettings.personas[id.name]);
+                        if (npcData && npcData.avatar) avatarToSet = npcData.avatar;
+                    }
+
+                    setImageSrc(el, avatarToSet || generateDefaultAvatar(id.name));
                 });
+
             }
 
 
@@ -18395,14 +18562,67 @@ A girl with long pink hair is standing under a cherry blossom tree. She is weari
                     case 'pay_for_me': descriptiveText = `[${senderName} sent a 'Pay For Me' request for "${msg.text}" with the amount ¥${msg.details?.amount || 'N/A'}.]`; break;
                     case 'video': descriptiveText = `[${senderName} sent a video card with the description: "${msg.text}"]`; break;
                     case 'photo-description': descriptiveText = `[${senderName} sent a photo card with the text: "${msg.text}"]`; break;
+                    case 'tuqu_share': {
+                        const shareData = msg.postData || {};
+                        let rawContent = shareData.content || '';
+
+                        // 如果是数据库引用，取出我们在第一步存好的完整长文本
+                        if (rawContent.startsWith('indexeddb:')) {
+                            const key = rawContent.substring(10);
+                            try {
+                                const blob = await imageStore.getItem(key);
+                                if (blob) {
+                                    rawContent = await new Response(blob).text();
+                                }
+                            } catch (e) {
+                                console.error("读取帖子全文失败", e);
+                            }
+                        }
+
+                        // 直接把读取到的完整文本塞进去，不需要再处理了，因为存的时候已经处理好了
+                        descriptiveText = `[System Message: ${senderName} shared a forum post. Below is the FULL content including all replies]\n\n${rawContent}`; 
+                        break;
+                    }
+
+
                 if (result && result.value === 'send') {
                     const targetChatId = result.target.closest('.modal-box').querySelector('#share-target-select').value;
-                    // 【关键优化】：只存储最核心的 ID 和标题，不存储全文
+                    
+                    // --- 1. 定义一个清洗函数，把 HTML 换行转为文本换行，去掉标签 ---
+                    const cleanHtml = (html) => {
+                        if (!html) return "";
+                        return html
+                            .replace(/<br\s*\/?>/gi, '\n') // 把 <br> 变成真正的换行符
+                            .replace(/<[^>]+>/g, '')       // 删掉所有 HTML 标签
+                            .replace(/&nbsp;/g, ' ')       // 替换空格
+                            .trim();
+                    };
+
+                    // --- 2. 拼接完整内容：标题 + 主楼 + 所有评论 ---
+                    let fullTranscript = `【版块】${post.board}\n【标题】${post.subject}\n【楼主】${post.author}\n\n【主楼正文】\n${cleanHtml(post.content)}\n`;
+
+                    if (post.comments && post.comments.length > 0) {
+                        fullTranscript += `\n--- 评论区 (共${post.comments.length}楼) ---\n`;
+                        post.comments.forEach((c, index) => {
+                            // 格式：[1楼] 作者: 内容
+                            fullTranscript += `[${index + 1}楼] ${c.author}: ${cleanHtml(c.content)}\n`;
+                        });
+                    } else {
+                        fullTranscript += `\n(暂无评论)\n`;
+                    }
+
+                    // --- 3. 将这个巨大的文本存入数据库，防止卡顿 ---
+                    const contentBlob = new Blob([fullTranscript], { type: 'text/plain' });
+                    const contentKey = `tuqu-full-text-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+                    await imageStore.setItem(contentKey, contentBlob);
+
                     const slimPost = {
                         id: post.id,
                         subject: post.subject,
-                        board: post.board
+                        board: post.board,
+                        content: `indexeddb:${contentKey}` // 这里只存一个引用 Key
                     };
+
                     await conversationManager.addMessage({ 
                         type: 'tuqu_share', 
                         side: 'sent', 
@@ -18411,6 +18631,7 @@ A girl with long pink hair is standing under a cherry blossom tree. She is weari
                     }, targetChatId);
                     alert('已成功分享到聊天');
                 }
+
 
 
                 }
@@ -31937,11 +32158,14 @@ checkMomentsUpdates(); // <--- 新增这一行
         const userPersonaNames = userPersonas.map(p => p.name); // 2. 获取您所有用户人设的名称列表
         
         // 3. 过滤掉 '{{user}}' 和所有用户人设名称
-        const characters = allCharacters.filter(char => char !== '{{user}}' && !userPersonaNames.includes(char));
+        let characters = allCharacters.filter(char => char !== '{{user}}' && !userPersonaNames.includes(char));
+        
+        // 【核心新增】按中文拼音/英文字母顺序排序
+        characters.sort((a, b) => a.localeCompare(b, 'zh-CN'));
         // --- 核心修改结束 ---
 
         if (characters.length === 0) {
-//... (函数剩余部分)
+
                 listContainer.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">没有可以设置动态的角色</p>';
                 return;
             }
@@ -34608,10 +34832,14 @@ fileInput.style.display = 'none';
             const listContainer = document.getElementById('npc-list-container');
             const titleEl = document.getElementById('npc-list-title');
             
+            // 【核心新增】在渲染前，对 npcList 进行中文拼音/字母排序
+            npcList.sort((a, b) => a.localeCompare(b, 'zh-CN'));
+
             titleEl.textContent = `NPC 列表 (${npcList.length})`;
             listContainer.innerHTML = '';
 
             if (npcList.length === 0) {
+
                 listContainer.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">还没有NPC，快去导入吧！</p>';
                 return;
             }
