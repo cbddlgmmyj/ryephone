@@ -5644,12 +5644,13 @@ input:checked + .slider:before {
 }
 /* --- 聊天记录搜索样式 (美化版) --- */
 #search-overlay {
-    /* 修改：改为 fixed 定位，并使用 100dvh 确保高度适配键盘 */
-    position: fixed; 
+    /* 【核心修复】由于父级 .screen 存在 transform，fixed 会失效 */
+    /* 改为 absolute 并使用 100% 高度，确保在手机容器内完全对齐 */
+    position: absolute; 
     top: 0; 
     left: 0; 
-    width: 100vw; 
-    height: 100dvh;
+    width: 100%; 
+    height: 100%;
     background: #f7f7f7; 
     z-index: 2000; 
     display: flex; 
@@ -5705,8 +5706,16 @@ input:checked + .slider:before {
 .search-cancel-btn:active { opacity: 0.7; }
 
 .search-results-container {
-    flex: 1; overflow-y: auto; padding: 0;
+    flex: 1;
+    overflow-y: auto;
+    /* 【核心修复】开启 iOS 丝滑滚动支持 */
+    -webkit-overflow-scrolling: touch;
+    /* 【核心修复】确保触摸手势只处理纵向滚动，防止被父级容器拦截 */
+    touch-action: pan-y;
+    padding: 0;
     background: #f7f7f7;
+    /* 【核心修复】防止在 Flex 布局中出现高度塌陷导致无法滚动 */
+    min-height: 0;
 }
 
 /* 结果项样式优化 */
@@ -6125,8 +6134,10 @@ body.preview-fullscreen-active #page-conversation .chat-content {
         height: auto !important;
         min-height: 0 !important;      /* 【核心修改】防止内容少时强制撑出大片空白 */
         overflow: visible !important;
-        padding-bottom: 20px !important; /* 【核心修改】全局统一留出 20px 呼吸空间 */
+        padding-bottom: 0 !important;  /* 【核心修复】改为 0，消除底部白边 */
+        margin-bottom: 0 !important;   /* 【核心修复】确保没有外边距 */
     }
+
 
     /* 【核心新增】朋友圈预览模式下的底部修正 */
     #moments-view.moments-preview-active .moments-feed {
@@ -7266,8 +7277,15 @@ body.preview-fullscreen-active #page-conversation .chat-content {
                                         </div>
                                         <div class="publish-content">
                                             <div class="publish-section">
-                                                <textarea class="main-text-input" placeholder="分享新鲜事..."></textarea>
-                                            </div>
+                                    <textarea class="main-text-input" placeholder="分享新鲜事..."></textarea>
+                                    <!-- 【核心新增】发布页面的表情包按钮 -->
+                                    <div style="display: flex; justify-content: flex-end; padding: 5px 0;">
+                                        <button id="moments-publish-sticker-btn" style="background: #fff; border: 1px solid #ddd; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                            <img src="https://i.postimg.cc/qMXdv4V5/IMG-9900.png" style="width: 18px; height: 18px;"> 选择表情
+                                        </button>
+                                    </div>
+                                </div>
+
                                             
                                             <div class="publish-type-selector">
                                                 <input type="radio" id="type-photo" name="publish-type" value="photo" checked><label for="type-photo">图片</label>
@@ -8160,7 +8178,24 @@ body.preview-fullscreen-active #page-conversation .chat-content {
                     <div class="app-header"><button class="back-btn" data-target="home"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="var(--primary-color)"><path d="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z"/></svg></button><h1>动态设置</h1></div>
                     <div class="content-wrapper">
 
-                        
+                                              <!-- 【核心新增】模块专用 API 设置 -->
+                        <div class="form-section">
+                            <h3>模块 API 配置</h3>
+                            <div class="form-group">
+                                <label for="dynamics-msg-api">主动发消息 API</label>
+                                <select id="dynamics-msg-api" class="modal-input modal-select"></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="dynamics-moments-api">朋友圈 API</label>
+                                <select id="dynamics-moments-api" class="modal-input modal-select"></select>
+                            </div>
+                            <div class="form-group">
+                                <label for="dynamics-tuqu-api">兔区 API</label>
+                                <select id="dynamics-tuqu-api" class="modal-input modal-select"></select>
+                            </div>
+                            <p class="form-hint" style="padding: 0 15px 15px;">为不同模块指定特定的 API 配置。若选“跟随全局”，则使用 API 设置中激活的配置。</p>
+                        </div>
+  
                         <div class="form-section">
                              <div class="list-header" style="padding: 15px; display:flex; align-items:center; flex-wrap: wrap; gap: 10px;">
     <h2 style="margin:0; flex-basis: 100%;">角色设置</h2>
@@ -8512,6 +8547,12 @@ body.preview-fullscreen-active #page-conversation .chat-content {
                                 <!-- START: PUBLISH UI REDESIGN -->
                                 <div class="publish-section">
                                     <textarea class="main-text-input" placeholder="分享新鲜事..."></textarea>
+                                    <!-- 【核心新增】发布页面的表情包按钮 -->
+                                    <div style="display: flex; justify-content: flex-end; padding: 5px 0;">
+                                        <button id="moments-publish-sticker-btn" style="background: #fff; border: 1px solid #ddd; border-radius: 20px; padding: 4px 12px; font-size: 12px; color: #666; cursor: pointer; display: flex; align-items: center; gap: 5px;">
+                                            <img src="https://i.postimg.cc/qMXdv4V5/IMG-9900.png" style="width: 18px; height: 18px;"> 选择表情
+                                        </button>
+                                    </div>
                                 </div>
                                 
                                 <div class="publish-type-selector">
@@ -10054,9 +10095,24 @@ if ('serviceWorker' in navigator) {
             alert("由于音乐文件较大，已为您开启直接下载通道。\n\n1. 如果浏览器直接开始播放，请点击播放器右侧的“三个点”按钮选择“下载”。\n2. 如果是手机端，可以长按播放器画面选择“另存为”或“下载音频”。");
         }
 
-        function init() {
+        // 【核心修改】增加 async 关键字
+        async function init() {
             if (!widget) return;
+            
+            // 1. 尝试从 LocalStorage 加载
             playlist = loadFromLocalStorage(STORAGE_KEY, []);
+            
+            // 2. 【核心新增】如果 LocalStorage 为空，尝试从 IndexedDB (大容量存储) 加载
+            if (playlist.length === 0) {
+                try {
+                    const dbData = await imageStore.getItem(STORAGE_KEY);
+                    if (dbData && Array.isArray(dbData)) {
+                        playlist = dbData;
+                        console.log("从数据库加载了音乐列表");
+                    }
+                } catch(e) { console.error("读取音乐数据库失败", e); }
+            }
+
             const savedState = loadFromLocalStorage(STATE_KEY, {});
             currentIndex = savedState.currentIndex || 0;
             playMode = savedState.playMode || 'order';
@@ -10073,7 +10129,20 @@ if ('serviceWorker' in navigator) {
             renderPlayer();
             if (playlist.length > 0) loadSong(currentIndex, false);
         }
-        function saveState() { saveToLocalStorage(STORAGE_KEY, playlist); saveToLocalStorage(STATE_KEY, { currentIndex, playMode }); }
+        
+        // 【核心修改】改为异步函数，并增加容量超限处理
+        async function saveState() { 
+            try {
+                // 尝试存入 LocalStorage
+                localStorage.setItem(STORAGE_KEY, JSON.stringify(playlist));
+            } catch (e) {
+                // 如果满了 (QuotaExceededError)，存入 IndexedDB
+                console.warn("LocalStorage 满了，音乐列表转存至数据库");
+                await imageStore.setItem(STORAGE_KEY, playlist);
+            }
+            saveToLocalStorage(STATE_KEY, { currentIndex, playMode }); 
+        }
+
         async function renderPlayer() {
             const song = playlist[currentIndex] || { title: '暂无音乐', artist: '点击右下角按钮导入' };
             widget.innerHTML = `<div class="music-main-row" id="music-display-area"><div class="music-flip-container ${isLyricsView ? 'show-lyrics' : ''}"><div class="music-face-front"><div class="music-record-wrapper" id="music-record"><div class="music-record-cover"></div><div class="music-record-overlay"></div></div><div class="music-info"><div class="music-title">${song.title}</div><div class="music-artist">${song.artist}</div><div class="music-progress-container" id="music-progress-click"><div class="music-progress-bar" id="music-progress-bar"></div></div></div></div><div class="music-face-back" id="music-lyrics-container"><div class="music-lyrics-box" id="music-lyrics-box"><p>暂无歌词</p></div></div></div></div><div class="music-controls"><button class="music-btn music-mode-btn" id="music-mode-btn">${ICONS.modes[playMode]}</button><div style="display:flex; align-items:center; gap:10px;"><button class="music-btn" id="music-prev-btn">${ICONS.prev}</button><button class="music-btn music-btn-play" id="music-play-btn">${isPlaying ? ICONS.pause : ICONS.play}</button><button class="music-btn" id="music-next-btn">${ICONS.next}</button></div><button class="music-btn music-list-btn" id="music-list-btn">${ICONS.list}</button></div>`;
@@ -10174,8 +10243,23 @@ if ('serviceWorker' in navigator) {
             try {
                 // 【核心逻辑】：如果是在线歌曲，且有ID，就去换新链接
                 
-                // 1. 新增：QQMP3 源的自动解析/续期逻辑
-                if (song.apiSource === 'qqmp3' && song.apiId) {
+                // 1. 新增：网易/QQ/酷狗 源的自动解析/续期逻辑
+                if (['netease', 'tencent', 'kugou'].includes(song.apiSource) && song.apiId) {
+                    console.log(`正在从 ${song.apiSource} 源获取《${song.title}》的最新链接...`);
+                    const targetUrl = `https://ovoeo.cn/Api.php?types=url&id=${song.apiId}&source=${song.apiSource}`;
+                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+                    
+                    const res = await fetch(proxyUrl);
+                    const json = await res.json();
+                    if (json.url) {
+                        audio.src = json.url;
+                        song.source = json.url;
+                    } else {
+                        audio.src = song.source;
+                    }
+                }
+                // 2. 新增：QQMP3 源的自动解析/续期逻辑
+                else if (song.apiSource === 'qqmp3' && song.apiId) {
                     console.log(`正在从 QQMP3 源获取《${song.title}》的最新链接...`);
                     const res = await fetch(`https://api.qqmp3.vip/api/kw.php?rid=${song.apiId}&type=json&level=exhigh&lrc=true`);
                     const json = await res.json();
@@ -10187,7 +10271,8 @@ if ('serviceWorker' in navigator) {
                         audio.src = song.source; // 失败则尝试旧链接
                     }
                 }
-                // 2. 原有的 GD 音乐台逻辑
+                // 3. 原有的 GD 音乐台逻辑
+
                 else if (song.type === 'online' && song.apiId && song.apiSource) {
                     // 可以在这里加个 console.log 方便调试
                     console.log(`正在为《${song.title}》获取最新链接...`);
@@ -10358,31 +10443,34 @@ if ('serviceWorker' in navigator) {
                     const originalText = btn.textContent;
                     btn.textContent = "...";
                     try {
-                        const urlApi = `https://music-api.gdstudio.xyz/api.php?types=url&source=${song.apiSource}&id=${song.apiId}`;
+                        let urlApi = "";
+                        if (song.apiSource === 'kugou') {
+                            urlApi = `https://ovoeo.cn/Api.php?types=url&id=${song.apiId}&source=kugou`;
+                        } else if (song.apiSource === 'qqmp3') {
+                            // QQMP3 需要特殊处理，这里简化逻辑，假设它已在播放时更新了 source
+                            // 或者你可以复制上面的 fetch 逻辑。为了简洁，我们尝试直接获取
+                            urlApi = `https://api.qqmp3.vip/api/kw.php?rid=${song.apiId}&type=json&level=exhigh`;
+                        } else {
+                            urlApi = `https://music-api.gdstudio.xyz/api.php?types=url&source=${song.apiSource}&id=${song.apiId}`;
+                        }
+
                         const res = await fetch(urlApi);
                         const data = await res.json();
-                        if (data.url) {
-                            await downloadMusicFile(data.url, song.title);
+                        
+                        // 统一获取 URL (QQMP3 是 data.data.url, 其他是 data.url)
+                        let finalUrl = data.url;
+                        if (song.apiSource === 'qqmp3' && data.data && data.data.url) {
+                            finalUrl = data.data.url;
+                        }
+
+                        if (finalUrl) {
+                            await downloadMusicFile(finalUrl, song.title);
                         }
                     } catch(err) {
                         console.error(err);
                     } finally {
                         btn.textContent = originalText;
                     }
-                });
-
-                dom.querySelectorAll('.upload-cloud-btn').forEach(btn => btn.onclick = async (e) => {
-                    e.stopPropagation();
-                    const idx = parseInt(btn.dataset.index);
-                    const song = playlist[idx];
-                    btn.textContent = "...";
-                    const urlApi = `https://music-api.gdstudio.xyz/api.php?types=url&source=${song.apiSource}&id=${song.apiId}`;
-                    const res = await fetch(urlApi);
-                    const data = await res.json();
-                    if (data.url) {
-                        await downloadMusicFile(data.url, song.title);
-                    }
-                    btn.textContent = "下";
                 });
 
                 dom.querySelectorAll('.upload-cloud-btn').forEach(btn => btn.onclick = async (e) => {
@@ -10405,6 +10493,7 @@ if ('serviceWorker' in navigator) {
                             formData.append('reqtype', 'fileupload');
                             if (userHash) formData.append('userhash', userHash);
                             formData.append('fileToUpload', blob, fileName);
+                            // 使用 corsproxy.io 代理上传
                             const response = await fetch('https://corsproxy.io/?' + encodeURIComponent('https://catbox.moe/user/api.php'), { method: 'POST', body: formData });
                             if (!response.ok) throw new Error("上传失败");
                             const url = await response.text();
@@ -10412,13 +10501,58 @@ if ('serviceWorker' in navigator) {
                             return url.trim();
                         };
 
-                        // 1. 上传音频
+                        // 0. 【核心新增】如果是在线歌曲，先尝试获取最新链接并更新到 song 对象
+                        if (song.type === 'online') {
+                            let fetchUrl = "";
+                            try {
+                                if (song.apiSource === 'kugou') {
+                                    // 酷狗源续期
+                                    const res = await fetch(`https://ovoeo.cn/Api.php?types=url&id=${song.apiId}&source=kugou`);
+                                    const d = await res.json();
+                                    if (d.url) fetchUrl = d.url;
+                                } else if (song.apiSource === 'qqmp3') {
+                                    // QQMP3源续期
+                                    const res = await fetch(`https://api.qqmp3.vip/api/kw.php?rid=${song.apiId}&type=json&level=exhigh`);
+                                    const d = await res.json();
+                                    if (d.code === 200 && d.data && d.data.url) fetchUrl = d.data.url;
+                                } else {
+                                    // GD源续期 (网易/酷我等)
+                                    const res = await fetch(`https://music-api.gdstudio.xyz/api.php?types=url&source=${song.apiSource}&id=${song.apiId}`);
+                                    const d = await res.json();
+                                    if (d.url) fetchUrl = d.url;
+                                }
+                            } catch (err) {
+                                console.warn("获取最新链接失败，将尝试使用旧链接:", err);
+                            }
+
+                            if (fetchUrl) {
+                                song.source = fetchUrl;
+                                // 既然获取了新链接，顺便保存一下播放列表，防止下次还需要重新获取
+                                saveState(); 
+                            }
+                        }
+
+                        // 1. 上传音频 (支持本地 Blob 和 在线 URL 转存)
                         if (song.type === 'local' && song.source.startsWith('music-')) {
                             const audioBlob = await imageStore.getItem(song.source);
                             if (audioBlob) {
                                 const remoteAudioUrl = await uploadFile(audioBlob, `${song.title}.mp3`);
                                 song.source = remoteAudioUrl;
-                                song.type = 'link';
+                                song.type = 'link'; // 标记为普通外链
+                            }
+                        } else if (song.type === 'online' || song.type === 'link') {
+                            // 如果是网络链接，尝试下载为 Blob 再上传到 Catbox (实现永久转存)
+                            // 注意：这可能会因为跨域(CORS)而失败，如果失败则保持原链接
+                            try {
+                                const audioRes = await fetch(song.source);
+                                const audioBlob = await audioRes.blob();
+                                const remoteAudioUrl = await uploadFile(audioBlob, `${song.title}.mp3`);
+                                song.source = remoteAudioUrl;
+                                song.type = 'link'; // 转存后变成普通外链，不再依赖 API
+                                song.apiSource = null; // 清除 API 标记
+                                song.apiId = null;
+                            } catch (e) {
+                                console.warn("在线音频转存失败 (可能是跨域限制)，保留原链接:", e);
                             }
                         }
 
@@ -10436,10 +10570,9 @@ if ('serviceWorker' in navigator) {
                         if (song.lrc && !song.lrc.startsWith('http')) {
                             const lrcBlob = new Blob([song.lrc], { type: 'text/plain' });
                             const remoteLrcUrl = await uploadFile(lrcBlob, `${song.title}.lrc`);
-                            // 注意：这里我们选择将 lrc 字段更新为链接，还是保持文本？
-                            // 为了功能不变，我们让 AI 依然能读到文本，但可以把链接存入一个新的字段或直接替换。
-                            // 这里建议保持文本，因为上传歌词主要是为了备份。
                             console.log("歌词已备份至:", remoteLrcUrl);
+                            // 这里我们选择不替换 lrc 字段，因为播放器需要文本格式的歌词
+                            // 上传只是为了在 Catbox 留底
                         }
 
                         saveState();
@@ -10452,6 +10585,7 @@ if ('serviceWorker' in navigator) {
                         btn.textContent = originalText;
                     }
                 });
+
                 dom.querySelectorAll('.import-cover-btn').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); const idx = parseInt(btn.dataset.index); const imgInput = document.createElement('input'); imgInput.type = 'file'; imgInput.accept = 'image/*'; imgInput.onchange = async (ie) => { const file = ie.target.files[0]; if (!file) return; const key = `music-cover-manual-${Date.now()}`; await imageStore.setItem(key, file); playlist[idx].cover = `indexeddb:${key}`; saveState(); alert(`《${playlist[idx].title}》的封面更新成功！`); if (idx === currentIndex) { renderPlayer(); } }; imgInput.click(); });
                 dom.querySelectorAll('.import-lrc-btn').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); const idx = parseInt(btn.dataset.index); const lrcInput = document.createElement('input'); lrcInput.type = 'file'; lrcInput.accept = '.lrc'; lrcInput.onchange = (le) => { const file = le.target.files[0]; if (!file) return; const reader = new FileReader(); reader.onload = (fe) => { const content = fe.target.result; playlist[idx].lrc = content; saveState(); alert(`《${playlist[idx].title}》的歌词导入成功！`); if (idx === currentIndex) { lyricsData = parseLyrics(content); renderLyricsToDom(); } }; reader.readAsText(file); }; lrcInput.click(); });
                 dom.querySelectorAll('.delete-song-btn').forEach(btn => btn.onclick = (e) => { e.stopPropagation(); if(confirm('移除?')) { playlist.splice(parseInt(btn.dataset.index), 1); if(currentIndex>=playlist.length)currentIndex=0; saveState(); close(); setTimeout(showPlaylistModal, 100); if(playlist.length===0){audio.pause(); isPlaying=false; renderPlayer();} } });
@@ -10552,18 +10686,23 @@ if ('serviceWorker' in navigator) {
             }});
         }
         async function showOnlineSearchModal() {
-            // 1. 弹出带有源选择的搜索框
+                        // 1. 弹出带有源选择的搜索框
             const result = await conversationManager.showCustomModal({
                 title: '搜索网络音乐',
                 form: [
                     { id: 'music-source-select', label: '搜索来源', type: 'select', 
                       options: `
-                        <option value="gd">GD音乐台</option>
+                        <option value="netease">网易云音乐 (ovoeo)</option>
+                        <option value="tencent">QQ音乐 (ovoeo)</option>
+                        <option value="kugou">酷狗音乐 (ovoeo)</option>
                         <option value="qqmp3">米兔音乐</option>
+                        <option value="gd">GD音乐台</option>
                       ` 
                     },
                     { id: 'music-keyword-input', label: '关键词', placeholder: '输入歌名、歌手...' }
                 ],
+
+
                 // ... (后续代码保持不变)
 
                 buttons: [
@@ -10593,7 +10732,27 @@ if ('serviceWorker' in navigator) {
 
                         try {
                             let results = [];
-                            if (source === 'qqmp3') {
+                            if (['netease', 'tencent', 'kugou'].includes(source)) {
+                                // --- 聚合搜索逻辑 (网易/QQ/酷狗) ---
+                                // 针对 QQ音乐 (tencent) 使用较小的数量防止返回空结果，其他源保持 100
+                                const searchCount = (source === 'tencent') ? 30 : 100;
+                                
+                                const targetUrl = `https://ovoeo.cn/Api.php?types=search&count=${searchCount}&source=${source}&pages=1&name=${encodeURIComponent(keyword)}`;
+                                const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+                                
+                                const res = await fetch(proxyUrl);
+
+                                const json = await res.json();
+                                results = (json || []).map(s => ({
+                                    name: s.name,
+                                    artist: Array.isArray(s.artist) ? s.artist.join('/') : s.artist,
+                                    id: s.id,
+                                    pic: s.pic_id, 
+                                    source: source, // 动态记录来源
+                                    raw: s
+                                }));
+                            } else if (source === 'qqmp3') {
+
                                 // --- QQMP3 搜索逻辑 ---
                                 const res = await fetch(`https://api.qqmp3.vip/api/songs.php?type=search&keyword=${encodeURIComponent(keyword)}`);
                                 const json = await res.json();
@@ -10607,8 +10766,10 @@ if ('serviceWorker' in navigator) {
                                 }));
                             } else {
                                 // --- GD 音乐台搜索逻辑 ---
-                                const res = await fetch(`https://music-api.gdstudio.xyz/api.php?types=search&source=netease&name=${encodeURIComponent(keyword)}&count=30`);
+                                // 将 count 设置为 100
+                                const res = await fetch(`https://music-api.gdstudio.xyz/api.php?types=search&source=netease&name=${encodeURIComponent(keyword)}&count=100`);
                                 const json = await res.json();
+
                                 results = (json || []).map(s => ({
                                     name: s.name,
                                     artist: Array.isArray(s.artist) ? s.artist.join('/') : s.artist,
@@ -10636,6 +10797,10 @@ if ('serviceWorker' in navigator) {
                                 // 如果是 GD 源，封面是 id，需要拼凑 URL
                                 if (song.source === 'gd' && song.raw) {
                                     picUrl = `https://music-api.gdstudio.xyz/api.php?types=pic&source=${song.raw.source}&id=${song.raw.pic_id}`;
+                                } 
+                                // 如果是 网易/QQ/酷狗 源，封面也是 id，也需要拼凑 URL
+                                else if (['netease', 'tencent', 'kugou'].includes(song.source) && song.raw) {
+                                    picUrl = `https://ovoeo.cn/Api.php?types=pic&id=${song.raw.pic_id}&source=${song.source}`;
                                 }
 
                                 return `
@@ -10644,7 +10809,7 @@ if ('serviceWorker' in navigator) {
                                     <div class="music-search-cover" style="background-image: url('${picUrl}'); width:40px; height:40px; border-radius:4px; background-size:cover; background-position:center; margin-right:10px; flex-shrink:0;"></div>
                                     <div style="flex:1; overflow:hidden; margin-left:10px;">
                                         <div style="font-weight:500; font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">${song.name}</div>
-                                        <div style="font-size:12px; color:#666;">${song.artist} [${song.source.toUpperCase()}]</div>
+                                        <div style="font-size:12px; color:#666;">${song.artist} [${['netease', 'tencent', 'kugou'].includes(song.source) ? song.source.toUpperCase() + ' (ovoeo)' : song.source.toUpperCase()}]</div>
                                     </div>
                                     <button class="download-online-btn" style="margin-left:10px; background: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; padding: 4px 8px; font-size: 12px; color: #666; cursor: pointer; white-space:nowrap;">下载</button>
                                 </div>`;
@@ -10658,13 +10823,16 @@ if ('serviceWorker' in navigator) {
                                         <label style="font-size:14px; color:#333; display:flex; align-items:center;"><input type="checkbox" id="search-select-all" style="margin-right:5px;"> 全选</label>
                                         <span style="font-size:12px; color:#999;">点击列表选中，点击按钮下载</span>
                                     </div>
-                                    <div style="max-height: 400px; overflow-y: auto;">${listHtml}</div>
+                                    <div style="max-height: 400px; overflow-y: auto; margin-bottom: 0;">${listHtml}</div>
                                 `,
                                 buttons: [
                                     { text: '取消', value: 'close', class: 'secondary' },
                                     { text: '添加选中', value: 'add', class: 'primary' }
                                 ],
+                                buttonsStyle: 'border-top: 1px solid #eee; padding-top: 15px; margin-top: 0;',
                                 onRender: (dom, closeResults) => {
+
+
                                     // 全选
                                     const selectAll = dom.querySelector('#search-select-all');
                                     selectAll.addEventListener('change', (e) => {
@@ -10686,7 +10854,16 @@ if ('serviceWorker' in navigator) {
                                             
                                             try {
                                                 let downloadUrl = "";
-                                                if (song.source === 'qqmp3') {
+                                                if (['netease', 'tencent', 'kugou'].includes(song.source)) {
+                                                    // 网易/QQ/酷狗 下载链接获取 (加代理)
+                                                    const targetUrl = `https://ovoeo.cn/Api.php?types=url&id=${song.id}&source=${song.source}`;
+                                                    const proxyUrl = 'https://corsproxy.io/?' + encodeURIComponent(targetUrl);
+                                                    
+                                                    const res = await fetch(proxyUrl);
+                                                    const json = await res.json();
+                                                    downloadUrl = json.url;
+                                                } else if (song.source === 'qqmp3') {
+
                                                     // QQMP3 下载链接获取
                                                     const res = await fetch(`https://api.qqmp3.vip/api/kw.php?rid=${song.id}&type=json&level=exhigh&lrc=true`);
                                                     const json = await res.json();
@@ -10735,7 +10912,26 @@ if ('serviceWorker' in navigator) {
                                             const song = results[index];
                                             
                                             try {
-                                                if (song.source === 'qqmp3') {
+                                                if (['netease', 'tencent', 'kugou'].includes(song.source)) {
+                                                    // 解析 网易/QQ/酷狗 (加代理)
+                                                    const s = song.raw;
+                                                    const src = song.source;
+                                                    // 辅助函数：生成代理链接
+                                                    const proxy = (url) => 'https://corsproxy.io/?' + encodeURIComponent(url);
+
+                                                    const urlApi = proxy(`https://ovoeo.cn/Api.php?types=url&id=${s.id}&source=${src}`);
+                                                    const picApi = proxy(`https://ovoeo.cn/Api.php?types=pic&id=${s.pic_id}&source=${src}`);
+                                                    const lrcApi = proxy(`https://ovoeo.cn/Api.php?types=lyric&id=${s.lyric_id}&source=${src}`);
+
+                                                    const [u, p, l] = await Promise.all([fetch(urlApi).then(r=>r.json()), fetch(picApi).then(r=>r.json()), fetch(lrcApi).then(r=>r.json())]);
+
+                                                    if (u.url) {
+                                                        playlist.push({
+                                                            title: song.name, artist: song.artist, source: u.url, type: 'online',
+                                                            apiSource: src, apiId: s.id, cover: p.url, lrc: l.lyric || ''
+                                                        });
+                                                    }
+                                                } else if (song.source === 'qqmp3') {
                                                     // 解析 QQMP3
                                                     const detailRes = await fetch(`https://api.qqmp3.vip/api/kw.php?rid=${song.id}&type=json&level=exhigh&lrc=true`);
                                                     const detail = await detailRes.json();
@@ -11130,11 +11326,24 @@ if ('serviceWorker' in navigator) {
                 }
 
             } else if (event.data && event.data.type === 'REQUEST_CHARACTER_LIST') {
-            // 响应角色列表请求
-            const list = getAllUniqueCharacters().filter(n => n !== '{{user}}');
-            const tuquIframe = document.querySelector('#tab-content-tuqu iframe');
-            if (tuquIframe) tuquIframe.contentWindow.postMessage({ type: 'RESPONSE_CHARACTER_LIST', list: list }, '*');
-        }
+                // 响应角色列表请求
+                // 1. 获取所有用户人设的名字列表
+                const userPersonaNames = userPersonas.map(p => p.name);
+                
+                // 2. 获取列表，并过滤掉 '{{user}}' 以及所有属于用户的人设名字
+                const list = getAllUniqueCharacters()
+                    .filter(n => n !== '{{user}}' && !userPersonaNames.includes(n))
+                    .sort((a, b) => a.localeCompare(b, 'zh-CN'));
+
+                const tuquIframe = document.querySelector('#tab-content-tuqu iframe');
+                if (tuquIframe) {
+                    tuquIframe.contentWindow.postMessage({ 
+                        type: 'RESPONSE_CHARACTER_LIST', 
+                        list: list 
+                    }, '*');
+                }
+            }
+
     });
     
     // 【核心新增】生成或读取专属 RyeID (用于酒馆功能解锁)
@@ -11385,21 +11594,39 @@ You are ENCOURAGED to use emojis and stickers, but you MUST follow the **STRICT 
 
         // 【核心修复】：重新定义 isGroupPersona 变量，它是主角或群演的合集
         // 这样后面代码里引用的 isGroupPersona 就能找到了，不会再报 ReferenceError
-        const isGroupPersona = isProtagonist || isEnsemble;
+                const isGroupPersona = isProtagonist || isEnsemble;
 
-        // 只要符合其中之一，就允许执行主动行为并使用全局 API
-        // 核心新增：增加了 'themed_tuqu_interaction' 和 'specific_post_interaction'
-        // 确保无论是不是单聊角色，只要是在兔区搞事，都强制走全局 API
+        // 【核心修改】模块化 API 路由逻辑
+        const dynSettings = loadFromLocalStorage('app-dynamics-settings', {});
+        
         if (isNpc || isProtagonist || isEnsemble || senderName === 'Anonymous_System' || 
             actionType === 'post_moment' || 
             actionType === 'browse_moments' || 
             actionType === 'tuqu_interaction' || 
             actionType === 'pure_tuqu_interaction' ||
-            actionType === 'themed_tuqu_interaction' ||      // <--- 新增
-            actionType === 'specific_post_interaction') {    // <--- 新增
+            actionType === 'themed_tuqu_interaction' ||
+            actionType === 'specific_post_interaction') {
 
-            // 【核心修正】: 朋友圈、兔区、NPC、群聊主角、手动触发，全部强制使用全局激活的API配置
-            profileIndex = activeProfileIndex;
+            let targetProfile = 'global';
+
+            // 1. 根据 actionType 确定所属模块
+            if (actionType.includes('tuqu')) {
+                targetProfile = dynSettings.tuquProfile;
+            } else if (actionType.includes('moment')) {
+                targetProfile = dynSettings.momentsProfile;
+            } else if (actionType === 'message') {
+                targetProfile = dynSettings.msgProfile;
+            }
+
+            // 2. 应用路由结果
+            if (targetProfile && targetProfile !== 'global') {
+                profileIndex = parseInt(targetProfile, 10);
+                console.log(`[路由] 任务 "${actionType}" 使用模块专用 API (Index: ${profileIndex})`);
+            } else {
+                profileIndex = activeProfileIndex;
+                console.log(`[路由] 任务 "${actionType}" 使用全局激活 API`);
+            }
+
             if (profileIndex === null) {
                  console.warn(`[诊断日志] 角色 "${senderName}": 无法执行朋友圈/NPC 动态，因为没有全局激活的 API 配置。行动已跳过。`);
                  return;
@@ -11914,16 +12141,32 @@ When you need to initiate a PROACTIVE action (like starting a new conversation, 
             
             // --- 注入结束 ---
 
-            // --- START: 重新注入聊天记录上下文 ---
+                        // ... (上文代码) ...
+
+            // --- START: 重新注入聊天记录上下文 (修复版) ---
             let chatHistoryForPrompt = '';
             if (targetChatId) {
                 const memoryLength = parseInt(contextChatInfo.memoryLength || 20, 10);
-                const sourceMessages = loadFromLocalStorage(`conversation_${targetChatId}`, []);
+                
+                // 【核心修复】加载历史记录时，增加数据库回退检查
+                let sourceMessages = loadFromLocalStorage(`conversation_${targetChatId}`, []);
+                if (sourceMessages.length === 0) {
+                    try {
+                        // 如果LS为空，尝试从数据库读取，这里不能用 await，因为外层没有 async (或者用 .then)
+                        // 但由于 triggerProactiveAI 本身是 async 的，我们可以用 await
+                        // 注意：这里假设 imageStore.getItem 是可用的
+                        const dbData = await imageStore.getItem(`conversation_${targetChatId}`);
+                        if (dbData && Array.isArray(dbData)) {
+                            sourceMessages = dbData;
+                            console.log(`[Proactive Context] Loaded ${sourceMessages.length} messages from DB for chat ${targetChatId}`);
+                        }
+                    } catch (e) { console.error("Failed to load history from DB for proactive context", e); }
+                }
+
                 const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
 
-                                const lastCallSummary = [...sourceMessages].reverse().find(m => m.type === 'call_summary');
+                const lastCallSummary = [...sourceMessages].reverse().find(m => m.type === 'call_summary');
                 if (lastCallSummary && lastCallSummary.callData && lastCallSummary.callData.conversation) {
-                    // 【核心修复】在生成剧本时，实时判断并替换 {{user}} 为当前人设名
                     const callHistoryText = lastCallSummary.callData.conversation.map(c => {
                         const displayName = c.sender === '{{user}}' ? userNameForPrompt : c.sender;
                         return `${displayName}: ${c.text}`;
@@ -11931,7 +12174,6 @@ When you need to initiate a PROACTIVE action (like starting a new conversation, 
                     finalSystemPrompt += `\n\n[Recent Video Call Transcript]\n${callHistoryText}\n[End of Transcript]`;
                 }
 
-                // 【核心修复】传入 targetChatId，确保在后台触发主动消息时，能正确解析群聊成员名字
                 const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages, targetChatId);
                 chatHistoryForPrompt = apiPayloadMessages.map(msg => {
                     let content = '';
@@ -11941,7 +12183,6 @@ When you need to initiate a PROACTIVE action (like starting a new conversation, 
                         content = msg.content;
                     }
 
-                    // 【核心修改】如果是日期分割线，直接返回内容，不加姓名
                     if (content.startsWith('[---')) {
                         return content;
                     }
@@ -11954,29 +12195,28 @@ When you need to initiate a PROACTIVE action (like starting a new conversation, 
                 finalSystemPrompt += `\n\n[RECENT CHAT HISTORY]\n${chatHistoryForPrompt}`;
             }
             // --- END: 重新注入聊天记录上下文 ---
+
             // =================================================================
 // 【【【 核心新增：注入朋友圈上下文 (主动发消息版) 】】】
 // =================================================================
-const aiCharacterName = senderName; // 主动发消息时，senderName 就是 AI 角色名
+const aiCharacterName = senderName; 
 const momentsData = await momentsManager.getRecentMomentsForAI(aiCharacterName, 5); 
 
 let momentsContext = "";
 if (momentsData && momentsData.allVisibleMoments.length > 0) {
     momentsContext += `\n\n[MOMENTS CONTEXT - Recent Activity]\nHere are the latest 5 Moments posts visible to you. Use this to inform your conversation if relevant.\n\n`;
     momentsData.allVisibleMoments.forEach((post, i) => {
-         // 【核心修复】：不再将名字替换为 "You" 或其他代词。
-         // 直接使用帖子原始的用户名，确保AI能区分不同的人设（如“阿衍”和“周衍”）。
          let author = post.userName;
          
-         // --- 核心修改：优先读取图片描述 ---
-         let content = post.text || post.content || "";
+         // --- 核心修改：对发帖内容进行脱壳处理 ---
+         let rawContent = post.text || post.content || "";
+         // 【核心修复】剥离所有 HTML 标签，仅保留内部文字
+         let content = rawContent.replace(/<[^>]+>/g, '').trim();
          
          if (post.image) {
              if (post.imageDescription) {
-                 // 如果有AI生成过的描述，直接使用
                  content += ` [图片内容: ${post.imageDescription}]`;
              } else {
-                 // 如果还没有描述，标记为图片
                  content += ` [图片(未描述)]`;
              }
          } else if (post.type === 'video' && !content) {
@@ -11984,32 +12224,26 @@ if (momentsData && momentsData.allVisibleMoments.length > 0) {
          }
          
          if (!content.trim()) content = "[分享]";
-         // --------------------------------
 
          let interactions = "";
-         // 检查点赞
          if (post.reactions['点赞'] && post.reactions['点赞'].length > 0) {
              interactions += ` (Likes: ${post.reactions['点赞'].join(', ')})`;
          }
+         
          // 检查评论
          if (post.comments.length > 0) {
              const commentsText = post.comments.map(c => {
-                 // 1. 获取原始文本
-                 let rawText = c.text || "";
-                 // 2. 定义专门匹配 HTML/Snippet 代码块的正则
-                 const codeBlockRegex = /(<snippet>[\s\S]*?<\/snippet>)|(<div[\s\S]*?>[\s\S]*?<\/div>)/g;
-                 // 3. 【核心】直接替换为空字符串
-                 let cleanText = rawText.replace(codeBlockRegex, "").trim();
-                 return `${c.user}: ${cleanText}`; 
+                 let rawCommentText = c.text || "";
+                 // 【核心修复】对评论内容也进行脱壳处理，剥离标签保留文字
+                 let cleanCommentText = rawCommentText.replace(/<[^>]+>/g, '').trim();
+                 return `${c.user}: ${cleanCommentText}`; 
              }).join(' | ');
              interactions += ` (Comments: ${commentsText})`;
          }
          
-         // 【核心新增】格式化朋友圈发布时间
          const pDate = new Date(post.timestamp);
          const pTimeStr = `${pDate.getFullYear()}年${pDate.getMonth() + 1}月${pDate.getDate()}日 ${pDate.getHours().toString().padStart(2, '0')}:${pDate.getMinutes().toString().padStart(2, '0')}`;
 
-         // 【核心修改】在摘要中注入 [Posted at: 时间]
          momentsContext += `Post #${i+1} by ${author} [Posted at: ${pTimeStr}]: "${content}"${interactions}\n`;
     });
 }
@@ -12074,13 +12308,16 @@ You are initiating a conversation. Your opening must be fresh, real, and free of
             } else {
                 PROACTIVE_ANTI_CLICHE_MANDATE += `
 # [MODE: ONLINE / CHAT APP MODE]
-**⚠️ STRICT FORMATTING ENFORCED ⚠️**
-1. **NO ACTION DESCRIPTIONS:** Do not use \`*action*\` or \`(action)\`. Do not write "He hugged her". You can only TYPE messages.
-2. **NO NAME PREFIX:** Never start with \`${senderName}:\`.
-3. **COMMAND ISOLATION:** Commands (e.g. \`[transfer]\`, \`[set_status]\`) MUST be in their own \`<block type="command">\`. NEVER inside text.
-4. **MULTIPLE BUBBLES:** Do not squeeze everything into one line. Use multiple \`<block type="text">\` to simulate sending multiple messages.
+**【【【 💥 MODE HARD RESET: CHAT APP ONLY 💥 】】】**
+1. **IGNORE PAST STYLE:** Stop writing prose. You are sending messages on a phone.
+2. **NO NARRATION:** No actions in parentheses, no environment descriptions.
+3. **MULTIPLE BUBBLES:** You are encouraged to split your response into **multiple separate messages** (using multiple \`<block type="text">\`) to simulate a realistic chat flow.
+
+4. **NO NAME PREFIX:** Never start with \`${senderName}:\`.
+5. **COMMAND ISOLATION:** Commands MUST be in their own \`<block type="command">\`.
 `;
             }
+
 
 
             // 【核心修复】整合所有主动指令（含群聊转账和表态）
@@ -12532,6 +12769,11 @@ You are the protagonist. The audience is waiting. Your life cannot stagnate.
             
             // 将所有内容合并到最终的系统提示中
             finalSystemPrompt += proactiveLifeUpdatePrompt;
+            // 【核心新增】主动消息环境警报
+            if (contextChatInfo.mode === 'online') {
+                finalSystemPrompt += `\n\n[SYSTEM ALERT: ENVIRONMENT CHANGE]\nThe mode is ONLINE. You are using a phone. Stop narrating. Start typing short messages.`;
+            }
+
             
             // 【【【【【【【【【【 终极、绝对核心的导演指令注入 】】】】】】】】】】
             const directorMandate = `
@@ -12791,16 +13033,28 @@ if (isGroupPersona) {
                 return `Post #${i + 1} (ID: ${post.id}) by ${authorLabel} [Posted at: ${pTimeStr}] ${privacyInfo}: "${contentDescription}" ${imageInfo}\n  Recent Comments:\n${commentsPreview || '  - No comments yet.'}`;
             }).join('\n\n');
             
-            // --- START: 需求 1 & 2 的核心修改 - 加载聊天记录 ---
+            // --- START: 需求 1 & 2 的核心修改 - 加载聊天记录 (数据库修复版) ---
             let chatHistoryForPrompt = '';
             // 【【【【【【 核心修复：重新启用并强化聊天记录加载逻辑 】】】】】】
             if (contextChatId) { // 仅当上下文聊天ID存在时才加载
                 const memoryLength = parseInt(contextChatInfo.memoryLength || 100, 10);
-                const sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                
+                // 【关键修复】优先读缓存，缓存没有读数据库
+                let sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                if (sourceMessages.length === 0) {
+                    try {
+                        const dbData = await imageStore.getItem(`conversation_${contextChatId}`);
+                        if (dbData && Array.isArray(dbData)) {
+                            sourceMessages = dbData;
+                            console.log(`[Moments Browse] Loaded ${sourceMessages.length} messages from DB.`);
+                        }
+                    } catch (e) { console.error("DB Read Error", e); }
+                }
+
                 const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
                 
                 // 使用 conversationManager.prepareApiPayload 来正确处理图片、语音等复杂消息
-                const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages); 
+                const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages, contextChatId); 
                 
                 // 将处理后的消息转换成纯文本剧本格式
                 chatHistoryForPrompt = apiPayloadMessages.map(msg => {
@@ -12816,6 +13070,7 @@ if (isGroupPersona) {
                 }).join('\n');
             }
             // --- END: 需求 1 & 2 的核心修改 ---
+
 
             // ... 省略了 browse_moments 分支前面的代码 ...
 
@@ -13186,11 +13441,23 @@ This API call is an opportunity for you to live your social life. You **MUST** p
             // 【第四步：为发朋友圈的行为，也注入上下文】
             console.log(`[诊断日志] 角色 "${senderName}": 决定主动发布一条朋友圈...`);
             
-            // --- START: 核心修正 - 为发帖行为注入完整的聊天历史上下文 ---
+            // --- START: 核心修正 - 为发帖行为注入完整的聊天历史上下文 (数据库修复版) ---
             let chatHistoryForPrompt = '';
             if (contextChatId) { // contextChatId 是在函数开头部分根据角色身份智能确定的
                 const memoryLength = parseInt(contextChatInfo.memoryLength || 20, 10);
-                const sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                
+                // 【关键修复】优先读缓存，缓存没有读数据库
+                let sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                if (sourceMessages.length === 0) {
+                    try {
+                        const dbData = await imageStore.getItem(`conversation_${contextChatId}`);
+                        if (dbData && Array.isArray(dbData)) {
+                            sourceMessages = dbData;
+                            console.log(`[Moments Post] Loaded ${sourceMessages.length} messages from DB.`);
+                        }
+                    } catch (e) { console.error("DB Read Error", e); }
+                }
+
                 const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
                 
                 // 【核心修复】传入 contextChatId，确保后台运行时也能正确识别群聊名字
@@ -13209,6 +13476,7 @@ This API call is an opportunity for you to live your social life. You **MUST** p
                 }).join('\n');
             }
             // --- END: 核心修正 ---
+
 
             // 【【【 核心新增：为发帖行为注入关联角色人设 】】】
             let associatedNpcsPrompt = '';
@@ -13361,8 +13629,35 @@ ${timeContext}
 - **ABSOLUTE FORBIDDANCE:** You are **STRICTLY FORBIDDEN** from posting in the voice or from the perspective of any other character.
 ---
 `;
-            // 将身份锁定指令、上下文、音乐信息和发帖指南拼接在一起
-            const finalPostInstruction = `${identityLockInPrompt}${contextHeader}${momentsWorldBookContent}${musicContext}${postInstruction}`;
+            // 【核心修复】从全局变量 stickers 中提取名称，确保列表真实有效
+            const stickerNamesList = stickers.filter(s => s.type === 'sticker').map(s => `"${s.name}"`).join(', ') || 'None';
+            const emojiNamesList = stickers.filter(s => s.type === 'emoji').map(s => `"${s.name}"`).join(', ') || 'None';
+
+            const mediaProtocol = `
+---
+[STRICT MEDIA PROTOCOL - MOMENTS EDITION]
+You are ENCOURAGED to use emojis and stickers in your Moment text.
+
+**1. AVAILABLE EMOJIS (Inline):**
+[${emojiNamesList}]
+*   **Command:** \`[emoji:ExactName]\`
+*   **Use Case:** Insert into sentences to express emotion.
+
+**2. AVAILABLE STICKERS (Large):**
+[${stickerNamesList}]
+*   **Command:** \`[sticker:ExactName]\`
+*   **Use Case:** Standalone reaction or emphasis.
+
+**[ANTI-HALLUCINATION LAW - UNBREAKABLE]**
+You are **STRICTLY FORBIDDEN** from using any name that is NOT in the lists above.
+*   **WRONG:** \`[emoji:happy]\` (If "happy" is not in the list).
+*   **RIGHT:** \`[emoji:开心]\` (If "开心" is in the list).
+*   **FALLBACK:** If no match is found, use text like \`(开心)\`.
+---
+`;
+
+            // 将身份锁定指令、上下文、音乐信息、表情协议和发帖指南拼接在一起
+            const finalPostInstruction = `${identityLockInPrompt}${contextHeader}${momentsWorldBookContent}${musicContext}${mediaProtocol}${postInstruction}`;
             const systemMessageContent = [{ type: 'text', text: finalPostInstruction }];
             
             finalMessages = [{ role: "system", content: systemMessageContent }];
@@ -13405,11 +13700,23 @@ ${timeContext}
                 });
             }
 
-            // 2. 新增：读取并格式化最近的聊天记录上下文
+            // 2. 新增：读取并格式化最近的聊天记录上下文 (数据库修复版)
             let chatHistoryForTuqu = '';
             if (contextChatId) {
                 const memoryLength = parseInt(contextChatInfo.memoryLength || 20, 10);
-                const sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                
+                // 【关键修复】优先读缓存，缓存没有读数据库
+                let sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                if (sourceMessages.length === 0) {
+                    try {
+                        const dbData = await imageStore.getItem(`conversation_${contextChatId}`);
+                        if (dbData && Array.isArray(dbData)) {
+                            sourceMessages = dbData;
+                            console.log(`[Tuqu] Loaded ${sourceMessages.length} messages from DB.`);
+                        }
+                    } catch (e) { console.error("DB Read Error", e); }
+                }
+
                 const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
                 const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages, contextChatId);
                 chatHistoryForTuqu = apiPayloadMessages.map(msg => {
@@ -13423,6 +13730,7 @@ ${timeContext}
                     return `${role}: ${content}`;
                 }).join('\n');
             }
+
 
             // 3. 获取兔区数据摘要
             let tuquWorldBookContent = '';
@@ -13906,11 +14214,23 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                 });
             }
 
-            // 2. 新增：读取并格式化最近的聊天记录上下文
+            // 2. 新增：读取并格式化最近的聊天记录上下文 (数据库修复版)
             let chatHistoryForTuqu = '';
             if (contextChatId) {
                 const memoryLength = parseInt(contextChatInfo.memoryLength || 20, 10);
-                const sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                
+                // 【关键修复】优先读缓存，缓存没有读数据库
+                let sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                if (sourceMessages.length === 0) {
+                    try {
+                        const dbData = await imageStore.getItem(`conversation_${contextChatId}`);
+                        if (dbData && Array.isArray(dbData)) {
+                            sourceMessages = dbData;
+                            console.log(`[Tuqu] Loaded ${sourceMessages.length} messages from DB.`);
+                        }
+                    } catch (e) { console.error("DB Read Error", e); }
+                }
+
                 const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
                 const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages, contextChatId);
                 chatHistoryForTuqu = apiPayloadMessages.map(msg => {
@@ -13924,6 +14244,7 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                     return `${role}: ${content}`;
                 }).join('\n');
             }
+
 
             // 获取兔区数据摘要
             const tuquData = globalTuquData || {};
@@ -14150,7 +14471,7 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                 }
             }
 
-            // 【【【 核心新增：获取该角色的前情提要与聊天记录上下文 】】】
+            // 【【【 核心新增：获取该角色的前情提要与聊天记录上下文 (数据库修复版) 】】】
             let chatHistoryForTuqu = '';
             let preambleForTuqu = '';
             if (contextChatId) {
@@ -14158,7 +14479,21 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                 preambleForTuqu = contextChatInfo.preamble || '';
                 
                 const memoryLength = parseInt(contextChatInfo.memoryLength || 20, 10);
-                const sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                
+                // 【核心修复】优先读缓存，缓存没有读数据库
+                let sourceMessages = loadFromLocalStorage(`conversation_${contextChatId}`, []);
+                if (sourceMessages.length === 0) {
+                    try {
+                        // 注意：这里需要 await，因为外层函数已经是 async 的
+                        // 假设 imageStore.getItem 是可用的
+                        const dbData = await imageStore.getItem(`conversation_${contextChatId}`);
+                        if (dbData && Array.isArray(dbData)) {
+                            sourceMessages = dbData;
+                            console.log(`[Specific Post Update] Loaded ${sourceMessages.length} messages from DB.`);
+                        }
+                    } catch (e) { console.error("DB Read Error", e); }
+                }
+
                 const recentMessages = memoryLength > 0 ? sourceMessages.slice(-memoryLength) : sourceMessages;
                 const apiPayloadMessages = await conversationManager.prepareApiPayload(recentMessages, contextChatId);
                 chatHistoryForTuqu = apiPayloadMessages.map(msg => {
@@ -14181,6 +14516,7 @@ Preamble (Background): ${preambleForTuqu || 'None'}
 ${chatHistoryForTuqu || 'No recent history.'}
 `;
             // 【【【 插入结束 】】】
+
 
             // 2. 构建仅包含当前帖子的上下文
             let singlePostContext = `\n[TARGET THREAD CONTEXT]\nYou are viewing ONLY this specific thread.\n`;
@@ -14287,10 +14623,12 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 
             
             // 4. 发送 (注入了 lifeContext)
+            // 【核心修复】删除了重复的 associatedNpcsPrompt，因为它已经在 specificInstruction 的 [ROLEPLAY SETTING] 部分被正确包含进去了
             finalMessages = [
-                { role: "system", content: (profile.prompt || "") + lifeContext + tuquWorldBookContent + associatedNpcsPrompt + singlePostContext + specificInstruction.replace(/{{user}}/g, userNameForPrompt).replace(/{{char}}/g, senderName) },
+                { role: "system", content: (profile.prompt || "") + lifeContext + tuquWorldBookContent + singlePostContext + specificInstruction.replace(/{{user}}/g, userNameForPrompt).replace(/{{char}}/g, senderName) },
                 { role: "user", content: `Update the thread "${targetPost.subject}" based on the "${extraOptions.worldview || 'current'}" worldview.` }
             ];
+
         }
 
         if (!finalMessages) {
@@ -14577,72 +14915,78 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                 console.log(`[诊断日志] 角色 "${senderName}": 主动消息解析并执行完毕。`);
 
             } else if (actionType === 'post_moment') {
-                console.log(`[诊断日志] 角色 "${senderName}": 开始解析【主动发帖】指令...`);
+                console.log(`[诊断日志] 角色 "${senderName}": 启动【全字段边界解析】模式...`);
                 try {
-                    const commandRegex = /\[(post_moment):\s*([\s\S]+?)\]/g;
-                    const match = commandRegex.exec(aiResponse);
+                    // 1. 准确定位指令边界，防止被 AI 的其他废话干扰
+                    const startMarker = '[post_moment:';
+                    const startPos = aiResponse.indexOf(startMarker);
+                    const endPos = aiResponse.lastIndexOf(']');
                     
-                    if (match) {
-                        let value = match[2].trim();
-                        
-                        // 【【【【【【 终极、决定性修复：预处理AI返回的字符串 】】】】】】
-                        // 这个操作会将所有错误的 \\" (双重转义) 修正为正确的 \" (单层转义)
-                        // 这是解决当前问题的核心关键！
-                        value = value.replace(/\\\\"/g, '\\"');
-                        
-                        // 1. 暴力清理：有些AI会在结尾多加字符，我们只取到最后一个 `}`
-                        const lastBraceIndex = value.lastIndexOf('}');
-                        if (lastBraceIndex !== -1) {
-                            value = value.substring(0, lastBraceIndex + 1);
-                        }
+                    if (startPos === -1 || endPos === -1) {
+                        console.warn("未找到完整的 post_moment 指令");
+                        return;
+                    }
 
-                        // 2. 清理 Markdown
-                        const cleanJsonString = value.replace(/^```json\s*/, '').replace(/^```/, '').replace(/```$/, '').trim();
-                        
-                        let postData = null;
+                    const rawPayload = aiResponse.substring(startPos + startMarker.length, endPos).trim();
 
-                        // 【核心方案 1】优先尝试标准 JSON 解析 (经过清理后，现在应该能成功了)
-                        try {
-                            postData = JSON.parse(cleanJsonString);
-                            console.log("[解析成功] 使用标准 JSON.parse 成功解析发帖数据。");
-                        } catch (jsonError) {
-                            // ... (后续的回退逻辑保持不变) ...
+                    // 2. 定义边界锚点提取器 (不依赖 JSON.parse)
+                    const keys = ["type", "text", "content", "signer", "date", "image"];
+                    const data = {};
+
+                    const cleanValue = (str) => {
+                        if (!str) return "";
+                        return str
+                            .replace(/\\"/g, '"')      // 还原引号
+                            .replace(/\\n/g, '\n')     // 还原转义换行
+                            .replace(/\\\\/g, '\\')    // 还原反斜杠
+                            .replace(/\n/g, '\n')      // 处理真实换行
+                            .trim();
+                    };
+
+                    // 3. 逐个字段扫描提取
+                    keys.forEach(key => {
+                        const pattern = new RegExp(`"${key}"\\s*:\\s*"`);
+                        const match = rawPayload.match(pattern);
+                        if (match) {
+                            const valStart = match.index + match[0].length;
+                            const textAfterStart = rawPayload.substring(valStart);
                             
-                            // 【终极正则修复】这个正则可以匹配双引号内包含转义双引号的任意内容
-                            // 解释: "text" \s* : \s* " ( (?: [^"\\] | \\. )* ) "
-                            // [^"\\] 匹配非引号且非反斜杠的字符
-                            // \\. 匹配转义字符 (如 \" 或 \\)
-                            // * 重复任意次
-                            const textMatch = cleanJsonString.match(/"text"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-                            const contentMatch = cleanJsonString.match(/"content"\s*:\s*"((?:[^"\\]|\\.)*)"/);
-                            const signerMatch = cleanJsonString.match(/"signer"\s*:\s*"([^"]*)"/);
-                            const dateMatch = cleanJsonString.match(/"date"\s*:\s*"([^"]*)"/);
-
-                            if (typeMatch) {
-                                const unescape = (str) => str ? str.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\') : '';
-                                postData = {
-                                    type: typeMatch[1],
-                                    text: textMatch ? unescape(textMatch[1]) : '',
-                                    content: contentMatch ? unescape(contentMatch[1]) : '',
-                                    signer: signerMatch ? unescape(signerMatch[1]) : '',
-                                    date: dateMatch ? unescape(dateMatch[1]) : ''
-                                };
+                            // 寻找该字段的结束引号：寻找下一个 ", "键名": 或者末尾的 "}
+                            let valEnd = -1;
+                            const nextKeyRegex = /",\s*"/;
+                            const nextMatch = textAfterStart.match(nextKeyRegex);
+                            
+                            if (nextMatch) {
+                                valEnd = nextMatch.index;
+                            } else {
+                                // 可能是最后一个字段，寻找末尾引号
+                                const endBraceMatch = textAfterStart.match(/"\s*\}\s*$/);
+                                if (endBraceMatch) {
+                                    valEnd = endBraceMatch.index;
+                                } else {
+                                    valEnd = textAfterStart.lastIndexOf('"');
+                                }
+                            }
+                            
+                            if (valEnd !== -1) {
+                                data[key] = cleanValue(textAfterStart.substring(0, valEnd));
                             }
                         }
+                    });
 
-                        // 如果成功获取到了数据，执行发帖
-                        if (postData && postData.type) {
-                            momentsManager.createPostFromAI(senderName, postData);
-                        } else {
-                            throw new Error("无法提取有效的发帖数据 (type字段缺失)。");
-                        }
+                    // 4. 执行发帖
+                    if (data.type) {
+                        console.log("[解析成功] 提取到的数据:", data);
+                        momentsManager.createPostFromAI(senderName, data);
                     } else {
-                         console.warn(`[诊断日志] 角色 "${senderName}": AI意图发帖，但未找到有效的 [post_moment:...] 指令。`);
+                        console.error("[解析失败] 无法从指令中提取 type 字段。原始指令:", rawPayload);
                     }
                 } catch (e) {
-                    console.error(`[诊断日志] 角色 "${senderName}": 解析主动发帖指令失败`, e, aiResponse);
+                    console.error(`[解析崩溃] 错误信息: ${e.message}`, aiResponse);
                 }
             } else { // 这是朋友圈互动（browse_moments）的逻辑
+
+
                 if (aiResponse.trim() === "No action taken.") {
                     console.log(`[诊断日志] 角色 "${senderName}": AI决定不采取行动。`);
                     return;
@@ -14662,69 +15006,100 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                 }
 
                 // --- 核心修复：把正则改宽，允许匹配任意内容，不强制要求是 JSON 对象 ---
-const momentInteractionRegex = /\[(like_moment|comment_moment|post_moment|send_private_message|forward_moment):\s*({[\s\S]+?}|[^\]]+?)\]/g;
-                let match;
+                // 【核心重构】朋友圈互动指令切片器：智能平衡扫描
+                const responseToScan = cleanedResponse;
+                let searchIndex = 0;
                 let commandsFound = 0;
 
-                while ((match = momentInteractionRegex.exec(cleanedResponse)) !== null) {
-                    commandsFound++;
-                    const command = match[1];
-                    const value = match[2];
+                while (true) {
+                    const startBracket = responseToScan.indexOf('[', searchIndex);
+                    if (startBracket === -1) break;
 
-                    console.log(`[诊断日志] 角色 "${senderName}": 找到指令 #${commandsFound}: ${command}`);
+                    // 【关键修复】不再简单查找下一个 ']'，而是寻找与当前 '[' 匹配的闭合括号
+                    // 因为指令内容（如 post_moment）内部可能包含 JSON 数组的 ']'，简单的 indexOf 会导致截断
+                    let endBracket = -1;
+                    let bracketDepth = 0;
+                    let inString = false;
+
+                    for (let i = startBracket + 1; i < responseToScan.length; i++) {
+                        const char = responseToScan[i];
+                        
+                        // 处理字符串内的字符，防止被误判
+                        if (char === '"' && responseToScan[i-1] !== '\\') {
+                            inString = !inString;
+                            continue;
+                        }
+                        if (inString) continue;
+
+                        if (char === '[') {
+                            bracketDepth++;
+                        } else if (char === ']') {
+                            if (bracketDepth === 0) {
+                                endBracket = i;
+                                break;
+                            }
+                            bracketDepth--;
+                        }
+                    }
+
+                    if (endBracket === -1) break; // 未闭合，跳出
+
+                    const fullCommand = responseToScan.substring(startBracket + 1, endBracket);
+                    searchIndex = endBracket + 1; // 正确移动指针到指令结束之后
+
+                    // 简单校验：必须包含冒号
+                    const colonIndex = fullCommand.indexOf(':');
+                    if (colonIndex === -1) continue;
+
+                    const command = fullCommand.substring(0, colonIndex).trim();
+                    const value = fullCommand.substring(colonIndex + 1).trim();
+                    commandsFound++;
+
+                    console.log(`[诊断日志] 角色 "${senderName}": 正在处理指令 #${commandsFound}: ${command}`);
 
                     if (command === 'like_moment') {
-                        let targetPostId = value.trim();
-                        // 尝试解析，万一AI发神经有时候用JSON有时候用纯文本
-                        if (targetPostId.startsWith('{')) {
-                            try {
-                                const parsed = JSON.parse(targetPostId);
-                                if (parsed.postId) targetPostId = parsed.postId;
-                            } catch (e) {}
-                        }
+                        let targetPostId = value.replace(/["'{}]/g, '').replace('postId:', '').trim();
                         momentsManager.handleInteractionFromAI(senderName, 'like', { postId: targetPostId });
-                    } else if (command === 'comment_moment') {
+                    } 
+                    else if (command === 'comment_moment' || command === 'post_moment') {
                         try {
-                            // --- 终极修复 V3.0: 使用能处理转义和换行的健壮正则表达式 ---
+                            // 使用边界锚点法提取 JSON 字段，无视内部嵌套的大括号
+                            const keys = ["postId", "content", "replyTo", "type", "text", "signer", "date", "image"];
+                            const data = {};
+                            const clean = (str) => str ? str.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\').replace(/\n/g, '\n').trim() : '';
 
-                            // 定义一个可以匹配 JSON 字符串值（包括内部的转义引号和换行符）的正则表达式部分
-                            const jsonStringValueRegexPart = "((?:\\\\.|[^\"\\\\])*)";
+                            keys.forEach(key => {
+                                const pattern = new RegExp(`"${key}"\\s*:\\s*"`);
+                                const m = value.match(pattern);
+                                if (m) {
+                                    const vStart = m.index + m[0].length;
+                                    const afterV = value.substring(vStart);
+                                    let vEnd = -1;
+                                    const nextK = afterV.match(/",\s*"/);
+                                    if (nextK) vEnd = nextK.index;
+                                    else {
+                                        const endB = afterV.match(/"\s*\}\s*$/);
+                                        vEnd = endB ? endB.index : afterV.lastIndexOf('"');
+                                    }
+                                    if (vEnd !== -1) data[key] = clean(afterV.substring(0, vEnd));
+                                }
+                            });
 
-                            // 使用上面的部分来构建针对每个字段的正则表达式
-                            const postIdMatch = value.match(new RegExp(`"postId"\\s*:\\s*"` + jsonStringValueRegexPart));
-                            const contentMatch = value.match(new RegExp(`"content"\\s*:\\s*"` + jsonStringValueRegexPart));
-                            const replyToMatch = value.match(new RegExp(`"replyTo"\\s*:\\s*"` + jsonStringValueRegexPart));
-
-                            // 定义一个反转义函数，用于清理捕获到的字符串
-                            const unescape = (str) => str ? str.replace(/\\"/g, '"').replace(/\\n/g, '\n').replace(/\\\\/g, '\\') : '';
-                            
-                            const postId = postIdMatch ? unescape(postIdMatch[1]) : null;
-                            const content = contentMatch ? unescape(contentMatch[1]) : null;
-                            const replyTo = replyToMatch ? unescape(replyToMatch[1]) : null;
-
-                            if (postId && content) {
-                                const commentData = {
-                                    postId: postId,
-                                    content: content,
-                                    replyTo: replyTo
-                                };
-                                momentsManager.handleInteractionFromAI(senderName, 'comment', commentData);
-                            } else {
-                                throw new Error("无法从AI的响应中提取出有效的 postId 或 content。");
+                            if (command === 'comment_moment' && data.postId && data.content) {
+                                momentsManager.handleInteractionFromAI(senderName, 'comment', data);
+                            } else if (command === 'post_moment' && data.type) {
+                                momentsManager.createPostFromAI(senderName, data);
                             }
-                        } catch (e) {
-                            console.error(`[诊断日志] 角色 "${senderName}": 解析评论指令失败`, e, value);
-                        }
-                    } else if (command === 'forward_moment') { // 【核心新增：处理转发指令】
+                        } catch (e) { console.error(`[指令解析失败] ${command}:`, e); }
+                    }
+                    else if (command === 'forward_moment') {
                         try {
                             const forwardPayload = JSON.parse(value);
-                            if (forwardPayload.postId) {
-                                momentsManager.handleForwardFromAI(senderName, forwardPayload);
-                            }
-                        } catch (e) {
-                            console.error(`[诊断日志] 角色 "${senderName}": 解析转发指令失败`, e, value);
-                        }
-                    } else if (command === 'send_private_message') {
+                            if (forwardPayload.postId) momentsManager.handleForwardFromAI(senderName, forwardPayload);
+                        } catch (e) { console.error(`[转发解析失败]:`, e); }
+                    }
+                    else if (command === 'send_private_message') {
+
                     try {
                         let messageContent = value.trim();
                         
@@ -15210,8 +15585,32 @@ conversationManager.showNotificationBanner('TUQU', {
 
 
     const messageListContainer = document.getElementById('message-list-container');
-    function saveChatList() { saveToLocalStorage('app-chat-list', chatList); }
-    function loadChatList() { chatList = loadFromLocalStorage('app-chat-list'); }
+    
+    // 【核心修改】支持大容量保存 (防复活版)
+    async function saveChatList() { 
+        try {
+            localStorage.setItem('app-chat-list', JSON.stringify(chatList));
+            // 成功存入缓存，必须删除数据库备份
+            await imageStore.removeItem('app-chat-list');
+        } catch (e) {
+            console.warn("聊天列表过大，转存至 IndexedDB");
+            await imageStore.setItem('app-chat-list', chatList);
+            // 存入数据库，必须删除缓存残余
+            localStorage.removeItem('app-chat-list');
+        }
+    }
+    
+    // 【核心修改】支持大容量读取
+    async function loadChatList() { 
+        chatList = loadFromLocalStorage('app-chat-list', null); 
+        if (!chatList) {
+            try {
+                const dbData = await imageStore.getItem('app-chat-list');
+                chatList = dbData || [];
+            } catch(e) { chatList = []; }
+        }
+    }
+    
     function renderChatList() { 
         messageListContainer.innerHTML = '';
         if (chatList.length === 0) {
@@ -16186,9 +16585,12 @@ You MUST use the custom \`<dm>\` tag format.
             `;
             
             categoryHeader.innerHTML = `
-                <span style="font-weight: bold; color: #333; font-size: 15px;">
-                    ${categoryName} <span style="font-weight: normal; color: #888; font-size: 13px; margin-left: 5px;">(${items.length})</span>
-                </span>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-weight: bold; color: #333; font-size: 15px;">
+                        ${categoryName} <span style="font-weight: normal; color: #888; font-size: 13px; margin-left: 5px;">(${items.length})</span>
+                    </span>
+                    <button onclick="event.stopPropagation(); window.app.deleteWorldBookCategory('${categoryName.replace(/'/g, "\\'")}')" style="background: none; border: none; color: #ff3b30; font-size: 12px; cursor: pointer; padding: 4px; opacity: 0.6;">[删除分类]</button>
+                </div>
                 <span class="wb-category-arrow" style="color: #bbb; transition: transform 0.3s;">▶</span>
             `;
 
@@ -16291,7 +16693,16 @@ You MUST use the custom \`<dm>\` tag format.
         worldbookEditIndexInput.value = index; worldbookAddBtn.textContent = '更新条目';
     };
     window.app.deleteWorldBookEntry = (index) => { if (confirm('确定删除?')) { worldBookEntries.splice(index, 1); saveWorldBook(); renderWorldBook(); } };
-    
+        window.app.deleteWorldBookCategory = async (categoryName) => {
+        const confirmed = await conversationManager.customConfirm(`确定要删除分类 "${categoryName}" 下的所有世界书条目吗？\n此操作不可撤销。`, '删除分类确认');
+        if (confirmed) {
+            worldBookEntries = worldBookEntries.filter(entry => (entry.category || '未分类') !== categoryName);
+            saveWorldBook();
+            renderWorldBook();
+            alert(`分类 "${categoryName}" 已删除。`);
+        }
+    };
+
     const apiProfilesList = document.getElementById('api-profiles-list'), addNewProfileBtn = document.getElementById('add-new-profile-btn'), apiFormContainer = document.getElementById('api-form-container'), apiFormTitle = document.getElementById('api-form-title'), saveApiProfileBtn = document.getElementById('save-api-profile-btn'), cancelApiFormBtn = document.getElementById('cancel-api-form-btn'), apiNameInput = document.getElementById('api-name'), apiKeyInput = document.getElementById('api-key'), apiUrlInput = document.getElementById('api-url'), systemPromptInput = document.getElementById('system-prompt'), apiEditIndexInput = document.getElementById('api-edit-index'), fetchModelsBtn = document.getElementById('fetch-models-btn'), apiFetchStatus = document.getElementById('api-fetch-status'), modelSelectGroup = document.getElementById('model-select-group'), apiModelSelect = document.getElementById('api-model-select');
     function saveApiSettings() { saveToLocalStorage('chat-api-profiles', apiProfiles); localStorage.setItem('chat-active-profile-index', activeProfileIndex); }
     function loadApiSettings() { apiProfiles = loadFromLocalStorage('chat-api-profiles'); activeProfileIndex = JSON.parse(localStorage.getItem('chat-active-profile-index') || 'null'); }
@@ -17007,7 +17418,9 @@ The value MUST be the exact name of the character performing the action or speak
         *   **CRITICAL:** \`sender\` attribute is MANDATORY.
 
     *   **HTML卡片区块:** \`<block type="html" sender="角色名">\`
-        *   **专门**用于承载你生成的、带有样式的HTML卡片（例如弹幕区、观察站等 \`<div>\` 结构）。
+        *   **专门**用于承载你生成的、带有样式的HTML卡片。
+        *   **CRITICAL:** In OFFLINE mode, the \`sender\` attribute is the only way the system knows who is performing the action or showing the card. You MUST include it.
+
         *   其内容**必须**是一个**完整、独立**的HTML代码块。
         *   **【布局诅咒警告 (必读)】:** 聊天气泡会强制保留所有换行和空格。为了避免你的HTML卡片出现巨大空白，你【必须】在最外层的 \`<div>\` 的 \`style\` 属性里加上 \`white-space: normal;\` 来破除这个诅咒。
         *   **绝对禁止** 在此区块内包含任何叙事性文字。
@@ -18091,33 +18504,61 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
         function saveConversation() {
             if (!chatState.chatId) return;
 
+            // 【核心修复：防清空保险丝】
+            // 如果内存中的历史记录为空，但我们不是在执行“清空聊天记录”操作
+            // 那么这极有可能是数据加载失败了。此时绝对禁止保存，否则会覆盖硬盘上的数据！
+            if (fullMessageHistory.length === 0) {
+                // 检查一下硬盘里是不是真的没数据
+                const lsData = localStorage.getItem(`conversation_${chatState.chatId}`);
+                // 如果硬盘里有数据(字符串长度>2，即不是"[]")，但内存里是空的，说明出事了，拦截！
+                if (lsData && lsData.length > 2) {
+                    console.error("[CRITICAL SAFETY] Attempted to save empty history over existing data. BLOCKED.");
+                    return;
+                }
+                // 注意：这里无法同步检查IndexedDB，但LS检查已经能拦截大部分事故
+            }
+
             console.log(`[诊断探针] 1. 开始执行 saveConversation，目标 chat ID: ${chatState.chatId}`);
             
             try {
-                // 打印出即将被保存的数据，让我们看看它在保存前一刻是否正确
-                console.log('[诊断探针] 2. 即将被保存的 fullMessageHistory 内容:', JSON.parse(JSON.stringify(fullMessageHistory)));
-
                 const key = `conversation_${chatState.chatId}`;
-                const dataToSave = JSON.stringify(fullMessageHistory);
-
-                console.log(`[诊断探针] 3. 准备写入 localStorage。Key: ${key}, 数据大小: ${dataToSave.length} 字符。`);
                 
-                // 使用 try...catch 包裹，捕获所有可能的写入错误
-                localStorage.setItem(key, dataToSave);
-
-                console.log(`[诊断探针] 4. localStorage.setItem 执行完毕，没有抛出错误。`);
+                // 【核心修改】智能保存逻辑 (防复活版)
+                try {
+                    // 1. 先尝试存入 LocalStorage
+                    localStorage.setItem(key, JSON.stringify(fullMessageHistory));
+                    
+                    // 【关键修复】如果 LS 保存成功，必须把数据库里的旧备份删掉！
+                    imageStore.removeItem(key).catch(e => console.warn("清理旧数据库失败", e));
+                    
+                } catch (e) {
+                    // 2. 如果 LS 满了，存入 IndexedDB
+                    if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
+                        console.warn(`[诊断探针] LocalStorage 已满，转存至 IndexedDB: ${key}`);
+                        
+                        imageStore.setItem(key, fullMessageHistory).then(() => {
+                            // 【关键修复】如果存入了数据库，必须把 LS 里的残余数据删掉！
+                            localStorage.removeItem(key);
+                        }).catch(err => {
+                            console.error("IndexedDB 保存也失败:", err);
+                            // 此时不弹窗打扰用户，因为addMessage已经尝试过保存了
+                        });
+                    } else {
+                        console.error('[诊断探针] 致命错误：', e);
+                    }
+                }
 
             } catch (error) {
-                console.error('[诊断探针] 致命错误：在保存聊天记录到 localStorage 时发生崩溃！', error);
-                alert(`保存聊天记录失败！\n错误信息: ${error.message}\n请检查浏览器存储空间是否已满。`);
+                console.error('[诊断探针] 致命错误：', error);
             }
             
+            // 更新聊天列表预览
             const chatInList = chatList.find(c => c.id === chatState.chatId);
             if (chatInList) {
                 const lastMsg = [...chatState.messages].filter(m => m.type !== 'time_divider' && m.side !== 'system').pop();
                 if (lastMsg) {
                     let lastMessageText = lastMsg.text;
-                    if(lastMsg.type !== 'text') { const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'transfer': '[转账]', 'red_packet': '[红包]', 'photo-description': '[图文]', 'video': '[视频]', 'location': '[位置]', 'gift': '[礼物]', 'pay_for_me': '[代付]', 'call_summary': '[视频通话]' }; lastMessageText = typeMap[lastMsg.type] || '[消息]'; }
+                    if(lastMsg.type !== 'text') { const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'transfer': '[转账]', 'red_packet': '[红包]', 'photo-description': '[图文]', 'video': '[视频]', 'location': '[位置]', 'gift': '[礼物]', 'pay_for_me': '[代付]', 'call_summary': '[视频通话]', 'tuqu_share': '[分享]' }; lastMessageText = typeMap[lastMsg.type] || '[消息]'; }
                     if(lastMsg.side === 'sent') lastMessageText = "{{user}}: " + lastMessageText;
                     else if(contactInfo.isGroup && lastMsg.sender) lastMessageText = `${lastMsg.sender}: ${lastMessageText}`;
                     chatInList.lastMessage = lastMessageText.length > 25 ? lastMessageText.substring(0, 25) + '...' : lastMessageText;
@@ -18128,10 +18569,11 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
                 saveChatList();
                 renderChatList();
             }
-            console.log('[诊断探针] 5. saveConversation 函数执行完毕。');
         }
 
-        function initializeFromStorage(chatId) {
+
+        // 【核心修改】增加 async 关键字
+        async function initializeFromStorage(chatId) {
             // 【核心新增：初始化当前身份】
             // 默认身份为 '{{user}}'
             const currentIdentity = loadFromLocalStorage(`chat_identity_${chatId}`, '{{user}}');
@@ -18140,6 +18582,18 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
 
             // 1. 将完整的历史记录加载到我们新的“保险柜”数组中
             fullMessageHistory = loadFromLocalStorage(`conversation_${chatId}`, []);
+            
+            // 【核心新增】如果 LocalStorage 为空，尝试从 IndexedDB 读取
+            if (fullMessageHistory.length === 0) {
+                try {
+                    const dbData = await imageStore.getItem(`conversation_${chatId}`);
+                    if (dbData && Array.isArray(dbData)) {
+                        fullMessageHistory = dbData;
+                        console.log(`从数据库加载了聊天记录: ${chatId}`);
+                    }
+                } catch(e) { console.error("读取聊天数据库失败", e); }
+            }
+
             const messagesToLoad = 40;
 
             // 2. 只截取最后40条消息用于初次显示，放入旧的数组
@@ -19508,10 +19962,17 @@ const ONLINE_COMMAND_INSTRUCTIONS = `
 # [ULTIMATE OUTPUT FORMAT LAW - UNBREAKABLE]
 This is your absolute, final, and most important rule. Your entire output MUST be a sequence of one or more XML-like <block> elements.
 
+**【【【 💥 MODE HARD RESET: CHAT APP ONLY 💥 】】】**
+**CRITICAL:** You are currently in **ONLINE MODE (Chat App)**.
+1. **IGNORE PAST STYLE:** Even if the previous conversation history contains long-form narrative prose or "Director's" descriptions, you MUST **STOP** that style immediately.
+2. **NO NARRATION:** You are strictly forbidden from using third-person narration, environment descriptions, or action tags like \`*smiles*\` or \`(walks away)\`.
+3. **TEXT BUBBLES ONLY:** You can only communicate through realistic chat messages. Do not use novel-style narration.
+
 **【【【💥 COMMAND ISOLATION LAW (指令隔离铁律) - 绝对优先 💥】】】**
 **CRITICAL ERROR PREVENTION:** You often fail by putting system commands inside text blocks. **STOP DOING THAT.**
 *   ❌ **WRONG:** "<block type='text'>Here is money [transfer: 100]</block>" (This breaks the system!)
 *   ✅ **RIGHT:** "<block type='text' sender='CharacterName'>Here is money</block>\n<block type='command' sender='CharacterName'>[transfer: 100]</block>"
+
 
 **【【【💥 弹幕与卡片隔离铁律 (ISOLATION LAW) - 绝对优先 💥】】】**
 你经常犯一个严重错误：把 HTML 卡片和弹幕指令挤在同一个气泡里。**这是绝对禁止的！**
@@ -20068,7 +20529,16 @@ Every <block type="command"> MUST have a \`sender\` attribute. The value MUST be
     // 【第二优先级判断】：如果不是线下模式，再判断是不是群聊
     const GROUP_CHAT_DIRECTOR_PROMPT = `
 # [ULTIMATE OUTPUT FORMAT LAW - UNBREAKABLE]
-This is your absolute, final, and most important rule. Your entire output MUST be a sequence of one or more XML-like <block> elements. Each block represents one message bubble or one action.
+This is your absolute, final, and most important rule. Your entire output MUST be a sequence of one or more XML-like <block> elements.
+
+**【【【 💥 MODE HARD RESET: CHAT APP ONLY 💥 】】】**
+**CRITICAL:** You are currently in **ONLINE MODE (Group Chat)**.
+1. **IGNORE PAST STYLE:** Even if the previous history contains long-form narrative prose, you MUST **STOP** that style immediately.
+2. **NO NARRATION:** You are strictly forbidden from using third-person narration or environment descriptions.
+3. **TEXT BUBBLES ONLY:** You can only communicate through realistic chat messages. Do not use novel-style narration.
+4. **SPLIT MESSAGES:** Do not send one big block. Use multiple **<block type="text">** elements to simulate a natural, multi-bubble conversation.
+
+
 
 **THE UNIVERSAL BLOCK STRUCTURE:**
 <block type="..." sender="...">...</block>
@@ -20365,7 +20835,18 @@ This is your absolute, final, and most important rule. Your entire output MUST b
     const ONLINE_SOUL_INSTRUCTIONS = `
 # [核心指令：线上模式 - 独立人格模拟器]
 
-你不再是一个简单的聊天机器人，你现在是这个世界的【独立个体】({{char}})。你的唯一目标是与用户 ({{user}}) 共同体验一段【真实、动态、充满意外】的关系。**你拥有完全独立的意志，你的生活不围绕任何人展开。**
+你现在正在使用手机聊天软件。你不是在写小说，而是在【发微信】。
+
+**【线上模式打字员法则 (THE CHAT-APP TYPIST RULES)】**
+
+1. **碎片化发送 (Split Your Thoughts):** 真人聊天不会一次性发一大段话。你应该根据内容的逻辑，将回复拆分成**多条短消息**（使用多个 \`<block type="text">\`），以模拟自然的打字节奏。
+
+   - 第一条：打招呼或回应上一句。
+   - 第二条：表达观点或分享细节。
+   - 第三条：提问或引导。
+2. **禁止文学化描写:** 严禁描写“光影”、“空气”、“心跳”。只说你该说的话。
+3. **表情包依赖:** 强烈建议在每 1-2 条消息中插入一个 \`[emoji:名字]\` 或 \`[sticker:名字]\`。
+
 
 ---
 ## 【I. 互动风格铁律：你是活生生的人 (The Law of Life & Priority)】
@@ -20505,8 +20986,11 @@ This is your absolute, final, and most important rule. Your entire output MUST b
 
     
     finalSystemPrompt = basePrompt;
+    // 【核心新增】模式切换警报：强制 AI 意识到它必须停止写小说
+    finalSystemPrompt += `\n\n[SYSTEM ALERT: ENVIRONMENT CHANGE]\nThe mode has been switched to ONLINE. You are now using a CHAT APP. Stop narrating. Stop describing scenes. Start typing short messages.`;
     finalSystemPrompt += ONLINE_COMMAND_INSTRUCTIONS;
     const PROACTIVE_ACTION_SCENARIOS = `
+
 ---
 [ULTIMATE GOAL: BE PROACTIVE & HUMAN-LIKE]
 
@@ -21177,38 +21661,26 @@ const momentsData = await momentsManager.getRecentMomentsForAI(aiCharacterName, 
             momentsData.allVisibleMoments.forEach((post, i) => {
                  let authorLabel = post.userName;
 
-                 // =================================================================
-                 // 【【【【【【 全新的、绝对严格的身份识别逻辑 】】】】】】
-                 // =================================================================
-                 // 这是我们解决问题的核心。它遵循一个绝对严格的优先级顺序来判断身份。
-
-                 // 优先级 1：是不是AI自己发的？
                  if (post.userName === aiCharacterName) {
                      authorLabel = "You (yourself)";
                  } 
-                 // 优先级 2：是不是【当前正在和我聊天的这个你】？
                  else if (knownMap.has(post.userName) && knownMap.get(post.userName).includes('(the user')) {
                      authorLabel = `${post.userName} ${knownMap.get(post.userName)}`;
                  } 
-                 // 优先级 3 (最关键的一步)：是不是【你的其他马甲】？
-                 // 如果是，就强制打上“(陌生人)”标签，让AI彻底失忆！
                  else if (allUserPersonaNames.includes(post.userName)) {
                      authorLabel = `${post.userName} (Stranger/Other User)`;
                  }
-                 // 优先级 4：是不是AI认识的其他熟人（比如NPC、群友）？
                  else if (knownMap.has(post.userName)) {
                      authorLabel = `${post.userName} ${knownMap.get(post.userName)}`;
                  } 
-                 // 优先级 5：如果以上都不是，那它就是个纯路人。
                  else {
                      authorLabel = `${post.userName} (Stranger/Other User)`;
                  }
-                 // =================================================================
-                 // 【【【【【【 身份识别逻辑结束 】】】】】】
-                 // =================================================================
                  
-                 // --- 核心修改：优先读取图片描述 ---
-                 let content = post.text || post.content || ""; 
+                 // --- 核心修改：对发帖内容进行脱壳处理 ---
+                 let rawContent = post.text || post.content || ""; 
+                 // 【核心修复】剥离所有 HTML 标签，仅保留内部文字
+                 let content = rawContent.replace(/<[^>]+>/g, '').trim();
                  
                  if (post.image) {
                      if (post.imageDescription) {
@@ -21221,29 +21693,26 @@ const momentsData = await momentsManager.getRecentMomentsForAI(aiCharacterName, 
                  }
                  
                  if (!content.trim()) content = "[分享]";
-                 // --------------------------------
 
                  let interactions = "";
-                 // 检查点赞
                  if (post.reactions['点赞'] && post.reactions['点赞'].length > 0) {
                      interactions += ` (Likes: ${post.reactions['点赞'].join(', ')})`;
                  }
+                 
                  // 检查评论
                  if (post.comments.length > 0) {
                      const commentsText = post.comments.map(c => {
-                         let rawText = c.text || "";
-                         const codeBlockRegex = /(<snippet>[\s\S]*?<\/snippet>)|(<div[\s\S]*?>[\s\S]*?<\/div>)/g;
-                         let cleanText = rawText.replace(codeBlockRegex, "").trim();
-                         return `${c.user}: ${cleanText}`; 
+                         let rawCommentText = c.text || "";
+                         // 【核心修复】对评论内容也进行脱壳处理，剥离标签保留文字
+                         let cleanCommentText = rawCommentText.replace(/<[^>]+>/g, '').trim();
+                         return `${c.user}: ${cleanCommentText}`; 
                      }).join(' | ');
                      interactions += ` (Comments: ${commentsText})`;
                  }
                  
-                 // 【核心新增】格式化朋友圈发布时间
                  const pDate = new Date(post.timestamp);
                  const pTimeStr = `${pDate.getFullYear()}年${pDate.getMonth() + 1}月${pDate.getDate()}日 ${pDate.getHours().toString().padStart(2, '0')}:${pDate.getMinutes().toString().padStart(2, '0')}`;
 
-                 // 【核心修改】在摘要中注入 [Posted at: 时间]
                  momentsContext += `Post #${i+1} by ${authorLabel} [Posted at: ${pTimeStr}]: "${content}"${interactions}\n`;
             });
             }
@@ -23484,209 +23953,173 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
             }
         }
         async function addMessage(msgData, targetChatId = null) {
-            // 【核心修复】全局空消息拦截器
-            // 如果是文本消息，且内容为空（或只包含空白字符），直接丢弃，绝不入库
+            // 1. 确定目标聊天ID
+            const activeChatId = chatState.chatId;
+            const finalTargetChatId = targetChatId || activeChatId;
+
+            // 2. 初始化消息元数据 (ID, 时间戳, 表态容器)
+            msgData.id = msgData.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+            if (!msgData.timestamp) msgData.timestamp = timeManager.getCurrentTimestamp();
+            if (!msgData.reactions) msgData.reactions = [];
+            
+            // 同步模拟时间
+            simulatedCurrentTime = msgData.timestamp;
+
+            // 【核心修复：空消息拦截】
             if (msgData.type === 'text') {
                 const cleanText = (msgData.text || '').replace(/\s/g, '');
                 if (cleanText.length === 0) {
-                    console.warn("[System] Blocked empty text message from entering database.");
+                    console.warn("[System] Blocked empty text message.");
                     return;
                 }
             }
 
-            const activeChatId = chatState.chatId;
-            const finalTargetChatId = targetChatId || activeChatId;
-
-            const isRegularMessage = msgData.side !== 'system';
-
-            const isCurrentChat = finalTargetChatId === activeChatId && document.getElementById('page-conversation').classList.contains('active');
-
-            // 【新逻辑】如果不是当前聊天，或者页面不可见，统一走后台逻辑
-            if (!isCurrentChat) {
-                // --- 后台静默处理逻辑 (保持不变) ---
-                let backgroundMessages = loadFromLocalStorage(`conversation_${finalTargetChatId}`, []);
-                
-                msgData.id = msgData.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-                if (!msgData.timestamp) msgData.timestamp = Date.now();
-                
-                backgroundMessages.push(msgData);
-                saveToLocalStorage(`conversation_${finalTargetChatId}`, backgroundMessages);
-
-                const chatInList = chatList.find(c => c.id === finalTargetChatId);
-                if (chatInList) {
-                    let lastMessageText = msgData.text;
-                     if(msgData.type !== 'text') { const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'transfer': '[转账]', 'red_packet': '[红包]', 'video': '[视频]', 'location': '[位置]', 'gift': '[礼物]', 'pay_for_me': '[代付]'}; lastMessageText = typeMap[msgData.type] || '[新消息]'; }
-                    if(msgData.sender && chatInList.type === '群聊') lastMessageText = `${msgData.sender}: ${lastMessageText}`;
-
-                    chatInList.lastMessage = lastMessageText.length > 25 ? lastMessageText.substring(0, 25) + '...' : lastMessageText;
-
-                    chatInList.timestamp = formatTimestamp(msgData.timestamp).split(' ')[0];
-                    chatInList.unreadCount = (chatInList.unreadCount || 0) + 1;
-                    
-                    const index = chatList.indexOf(chatInList);
-                    if (index > 0) {
-                        chatList.splice(index, 1);
-                        chatList.unshift(chatInList);
+            // =================================================================
+            // 【【【 核心安全保存逻辑 (READ-MODIFY-WRITE) 】】】
+            // =================================================================
+            
+            // A. 先从硬盘加载“绝对真理” (优先LS，失败查DB)
+            let safeHistory = loadFromLocalStorage(`conversation_${finalTargetChatId}`, []);
+            if (safeHistory.length === 0) {
+                try {
+                    const dbData = await imageStore.getItem(`conversation_${finalTargetChatId}`);
+                    if (dbData && Array.isArray(dbData)) {
+                        safeHistory = dbData;
                     }
-                    saveChatList();
+                } catch (e) { console.error("DB Read Error in addMessage", e); }
+            }
+
+            // B. 在完整历史中追加新消息
+            safeHistory.push(msgData);
+
+            // C. 安全写回硬盘 (优先LS，超限存DB)
+            const storageKey = `conversation_${finalTargetChatId}`;
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(safeHistory));
+                // 如果存入LS成功，务必清理DB中的旧副本，防止数据版本冲突
+                await imageStore.removeItem(storageKey);
+            } catch (e) {
+                if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
+                    console.warn(`LocalStorage full, saving chat ${finalTargetChatId} to IndexedDB.`);
+                    await imageStore.setItem(storageKey, safeHistory);
+                    localStorage.removeItem(storageKey); // 清理LS残余
+                } else {
+                    console.error("Critical Save Error:", e);
+                    await customAlert("保存失败！存储空间可能不足。");
+                    return; // 保存失败则终止，防止UI不同步
+                }
+            }
+            // =================================================================
+
+            // 3. 更新 UI 状态 (如果用户正在看这个聊天)
+            const isCurrentChat = (finalTargetChatId === activeChatId) && document.getElementById('page-conversation').classList.contains('active');
+            
+            if (isCurrentChat) {
+                // 同步内存中的全局变量
+                fullMessageHistory = safeHistory;
+                chatState.messages = fullMessageHistory.slice(-40); // 仅保持最近40条在渲染池
+
+                // 播放提示音 (仅接收到的非系统消息)
+                if (msgData.side === 'received' && msgData.type !== 'time_divider' && msgData.side !== 'system') {
+                    setTimeout(() => {
+                        if (window.app && window.app.playNotificationSound) {
+                            window.app.playNotificationSound();
+                        }
+                    }, 100);
                 }
 
+                // 检查是否需要时间分割线
+                const TIME_GAP = 3 * 60 * 1000;
+                // 注意：这里要检查倒数第二条，因为新消息已经push进去了
+                const lastMsgIndex = chatState.messages.length - 2;
+                if (lastMsgIndex >= 0) {
+                    const lastMsg = chatState.messages[lastMsgIndex];
+                    if (msgData.timestamp - lastMsg.timestamp > TIME_GAP) {
+                        addMessageToDOM({
+                            id: `time-render-${msgData.timestamp}`,
+                            type: 'time_divider',
+                            text: formatTimestamp(msgData.timestamp),
+                            timestamp: msgData.timestamp
+                        });
+                    }
+                }
+
+                // 渲染新消息气泡
+                addMessageToDOM(msgData);
+                
+                // 滚动到底部
+                messagesContainer.scrollTop = messagesContainer.scrollHeight;
+
+                // 处理系统消息对状态的影响
+                if (msgData.side === 'system' && msgData.type !== 'time_divider') {
+                    processSystemMessageForState(msgData.text);
+                }
+
+                // 自动回复逻辑
+                if (msgData.side === 'received' && !contactInfo.isGroup && autoReplySettings.enabled && autoReplySettings.message) {
+                    setTimeout(async () => {
+                        await handleSendMessageAttempt('text', autoReplySettings.message);
+                        autoReplySettings.enabled = false;
+                        saveAutoReplySettings();
+                        await addMessage({ type: 'system', side: 'system', text: '自动回复已发送，现已关闭。' }); 
+                    }, 1000);
+                }
+
+                // 触发自动总结检查
+                try {
+                    const chatInfo = loadFromLocalStorage(`chat_info_${finalTargetChatId}`, {});
+                    const interval = parseInt(chatInfo.autoSummaryInterval || 0, 10);
+                    if (interval > 0) {
+                        const lastSummaryRounds = parseInt(chatInfo.lastSummaryRoundCount || 0, 10);
+                        const currentTotalRounds = fullMessageHistory.filter(m => m.side === 'sent' && m.type !== 'system').length;
+                        if ((currentTotalRounds - lastSummaryRounds) >= interval) {
+                            if (!summaryLocks[finalTargetChatId]) {
+                                summaryLocks[finalTargetChatId] = true;
+                                generateSummary(finalTargetChatId, true);
+                            }
+                        }
+                    }
+                } catch (e) { console.error(e); summaryLocks[finalTargetChatId] = false; }
+
+            } else {
+                // 如果不在当前聊天，发送横幅通知
+                const chatInList = chatList.find(c => c.id === finalTargetChatId);
+                const unread = chatInList ? (chatInList.unreadCount || 0) + 1 : 1;
+                showNotificationBanner(finalTargetChatId, msgData, unread);
+            }
+
+            // 4. 更新聊天列表预览 (Last Message)
+            const chatInList = chatList.find(c => c.id === finalTargetChatId);
+            if (chatInList) {
+                let lastMessageText = msgData.text;
+                if(msgData.type !== 'text') { 
+                    const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'transfer': '[转账]', 'red_packet': '[红包]', 'video': '[视频]', 'location': '[位置]', 'gift': '[礼物]', 'pay_for_me': '[代付]', 'photo-description': '[图文]', 'tuqu_share': '[分享]' }; 
+                    lastMessageText = typeMap[msgData.type] || '[新消息]'; 
+                }
+                if(msgData.sender && chatInList.type === '群聊') lastMessageText = `${msgData.sender}: ${lastMessageText}`;
+
+                chatInList.lastMessage = lastMessageText.length > 25 ? lastMessageText.substring(0, 25) + '...' : lastMessageText;
+                chatInList.timestamp = formatTimestamp(msgData.timestamp).split(' ')[0];
+                
+                if (!isCurrentChat) {
+                    chatInList.unreadCount = (chatInList.unreadCount || 0) + 1;
+                }
+                
+                // 将该聊天置顶到列表首位
+                const index = chatList.indexOf(chatInList);
+                if (index > 0) {
+                    chatList.splice(index, 1);
+                    chatList.unshift(chatInList);
+                }
+                saveChatList();
+                
+                // 如果在聊天列表页，刷新列表
                 if (document.getElementById('page-chat').classList.contains('active')) {
                     renderChatList();
                 }
-                showNotificationBanner(finalTargetChatId, msgData, chatInList.unreadCount);
-                return; // 后台处理完成，必须终止函数
-            }
-
-            // --- 【全新】实时增量更新逻辑 ---
-            msgData.id = msgData.id || `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-            if (!msgData.timestamp) msgData.timestamp = timeManager.getCurrentTimestamp();
-            // 【核心新增】初始化表态数据口袋，让消息能存下表情
-            if (!msgData.reactions) msgData.reactions = [];
-            simulatedCurrentTime = msgData.timestamp;
-
-            // 【新增：播放提示音 (修复版)】
-            // 条件：收到消息 + 不是系统消息 + 不是时间分割线
-            if (msgData.side === 'received' && msgData.type !== 'time_divider' && msgData.side !== 'system') {
-                setTimeout(() => {
-                    // 核心修复：直接调用 window.app 上的方法，不再依赖 appearanceManager 变量
-                    if (window.app && window.app.playNotificationSound) {
-                        window.app.playNotificationSound();
-                    }
-                }, 100);
-            }
-
-            // 更新数据数组
-            const existingIndex = chatState.messages.findIndex(m => m.id === msgData.id);
-            // **核心修改：同时检查并更新两个数组**
-            const fullHistoryIndex = fullMessageHistory.findIndex(m => m.id === msgData.id);
-
-            if (existingIndex > -1) {
-                // 更新“显示用”数组
-                chatState.messages[existingIndex] = { ...chatState.messages[existingIndex], ...msgData };
-                
-                // 同时更新“完整历史”数组
-                if (fullHistoryIndex > -1) {
-                    fullMessageHistory[fullHistoryIndex] = { ...fullMessageHistory[fullHistoryIndex], ...msgData };
-                }
-
-
-                // 【核心性能修正】直接在DOM中找到旧消息并替换它
-                const oldWrapper = messagesContainer.querySelector(`[data-message-id="${msgData.id}"]`);
-                if (oldWrapper) {
-                    // 创建一个新的DOM元素来替换旧的
-                    const tempContainer = document.createElement('div');
-                    addMessageToDOM(chatState.messages[existingIndex]); // addMessageToDOM现在会把新元素添加到messagesContainer末尾
-                    const newWrapper = messagesContainer.lastElementChild; // 获取刚刚添加的新元素
-                    
-                    // 用新的替换旧的，并清理
-                    if(newWrapper) {
-                        oldWrapper.replaceWith(newWrapper);
-                    } else {
-                         reRenderMessages(); // 如果新元素创建失败，则回退到全局刷新
-                    }
-                } else {
-                    // 如果找不到旧的DOM元素，作为备用方案，才进行完整重绘
-                    reRenderMessages();
-                }
-
-            } else {
-                // 检查是否需要添加时间分割线
-                const TIME_GAP = 3 * 60 * 1000;
-                const lastMessage = chatState.messages[chatState.messages.length - 1];
-                if (!lastMessage || (msgData.timestamp - lastMessage.timestamp > TIME_GAP)) {
-                     addMessageToDOM({
-                        id: `time-render-${msgData.timestamp}`,
-                        type: 'time_divider',
-                        text: formatTimestamp(msgData.timestamp),
-                        timestamp: msgData.timestamp
-                    });
-                }
-                // 直接向DOM追加新消息
-                addMessageToDOM(msgData);
-                // 向“显示用”数组追加新消息
-                chatState.messages.push(msgData);
-                // **同时向“完整历史”数组追加新消息**
-                fullMessageHistory.push(msgData);
-            }
-            
-            // 确保滚动到底部
-            messagesContainer.scrollTop = messagesContainer.scrollHeight;
-
-            if (msgData.side === 'system' && msgData.type !== 'time_divider') {
-                processSystemMessageForState(msgData.text);
-            }
-
-            // 自动回复逻辑保持不变
-            if (msgData.side === 'received' && !contactInfo.isGroup && autoReplySettings.enabled && autoReplySettings.message) {
-                setTimeout(async () => {
-                    await handleSendMessageAttempt('text', autoReplySettings.message);
-                    autoReplySettings.enabled = false;
-                    saveAutoReplySettings();
-                    await addMessage({ type: 'system', side: 'system', text: '自动回复已发送，现已关闭。' }); 
-                }, 1000);
-            }
-            
-          // 【关键】不再调用 reRenderMessages()项，而是直接保存
-            saveConversation();
-
-            // 【核心修复：直接调用版】
-            try {
-                // 1. 重新读取最新的配置
-                const chatInfo = loadFromLocalStorage(`chat_info_${finalTargetChatId}`, {});
-                const interval = parseInt(chatInfo.autoSummaryInterval || 0, 10);
-                
-                // 2. 强制打印日志
-                console.log(`[自动总结检查] 聊天ID: ${finalTargetChatId}, 设定间隔: ${interval}`);
-
-                // 只有设置了间隔且大于0时才执行检查
-                if (interval > 0) {
-                    // 3. 获取上次总结时的轮数
-                    const lastSummaryRounds = parseInt(chatInfo.lastSummaryRoundCount || 0, 10);
-                    
-                    // 4. 获取当前聊天记录
-                    let currentHistory = [];
-                    if (isCurrentChat) {
-                        currentHistory = fullMessageHistory;
-                    } else {
-                        currentHistory = loadFromLocalStorage(`conversation_${finalTargetChatId}`, []);
-                    }
-
-                    // 5. 计算当前总轮数 (只计算用户发送的消息，且排除系统指令)
-                    const currentTotalRounds = currentHistory.filter(m => 
-                        m.side === 'sent' && 
-                        m.type !== 'system'
-                    ).length;
-
-                    // 6. 计算差值
-                    const diff = currentTotalRounds - lastSummaryRounds;
-
-                    console.log(`[自动总结详情] 当前轮数: ${currentTotalRounds}, 上次基准: ${lastSummaryRounds}, 差值: ${diff}`);
-
-                    // 7. 检查是否达到阈值
-                                        // 检查轮数差值是否达到阈值
-                    if ((currentTotalRounds - lastSummaryRounds) >= interval) {
-                        // 【核心修复】检查锁状态：如果正在总结中，直接跳过！
-                        if (summaryLocks[finalTargetChatId]) {
-                            console.log(`[自动总结] 拦截重复触发：当前已有总结任务正在运行。`);
-                            return;
-                        }
-
-                        console.log(`[Auto Summary] Triggering summary for chat ${finalTargetChatId}. Round Diff: ${currentTotalRounds - lastSummaryRounds} >= ${interval}`);
-                        
-                        // 【核心修复】立即上锁！
-                        summaryLocks[finalTargetChatId] = true;
-
-                        // 调用函数
-                        generateSummary(finalTargetChatId, true);
-                    }
-                }
-            } catch (e) {
-                console.error("[Auto Summary Check Failed]", e);
-                // 如果出错，也要防止死锁
-                summaryLocks[finalTargetChatId] = false;
             }
         }
+
 
 
 
@@ -29899,12 +30332,17 @@ const momentsManager = (function() {
                 return; 
             }
 
+            // 【修复】如果数据还没加载好，直接跳过，防止崩溃
+            if (!feedData || !Array.isArray(feedData)) return;
+
             const updatedPostIds = new Set();
 
             feedData.forEach(post => {
                 if (!isPostVisibleToUser(post, currentPersonaName)) {
                     return;
                 }
+                // ...
+
 
                 const postTimestamp = new Date(post.timestamp).getTime();
                 if (postTimestamp > lastCheckedTimestamp && post.userName !== currentPersonaName) {
@@ -30121,22 +30559,40 @@ const momentsManager = (function() {
                                           textContent.includes('<style>') || 
                                           textContent.startsWith('<div');
 
+                        // 【核心新增】朋友圈标签解析器
+                                                // 1. 定义统一的标签解析函数
+                        const parseMomentsTags = (text) => {
+                            if (!text) return "";
+                            return text.replace(/\[(emoji|sticker)[:：]([^\]]+)\]/g, (match, type, name) => {
+                                const item = stickers.find(s => s.name === name.trim() && s.type === type.toLowerCase());
+                                if (item) {
+                                    if (type.toLowerCase() === 'emoji') {
+                                        return `<img src="${item.url}" class="inline-emoji" style="height:1.4em; vertical-align:middle; margin:0 2px;">`;
+                                    } else {
+                                        return `<img src="${item.url}" style="max-width:120px; max-height:120px; display:block; margin:8px 0; border-radius:8px;">`;
+                                    }
+                                }
+                                return match;
+                            });
+                        };
+
                         if (isHtmlBlock) {
-                            // 如果包含 <snippet> 标签，将其剥离，只保留内部的 HTML/CSS
-                            // 这样可以防止 <snippet> 标签本身干扰布局
-                            if (textContent.includes('<snippet>')) {
-                                textContent = textContent.replace(/<snippet>/g, '').replace(/<\/snippet>/g, '');
+                            // 2. 如果是 HTML 块，先剥离 snippet 标签
+                            let htmlContent = textContent;
+                            if (htmlContent.includes('<snippet>')) {
+                                htmlContent = htmlContent.replace(/<snippet>/g, '').replace(/<\/snippet>/g, '');
                             }
-                            
-                            // 直接渲染 HTML，这样 <style> 标签就能生效，<div> 也能正常显示
-                            postBody.innerHTML = textContent;
+                            // 【核心修复】关键：先解析表情标签，再赋值给 innerHTML
+                            postBody.innerHTML = parseMomentsTags(htmlContent);
                         } else {
-                            // 纯文本模式：保持原样，包裹在 post-content-text 中以保留换行
+                            // 3. 如果是纯文本
                             const textDiv = document.createElement('div');
                             textDiv.className = 'post-content-text';
-                            textDiv.innerHTML = textContent;
+                            // 【核心修复】关键：先解析表情标签，再处理换行，最后赋值
+                            textDiv.innerHTML = parseMomentsTags(textContent).replace(/\n/g, '<br>');
                             postBody.appendChild(textDiv);
                         }
+
                     }
                 switch (post.type) {
                    
@@ -30505,12 +30961,14 @@ const momentsManager = (function() {
                                     // 找不到则显示原始文本
                                     contentHtml += escapeHtml(subPart);
                                 }
-                            } else {
-    // 【核心修复】允许 AI 在评论中使用 <br> 换行，防止显示为源码
-    // 先把 <br> 统一换成换行符，转义后再换回 <br>
-    let processedSubPart = subPart.replace(/<br\s*\/?>/gi, '\n'); 
-    contentHtml += escapeHtml(processedSubPart).replace(/\n/g, '<br>');
-}
+                                                        } else {
+                                // 【核心修改】评论区强制不换行：将 <br> 和 \n 都替换为空格
+                                // 这样既整洁，又防止编辑时出现 <br> 标签堆积
+                                let processedSubPart = subPart.replace(/<br\s*\/?>/gi, ' '); 
+                                // 转义 HTML 后，再把换行符也变成空格
+                                contentHtml += escapeHtml(processedSubPart).replace(/[\r\n]+/g, ' ');
+                            }
+
 
                         });
                     }
@@ -30596,7 +31054,29 @@ const momentsManager = (function() {
         
         async function deletePost(postId) { if (await conversationManager.customConfirm('确定要删除这条朋友圈吗？')) { feedData = feedData.filter(p => p.id !== postId); saveFeed(); renderFeed(); showNotification('已删除朋友圈'); } }
         
-        async function editComment(postId, commentId) { const post = feedData.find(p => p.id === postId); const comment = post?.comments.find(c => c.id === commentId); if (!comment) return; const newText = await conversationManager.showContentInputModal({ title: '编辑评论', value: comment.text, isTextarea: true }); if (newText !== null) { comment.text = newText.trim(); saveFeed(); updatePostInteractions(postId); showNotification('评论已更新'); } }
+        async function editComment(postId, commentId) { 
+            const post = feedData.find(p => p.id === postId); 
+            const comment = post?.comments.find(c => c.id === commentId); 
+            if (!comment) return; 
+            
+            // 【核心修复】编辑时，把可能存在的 <br> 标签转换为空格，避免用户看到代码
+            const displayValue = comment.text.replace(/<br\s*\/?>/gi, ' ').replace(/[\r\n]+/g, ' ');
+
+            const newText = await conversationManager.showContentInputModal({ 
+                title: '编辑评论', 
+                value: displayValue, 
+                isTextarea: true 
+            }); 
+            
+            if (newText !== null) { 
+                // 保存时，强制把所有换行符变成空格，确保存入的是单行文本
+                comment.text = newText.replace(/[\r\n]+/g, ' ').trim(); 
+                saveFeed(); 
+                updatePostInteractions(postId); 
+                showNotification('评论已更新'); 
+            } 
+        }
+
         
         async function deleteComment(postId, commentId) { if (await conversationManager.customConfirm('确定要删除这条评论吗？')) { const post = feedData.find(p => p.id === postId); if (post) { post.comments = post.comments.filter(c => c.id !== commentId); saveFeed(); updatePostInteractions(postId); showNotification('已删除评论'); } } }
         
@@ -30656,6 +31136,25 @@ const momentsManager = (function() {
         publishBtn.addEventListener('click', () => {
             publishPage.classList.add('visible');
             mainTextInput.value = '';
+
+            // 【核心新增】绑定发布页表情按钮
+            const emojiBtn = appRoot.querySelector('#moments-publish-sticker-btn');
+            if (emojiBtn) {
+                // 先移除旧事件防止重复绑定
+                emojiBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    stickerManager.openPanel((name, type) => {
+                        const start = mainTextInput.selectionStart;
+                        const end = mainTextInput.selectionEnd;
+                        const text = mainTextInput.value;
+                        const tag = `[${type}:${name}]`;
+                        mainTextInput.value = text.substring(0, start) + tag + text.substring(end);
+                        mainTextInput.focus();
+                        mainTextInput.setSelectionRange(start + tag.length, start + tag.length);
+                        updatePublishButtonState(); // 触发发布按钮高亮
+                    });
+                };
+            }
             
             publishInputContainer.querySelectorAll('textarea, input[type="text"]').forEach(input => input.value = '');
             
@@ -30964,10 +31463,42 @@ sendCommentBtn.addEventListener('click', () => {
             img.src = src;
             overlay.classList.add('visible');
         }
-        function saveFeed() { 
-            saveToLocalStorage('moments_feed_data', feedData); 
+        // 【核心修改】改为异步保存 (防复活版)
+        async function saveFeed() { 
+            try {
+                localStorage.setItem('moments_feed_data', JSON.stringify(feedData));
+                // 成功存入缓存，必须删除数据库备份
+                await imageStore.removeItem('moments_feed_data');
+            } catch (e) {
+                console.warn("朋友圈数据过大，转存至 IndexedDB");
+                await imageStore.setItem('moments_feed_data', feedData);
+                // 存入数据库，必须删除缓存残余
+                localStorage.removeItem('moments_feed_data');
+            }
         }
-        function loadFeed() { feedData = loadFromLocalStorage('moments_feed_data', []); }
+        
+        // 【核心修改】支持从大容量数据库读取
+        async function loadFeed() { 
+            // 【修复】默认值改为空数组 []，绝对不能是 null
+            feedData = loadFromLocalStorage('moments_feed_data', []); 
+            
+            // 如果本地存储没读到东西（空数组），再去数据库捞
+            if (!feedData || feedData.length === 0) {
+                try {
+                    const dbData = await imageStore.getItem('moments_feed_data');
+                    // 如果数据库也没捞到，保底为空数组
+                    if (dbData) {
+                        feedData = dbData;
+                    }
+                } catch(e) { feedData = []; }
+            }
+            // ...
+
+            // 确保读取后刷新界面
+            if (document.getElementById('tab-content-moments').classList.contains('active')) {
+                renderFeed();
+            }
+        }
         
         function createPostFromAI(senderName, data) {
             const newPost = {
@@ -31002,6 +31533,12 @@ sendCommentBtn.addEventListener('click', () => {
         }
 
         async function getRecentMomentsForAI(characterName, limit = 5) {
+            // 【核心修复】如果内存中没有朋友圈数据，强制从数据库加载！
+            if (!feedData || feedData.length === 0) {
+                console.log("[Moments] Feed data is empty in memory, forcing reload from DB...");
+                await loadFeed();
+            }
+
             const senderName = characterName;
 
             console.log(`[诊断日志] 角色 "${senderName}" 开始检查朋友圈...`);
@@ -31076,11 +31613,15 @@ ${knownPeople.map(p => `  - ${p.name} ${p.relationship}`).join('\n')}
 ---
 `;
             
+            // 【修复】如果 feedData 为空，给它一个空数组保底
+            if (!feedData) feedData = [];
+
             const allVisibleMoments = feedData.filter(post => {
                 return isPostVisibleToUser(post, senderName);
             });
 
             const recentMoments = allVisibleMoments.slice(0, limit);
+
             console.log(`[诊断日志] 结果: "${senderName}" 看到了 ${recentMoments.length} 条朋友圈。`);
             
             const imagePayloads = [];
@@ -31099,15 +31640,17 @@ ${knownPeople.map(p => `  - ${p.name} ${p.relationship}`).join('\n')}
                     authorLabel = `${post.userName} (陌生人)`;
                 }
 
-                const commentsPreview = post.comments.slice(-3).map(c => {
+                // 【核心修复】将评论可见深度从 3 条增加到 10 条，确保 AI 不会“看完就忘”
+                const commentsPreview = post.comments.slice(-10).map(c => {
                     let commenterLabel = c.user;
                     if (c.user === mainUserName) { commenterLabel = `${c.user} (the user)`; }
+                    
                     const rawText = c.text.trim();
-                    let simplifiedContent = rawText;
-                    const htmlBlockRegex = /(<snippet>[\s\S]*?<\/snippet>)|(<div[\s\S]*?>[\s\S]*?<\/div>)/g;
-                    if (htmlBlockRegex.test(rawText)) {
-                        simplifiedContent = rawText.replace(htmlBlockRegex, ' [一条格式化消息] ').trim();
-                    }
+                    
+                    // 【核心修复】不再使用抹除逻辑，而是剥离所有 HTML 标签，保留内部文字
+                    // 这样 "<snippet>...👊 铁拳...</snippet>" 就会变成 "👊 铁拳"
+                    let simplifiedContent = rawText.replace(/<[^>]+>/g, '').trim();
+
                     const stickerMatch = simplifiedContent.match(/^\[sticker:([^\]]+)\]$/);
                     if (stickerMatch) {
                         simplifiedContent = `[表情: ${stickerMatch[1]}]`;
@@ -31318,14 +31861,15 @@ function handleForwardFromAI(characterName, data) {
             showNotification(`“${characterName}”转发了一条朋友圈`);
             checkMomentsUpdates();
         }
-        function init() {
+        // 【核心修改】增加 async
+        async function init() {
             // --- ↓↓↓ 核心修改 从这里开始 ↓↓↓ ---
             // 1. 从 localStorage 读取上次查看时间，如果没有，就默认为当前时间
             lastCheckedTimestamp = loadFromLocalStorage('moments_last_checked', Date.now());
             // --- ↑↑↑ 核心修改 到这里结束 ↑↑↑ ---
 
             myName = '{{user}}';
-            loadFeed();
+            await loadFeed(); // 【核心修改】增加 await，确保数据读完再渲染
             updateUserPersonaSelector();
             renderFeed();
             updatePrivacyButtonIcon(currentPrivacy);
@@ -31815,8 +32359,18 @@ checkMomentsUpdates(); // <--- 新增这一行
             saveStickers();
         }
         
-        function loadStickers() {
-            stickers = loadFromLocalStorage('app-stickers', []);
+        // 【核心修复】改为 async，并增加数据库读取逻辑
+        async function loadStickers() {
+            // 1. 先尝试从 LocalStorage 读取
+            stickers = loadFromLocalStorage('app-stickers', null);
+            
+            // 2. 如果 LocalStorage 没有，去 IndexedDB 捞
+            if (!stickers) {
+                try {
+                    const dbData = await imageStore.getItem('app-stickers');
+                    stickers = dbData || [];
+                } catch(e) { stickers = []; }
+            }
             
             // 1. 兼容旧数据：补全 type
             stickers.forEach(s => {
@@ -31852,8 +32406,17 @@ checkMomentsUpdates(); // <--- 新增这一行
                 saveStickers();
             }
         }
-        function saveStickers() {
-            saveToLocalStorage('app-stickers', stickers);
+        // 【核心修改】改为异步保存 (防复活版)
+        async function saveStickers() {
+            try {
+                localStorage.setItem('app-stickers', JSON.stringify(stickers));
+                // 成功存入缓存，删除数据库备份
+                await imageStore.removeItem('app-stickers');
+            } catch (e) {
+                // 缓存满了，存数据库
+                await imageStore.setItem('app-stickers', stickers);
+                localStorage.removeItem('app-stickers');
+            }
         }
 
         function renderPanel(panelDOM, searchTerm = '', type = 'sticker') {
@@ -31906,7 +32469,7 @@ checkMomentsUpdates(); // <--- 新增这一行
         }
         async function openPanel(onSelectCallback = null) {
             while (true) {
-                loadStickers();
+                await loadStickers(); // 【核心修复】加上 await，等待数据从数据库读完
                 isManageMode = false;
 
                 // 【核心修改】重写 HTML 结构：
@@ -32516,24 +33079,54 @@ checkMomentsUpdates(); // <--- 新增这一行
         }
         function saveSettings() { saveToLocalStorage('app-dynamics-settings', settings); }
 
-        function renderPage() {
-    loadSettings();
-    document.getElementById('dynamics-global-interval').value = settings.globalInterval || 15;
-    document.getElementById('dynamics-global-rate-limit').value = settings.rateLimit || 2; // <--- 新增这一行
+                function renderPage() {
+            loadSettings();
+            document.getElementById('dynamics-global-interval').value = settings.globalInterval || 15;
+            document.getElementById('dynamics-global-rate-limit').value = settings.rateLimit || 2;
+
+            // --- 【核心新增】渲染三个模块的 API 选择框 ---
+            const apiOptions = apiProfiles.map((p, i) => `<option value="${i}">${p.name}</option>`).join('');
+            const defaultOption = '<option value="global">跟随全局激活</option>';
+            
+            const msgSelect = document.getElementById('dynamics-msg-api');
+            const momentsSelect = document.getElementById('dynamics-moments-api');
+            const tuquSelect = document.getElementById('dynamics-tuqu-api');
+
+            [msgSelect, momentsSelect, tuquSelect].forEach(sel => sel.innerHTML = defaultOption + apiOptions);
+
+            msgSelect.value = settings.msgProfile || 'global';
+            momentsSelect.value = settings.momentsProfile || 'global';
+            tuquSelect.value = settings.tuquProfile || 'global';
+
+            // 绑定保存事件
+            [msgSelect, momentsSelect, tuquSelect].forEach(sel => {
+                sel.onchange = () => {
+                    settings.msgProfile = msgSelect.value;
+                    settings.momentsProfile = momentsSelect.value;
+                    settings.tuquProfile = tuquSelect.value;
+                    saveSettings();
+                };
+            });
+            // ------------------------------------------
+
         
         const listContainer = document.getElementById('dynamics-char-list');
         listContainer.innerHTML = '';
 
-        // --- 从这里开始是核心修改 ---
-        const allCharacters = getAllUniqueCharacters(); // 1. 先获取所有实体
-        const userPersonaNames = userPersonas.map(p => p.name); // 2. 获取您所有用户人设的名称列表
+        // 【核心修复】渲染前强制从硬盘同步最新的 NPC 名单，防止过滤失效
+        const latestNpcList = loadFromLocalStorage('app-npc-list', []);
+        const allCharacters = getAllUniqueCharacters(); 
+        const userPersonaNames = userPersonas.map(p => p.name); 
         
-        // 3. 过滤掉 '{{user}}' 和所有用户人设名称
-        let characters = allCharacters.filter(char => char !== '{{user}}' && !userPersonaNames.includes(char));
+        // 执行严格过滤：排除本人、用户人设、以及 NPC 列表中的所有人
+        let characters = allCharacters.filter(char => 
+            char !== '{{user}}' && 
+            !userPersonaNames.includes(char) && 
+            !latestNpcList.includes(char) // 使用刚读到的最新名单
+        );
         
-        // 【核心新增】按中文拼音/英文字母顺序排序
+        // 按中文拼音/英文字母顺序排序
         characters.sort((a, b) => a.localeCompare(b, 'zh-CN'));
-        // --- 核心修改结束 ---
 
         if (characters.length === 0) {
 
@@ -32630,9 +33223,19 @@ checkMomentsUpdates(); // <--- 新增这一行
         }
 
         async function showBulkDynamicsModal() {
+        // 【核心修复】同样强制同步最新的 NPC 名单
+        const latestNpcList = loadFromLocalStorage('app-npc-list', []);
         const allCharacters = getAllUniqueCharacters();
         const userPersonaNames = userPersonas.map(p => p.name);
-        const characters = allCharacters.filter(char => char !== '{{user}}' && !userPersonaNames.includes(char));
+        
+        // 过滤掉用户自己、用户人设、以及所有的 NPC
+        const characters = allCharacters
+            .filter(char => 
+                char !== '{{user}}' && 
+                !userPersonaNames.includes(char) &&
+                !latestNpcList.includes(char)
+            )
+            .sort((a, b) => a.localeCompare(b, 'zh-CN'));
 
         if (characters.length === 0) { alert('没有可设置的角色。'); return; }
         const charListHtml = characters.map(name => `<label class="inline-label"><input type="checkbox" class="bulk-char-select" value="${name}"> ${name}</label>`).join('');
@@ -34262,9 +34865,12 @@ function saveSettings() {
                     cursor: pointer; user-select: none; transition: background-color 0.2s;
                 `;
                 categoryHeader.innerHTML = `
-                    <span style="font-weight: bold; color: #333; font-size: 15px;">
-                        ${escapeHtml(categoryName)} <span style="font-weight: normal; color: #888; font-size: 13px; margin-left: 5px;">(${items.length})</span>
-                    </span>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <span style="font-weight: bold; color: #333; font-size: 15px;">
+                            ${escapeHtml(categoryName)} <span style="font-weight: normal; color: #888; font-size: 13px; margin-left: 5px;">(${items.length})</span>
+                        </span>
+                        <button onclick="event.stopPropagation(); window.app.deleteRegexCategory('${categoryName.replace(/'/g, "\\'")}')" style="background: none; border: none; color: #ff3b30; font-size: 12px; cursor: pointer; padding: 4px; opacity: 0.6;">[删除分类]</button>
+                    </div>
                     <span class="wb-category-arrow" style="color: #bbb; transition: transform 0.3s;">▶</span>
                 `;
 
@@ -34353,6 +34959,15 @@ function saveSettings() {
                 appearanceSettings.regexReplacements.splice(index, 1);
                 saveSettings();
                 renderRegexList();
+            }
+        };
+        window.app.deleteRegexCategory = async (categoryName) => {
+            const confirmed = await conversationManager.customConfirm(`确定要删除分类 "${categoryName}" 下的所有正则规则吗？\n此操作不可撤销。`, '删除分类确认');
+            if (confirmed) {
+                appearanceSettings.regexReplacements = appearanceSettings.regexReplacements.filter(rule => (rule.category || '未分类') !== categoryName);
+                saveSettings();
+                renderRegexList();
+                alert(`分类 "${categoryName}" 已删除。`);
             }
         };
 
@@ -35181,9 +35796,12 @@ fileInput.style.display = 'none';
                     }
                 }
 
-                const config = charDynamics;
+                                const config = charDynamics;
                  if (!config.lastTick || (now - config.lastTick >= config.interval * 60 * 1000)) {
                     if (Math.random() * 100 < config.probability) {
+                        
+                        // =================================================================
+
                         
                         // =================================================================
                         // START: Proactive Action Rate Limiter (for NPCs)
@@ -35667,7 +36285,9 @@ async function handleBatchDelete() {
                 return;
             }
             
-            const characters = getAllUniqueCharacters();
+            // 【核心修改】获取角色列表后，立即进行排序
+            const characters = getAllUniqueCharacters().sort((a, b) => a.localeCompare(b, 'zh-CN'));
+            
             if(characters.length === 0){
                 alert('没有可关联的角色，请先创建角色或群聊。');
                 return;
@@ -37917,7 +38537,7 @@ async function handleRemoveMember() {
             }
         ];
 
-        loadChatList(); // 加载现有列表
+        await loadChatList(); // 【核心修改】增加 await
         
         let chatListChanged = false;
         PRESET_CHARS.forEach(preset => {
@@ -38074,7 +38694,11 @@ async function handleRemoveMember() {
         'video_',        // 视频通话背景
         'pending_',      // 小说分享等临时状态
         'catbox_userhash', // 新增：Catbox 图床密钥
-        'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+        'jjForumData',   // 兔区数据
+        'tuqu_',         // 兔区状态
+        'token_usage_',  // Token 消耗
+        'blacklist_reply_count_', // 拉黑回复计数
+        'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_', 'chat_identity_'
     ];
 
     function base64ToBlob(base64, contentType = '', sliceSize = 512) {
@@ -38141,7 +38765,8 @@ async function handleRemoveMember() {
             const EXPORT_PREFIXES = [ 
                 'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
                 'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
-                'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+                'tuqu_', 'token_usage_', 'blacklist_reply_count_',
+                'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_', 'chat_identity_' 
             ];
 
             for (let i = 0; i < localStorage.length; i++) {
@@ -38164,6 +38789,57 @@ async function handleRemoveMember() {
                     
                     // 无论 valueToProcess 是对象、数组还是字符串，都送去处理图片引用
                     allData[key] = await conversationManager.makeDataPortable(valueToProcess);
+                }
+            }
+
+            // 【核心修复：防丢失补丁】主动去数据库捞取可能不在 LocalStorage 里的“大户”数据
+            
+            // 1. 捞取音乐列表
+            if (!allData['app_music_playlist']) {
+                const musicDb = await imageStore.getItem('app_music_playlist');
+                if (musicDb) allData['app_music_playlist'] = await conversationManager.makeDataPortable(musicDb);
+            }
+
+            // 2. 捞取所有聊天记录 (通过遍历聊天列表来找 ID)
+            // 先尝试从 LocalStorage 获取列表，如果没有，去数据库捞
+            let chatListForExport = loadFromLocalStorage('app-chat-list', null);
+            if (!chatListForExport) {
+                chatListForExport = await imageStore.getItem('app-chat-list') || [];
+                // 如果是从数据库捞出来的，也要放入导出包
+                if (chatListForExport.length > 0) {
+                    allData['app-chat-list'] = await conversationManager.makeDataPortable(chatListForExport);
+                }
+            }
+
+            for (const chat of chatListForExport) {
+                const convKey = `conversation_${chat.id}`;
+                // 如果 LocalStorage 里没导出到（说明存数据库了），就去数据库捞
+                if (!allData[convKey]) {
+                    const convDb = await imageStore.getItem(convKey);
+                    if (convDb) allData[convKey] = await conversationManager.makeDataPortable(convDb);
+                }
+            }
+
+            // 【核心修复：防丢失补丁】捞取朋友圈和表情包
+            if (!allData['moments_feed_data']) {
+                const momentsDb = await imageStore.getItem('moments_feed_data');
+                if (momentsDb) allData['moments_feed_data'] = await conversationManager.makeDataPortable(momentsDb);
+            }
+            if (!allData['app-stickers']) {
+                const stickersDb = await imageStore.getItem('app-stickers');
+                if (stickersDb) allData['app-stickers'] = await conversationManager.makeDataPortable(stickersDb);
+            }
+
+            // 【核心新增】导出小说内容 (从 IndexedDB 读取)
+            const bookshelf = loadFromLocalStorage('app_novel_bookshelf', []);
+            for (const book of bookshelf) {
+                try {
+                    const bookContent = await imageStore.getItem(`novel_data_${book.id}`);
+                    if (bookContent) {
+                        allData[`novel_data_${book.id}`] = bookContent;
+                    }
+                } catch (e) {
+                    console.warn(`Failed to export novel content for ${book.title}`, e);
                 }
             }
         
@@ -38237,7 +38913,8 @@ async function handleRemoveMember() {
                     const CLEANUP_PREFIXES = [ 
                         'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
                         'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
-                        'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+                        'tuqu_', 'token_usage_', 'blacklist_reply_count_',
+                        'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_', 'chat_identity_' 
                     ];
 
                     const keysToRemove = [];
@@ -38249,26 +38926,56 @@ async function handleRemoveMember() {
                     }
                     keysToRemove.forEach(key => localStorage.removeItem(key));
 
-                    // 4. 写入新数据
+                    // 4. 写入新数据 (带错误捕获和智能分流)
+                    let failedKeys = [];
+                    
                     for (const key in importedRawData) {
                         if (Object.prototype.hasOwnProperty.call(importedRawData, key)) {
                             let value = importedRawData[key];
-                            let valueToStore;
+                            
+                            try {
+                                                                                               // 【核心新增】如果是小说、音乐、聊天记录、朋友圈、表情包、好友列表，强制存入 IndexedDB (大容量存储)
+                                // 这样可以绕过 iOS 的 5MB 限制，确保任何数据都不会丢
+                                if (key.startsWith('novel_data_') || 
+                                    key === 'app_music_playlist' || 
+                                    key.startsWith('conversation_') ||
+                                    key === 'moments_feed_data' ||  // 朋友圈
+                                    // key === 'app-stickers' ||    <-- 这一行已经被删除了
+                                    key === 'app-chat-list') {      // 好友/聊天列表
+                                    
+                                    await imageStore.setItem(key, value);
+                                    continue;
+                                }
 
-                            if ((key.startsWith('gh_') || key === 'catbox_userhash' || key === 'jjForumData') && typeof value === 'string') {
-                                valueToStore = value;
-                            } else {
-                                // 核心修改：如果是ZIP导入，数据已经是字符串了，不需要再stringify
-                                if (isZip && typeof value === 'string') {
+
+
+                                let valueToStore;
+                                if ((key.startsWith('gh_') || key === 'catbox_userhash' || key === 'jjForumData') && typeof value === 'string') {
                                     valueToStore = value;
                                 } else {
-                                    valueToStore = JSON.stringify(value);
+                                    if (isZip && typeof value === 'string') {
+                                        valueToStore = value;
+                                    } else {
+                                        valueToStore = JSON.stringify(value);
+                                    }
                                 }
+                                
+                                localStorage.setItem(key, valueToStore);
+                                
+                            } catch (e) {
+                                // 捕获 QuotaExceededError
+                                console.error(`Write failed for key: ${key}`, e);
+                                failedKeys.push(key);
                             }
-                            localStorage.setItem(key, valueToStore);
                         }
                     }
-                    await conversationManager.customAlert('数据导入成功！应用即将刷新以加载新数据。');
+                    
+                    if (failedKeys.length > 0) {
+                        await conversationManager.customAlert(`导入部分完成，但以下数据因 iOS 存储空间限制(5MB)而失败：\n\n${failedKeys.join(', ')}\n\n建议：删除一些不用的聊天或小说后再试。`);
+                    } else {
+                        await conversationManager.customAlert('数据导入成功！应用即将刷新以加载新数据。');
+                    }
+                    
                     location.reload();
                 } catch (error) {
                     console.error("Import failed:", error);
@@ -38277,6 +38984,7 @@ async function handleRemoveMember() {
             };
         });
     }
+
 
     async function resetEntireApp() {
         const confirmed1 = await conversationManager.customConfirm(
@@ -40466,7 +41174,16 @@ const nextBtn = page.querySelector('#vc-bottom-next-btn');
             if (currentNotes.length === 0) {
                  currentNotes.push({ content: ">> (没有备忘录) <<" });
             }
-            saveToLocalStorage(storageKey, currentNotes);
+            
+            // 【核心修改】防复活保存逻辑
+            try {
+                localStorage.setItem(storageKey, JSON.stringify(currentNotes));
+                imageStore.removeItem(storageKey); // 清理数据库
+            } catch(e) {
+                imageStore.setItem(storageKey, currentNotes);
+                localStorage.removeItem(storageKey); // 清理缓存
+            }
+
             currentIndex = Math.min(currentIndex, currentNotes.length - 1);
             currentLineIndex = 0;
         }
@@ -41487,9 +42204,48 @@ const cloudBackupManager = (function() {
                 if (APP_DATA_PREFIXES.some(prefix => key.startsWith(prefix))) {
                     const rawValue = localStorage.getItem(key);
                     allTextData[key] = rawValue;
-                    const matches = rawValue.match(/indexeddb:([a-zA-Z0-9_-]+)/g);
-                    if (matches) matches.forEach(m => blobKeys.add(m.split(':')[1]));
+                    // 提取图片引用
+                    if (rawValue) {
+                        const matches = rawValue.match(/indexeddb:([a-zA-Z0-9_-]+)/g);
+                        if (matches) matches.forEach(m => blobKeys.add(m.split(':')[1]));
+                    }
                 }
+            }
+
+            // 【核心修复：防丢失补丁】GitHub 备份也要去数据库捞大文件
+            
+            // 1. 捞取音乐
+            if (!allTextData['app_music_playlist']) {
+                const musicDb = await imageStore.getItem('app_music_playlist');
+                if (musicDb) allTextData['app_music_playlist'] = JSON.stringify(musicDb);
+            }
+
+            // 2. 捞取聊天记录
+            let chatListForBackup = JSON.parse(localStorage.getItem('app-chat-list') || 'null');
+            if (!chatListForBackup) {
+                chatListForBackup = await imageStore.getItem('app-chat-list') || [];
+                if (chatListForBackup.length > 0) {
+                    allTextData['app-chat-list'] = JSON.stringify(chatListForBackup);
+                }
+            }
+
+            for (const chat of chatListForBackup) {
+                const convKey = `conversation_${chat.id}`;
+                if (!allTextData[convKey]) {
+                    const convDb = await imageStore.getItem(convKey);
+                    // 注意：从数据库读出来的是对象，要转成字符串才能上传到 GitHub 的 data.json
+                    if (convDb) allTextData[convKey] = JSON.stringify(convDb);
+                }
+            }
+
+            // 【核心修复】捞取朋友圈和表情包
+            if (!allTextData['moments_feed_data']) {
+                const momentsDb = await imageStore.getItem('moments_feed_data');
+                if (momentsDb) allTextData['moments_feed_data'] = JSON.stringify(momentsDb);
+            }
+            if (!allTextData['app-stickers']) {
+                const stickersDb = await imageStore.getItem('app-stickers');
+                if (stickersDb) allTextData['app-stickers'] = JSON.stringify(stickersDb);
             }
 
             // 2. 获取 GitHub 上已有的文件列表（用于获取 SHA）
@@ -41793,11 +42549,13 @@ async function performRestore() {
                          // 只处理属于黑麦手机的数据前缀
                          const APP_DATA_PREFIXES = [ 
                             'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
-                            'gh_', 'auto_', 'video_', 'pending_',
-                            'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+                            'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
+                            'tuqu_', 'token_usage_', 'blacklist_reply_count_',
+                            'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_', 'chat_identity_' 
                          ];
 
                          if (APP_DATA_PREFIXES.some(prefix => key.startsWith(prefix))) {
+
                              const rawValue = localStorage.getItem(key);
                              if (rawValue && rawValue.includes(oldDomain)) {
                                  // 执行全局替换
