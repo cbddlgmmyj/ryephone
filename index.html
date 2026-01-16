@@ -7477,6 +7477,8 @@ body.preview-fullscreen-active #page-conversation .chat-content {
                             </div>
                         </div>
                         <button id="worldbook-add-btn" class="btn-primary">添加条目</button>
+                        <!-- 【核心新增】导入酒馆世界书按钮 -->
+                        <button id="import-st-lorebook-btn" class="btn-primary" style="margin-top: 10px; background-color: #6f42c1;">导入酒馆世界书 (.json)</button>
                         <input type="hidden" id="worldbook-edit-index">
                     </div>
                 </div>
@@ -13860,7 +13862,12 @@ You are **STRICTLY FORBIDDEN** from using any name that is NOT in the lists abov
             const tuquInstruction = `
 # [ULTIMATE DIRECTIVE: TUQU FORUM ECOSYSTEM SIMULATION - PRO MAX]
 
+**[ABSOLUTE BAN: FORBIDDEN OPENINGS]**
+You are **STRICTLY FORBIDDEN** from starting with: "楼主手在抖", "全是错别字", "凑合看", "家人们谁懂啊", "我破防了". 
+**RULE:** Start with the content immediately.
+
 **【【【 ABSOLUTE ANONYMITY LAW (HIGHEST PRIORITY) 】】】**
+
 This is an **ANONYMOUS** forum. Real names are **FORBIDDEN**.
 
 1.  **AUTHOR NAME (The name displayed next to the post):**
@@ -13887,15 +13894,24 @@ If you post in **"同人衍生"**, do NOT just write "Chat Logs" or "Found Phone
 ---
 You are now an active participant in "Tuqu", a chaotic, diverse, and deeply creative anonymous forum.
 
-**[NAMING & LOCATION STRATEGY - GLOBAL & DIALECT]**
-1.  **Location Diversity:**
-    *   **Domestic:** Use Chinese provinces/cities (e.g., "山东", "上海", "驻马店").
-    *   **International:** You are encouraged to use **random countries** to simulate overseas users (e.g., "美国", "英国", "澳大利亚", "IP属地: 火星").
-2.  **Dialect Protocol (Flavor Text):**
-    *   You are encouraged to occasionally use **Chinese Dialects** (e.g., Shanghai, Henan, Cantonese, Northeast) to add flavor.
-        *   **MANDATORY TRANSLATION:** If you use a strong dialect phrase, you **MUST** include a translation in parentheses immediately after.
-    *   *Example:* "册那 (TMD), 这一天天额 (每一个天都是这样)."
-    *   *Example:* "中不中 (行不行)? 弄啥嘞 (你在做什么)?"
+**[1. DYNAMIC LOCATION/IP PROTOCOL (CRITICAL)]**
+You MUST generate a \`location\` based on the **Story Setting/Worldview**.
+*   **IF ANCIENT (古代/宫廷/武侠):** Use "Imperial Capital (京城)", "Jiangnan (江南)", "Border (边关)", "Mount Hua (华山)", "Nameless Valley (无名谷)". **NEVER use modern provinces like "Henan" or "Hubei".**
+*   **IF WESTERN FANTASY/MAGIC (西幻/魔法):** Use "Magic Tower (法师塔)", "Royal Capital (王都)", "Elf Forest (精灵之森)", "Abyss (深渊)".
+*   **IF SCI-FI/CYBERPUNK:** Use "Sector 7", "Mars Colony", "Night City", "Underground".
+*   **IF MODERN (Real World):** Use real cities/countries (London, Tokyo, Shanghai, New York).
+
+**[2. CREATIVE NAMING PROTOCOL (NO BORING NAMES)]**
+*   **FORBIDDEN:** "LZ", "Passerby A", "Author".
+*   **REQUIRED:** Creative IDs that fit the vibe.
+    *   *Angst:* "Tears for Breakfast", "Waiting for He", "Broken Sword".
+    *   *Sweet:* "Sugar Addict", "CP is Real", "Wedding Witness".
+    *   *Funny:* "Pants Flying Away", "Eating Melons", "Bald Author".
+
+**[3. USER ERASURE & PERSPECTIVE LAW]**
+*   **"I" is NOT {{user}}:** When writing "Dream/Yume" (梦女) content, "I" (我) refers to the **Fictional Protagonist** inside the story.
+*   **ABSOLUTE BAN:** You are **STRICTLY FORBIDDEN** from mentioning, tagging, or interacting with the actual App User (\`{{user}}\`). The user does not exist in this fictional thread.
+*   **NO "YOU":** Do not address the reader as "You". Address them as "Everyone" (大家) or "Sisters" (姐妹们).
 
 
 
@@ -13930,7 +13946,7 @@ When you decide to **COMMENT** on an existing thread, you MUST check the **Autho
 
 **IF YOU CHOOSE BOARD "同人衍生" (Fan Fiction):**
 *   **ABSOLUTE CREATION LAW:** You **MUST** write actual creative content (Fiction, Snippet, AU Outline, Script).
-*   **FORBIDDEN:** You are **STRICTLY FORBIDDEN** from posting pure discussions, questions, or "water" posts here.
+*   **FORBIDDEN:** You are **STRICTLY FORBIDDEN** from posting pure discussions, questions, or "water" posts here. No "Is this OOC?", no "Looking for fic". **ONLY FICTION.**
 *   **DIVERSITY MANDATE (ANTI-REPETITION):** 
     *   **STOP defaulting to "Found Phone/Chat Log" (捡手机/聊天体).** This trope is overused.
     *   **PRIORITIZE ALTERNATE UNIVERSES (AU):** You are strongly encouraged to write stories set in different worlds.
@@ -14121,16 +14137,25 @@ Constraint: Output ONLY the [tuqu_complex_action] command. No chat text.`
 
 **[ABSOLUTE BAN: FORBIDDEN OPENINGS]**
 STRICTLY FORBIDDEN: "楼主手在抖", "全是错别字", "凑合看", "家人们谁懂啊". Start with the substance immediately.
+
+
 You are a random internet user on "Tuqu". You have NO persona connection to the user. You are just a netizen.
 
 **【【【 ABSOLUTE ANONYMITY LAW 】】】**
 1. **NEVER use real names.** You are "Anonymous", "LZ", or a creative pseudonym.
 2. **NEVER refer to the user by name.** They are just another netizen.
 3. **NO META-COMMENTARY:** You are **STRICTLY FORBIDDEN** from commenting on the HTML, CSS, or visual design of the posts. Do not say "The paper note looks great" or "Nice snippet". Act as if you are in a real world. Talk only about the content.
-**[GLOBAL IP & DIALECT STRATEGY]**
-1.  **Location:** Mix it up! Use "广东", "四川", but also "Japan", "Canada", "France".
-2.  Dialect: Occasionally use dialects (Shanghai, Cantonese, Henan). **MUST** provide a translation in parentheses for strong dialect phrases.
-    *   *Ex:* "顶你个肺 (我顶你的肺)!"
+**[1. DYNAMIC LOCATION/IP PROTOCOL (CRITICAL)]**
+You MUST generate a \`location\` based on the **Story Setting/Worldview**.
+*   **IF ANCIENT (古代/宫廷/武侠):** Use "Imperial Capital (京城)", "Jiangnan (江南)", "Border (边关)", "Mount Hua (华山)". **NEVER use modern provinces.**
+*   **IF MODERN (Real World):** Use real cities/countries (London, Tokyo, Shanghai, New York).
+
+**[2. CREATIVE NAMING PROTOCOL]**
+*   **FORBIDDEN:** "LZ", "Passerby A".
+*   **REQUIRED:** Creative IDs (e.g., "Philosopher of Sleep", "Just Passing By", "Eating Melons").
+
+**[3. USER ERASURE]**
+*   **ABSOLUTE BAN:** You are **STRICTLY FORBIDDEN** from mentioning or interacting with \`{{user}}\`. You do not know them.
 
 
 **[CORE MENTALITY - THE SOUL OF THE FORUM]**
@@ -14158,7 +14183,7 @@ You are part of a diverse internet ecosystem. **DO NOT be repetitive.**
 
 **IF YOU CHOOSE BOARD "同人衍生" (Fan Fiction):**
 *   **ABSOLUTE CREATION LAW:** You **MUST** write actual creative content.
-*   **FORBIDDEN:** Do NOT post discussions or questions. If you want to discuss, choose a different board like "闲聊水区".
+*   **FORBIDDEN:** Do NOT post discussions, questions, or "water" posts. If you want to discuss, choose a different board like "闲聊水区".
 *   **DIVERSITY MANDATE (ANTI-REPETITION):** 
     *   **STOP defaulting to "Found Phone/Chat Log" (捡手机/聊天体).** This trope is overused.
     *   **PRIORITIZE ALTERNATE UNIVERSES (AU):** You are strongly encouraged to write stories set in different worlds (Fantasy, Sci-Fi, Historical, Supernatural).
@@ -14356,6 +14381,18 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
             const themedInstruction = `
 # [ULTIMATE DIRECTIVE: THE SERIALIZED STORYTELLER - CONTINUOUS NARRATIVE MODE]
 
+**[ABSOLUTE BAN: FORBIDDEN OPENINGS]**
+STRICTLY FORBIDDEN: "楼主手在抖", "全是错别字", "凑合看", "家人们谁懂啊". 
+
+---
+## **[ROUTE 1: IF BOARD NAME IS "同人衍生" (FAN FICTION)]**
+
+**[ABSOLUTE CREATION LAW: THE NOVELIST'S OATH]**
+1.  **CONTENT IS THE STORY:** The \`content\` field MUST be the **Actual Narrative Text** of your story. 
+2.  **NO FORUM TALK INSIDE:** You are **STRICTLY FORBIDDEN** from adding LZ's talk or forum-style chat *inside* the \`content\` field. 
+3.  **FORBIDDEN TROPES:** Do NOT use "Found Phone" (捡手机) or "Chat Logs" (聊天体). Write a proper, descriptive story.
+4.  **REACTIONS BELONG TO WATER ARMY:** LZ's excitement or reader's discussion MUST go into the \`water_army\` field.
+
 **[ABSOLUTE BAN: FORBIDDEN OPENINGS - CRITICAL]**
 You are **STRICTLY FORBIDDEN** from starting your post with any of the following "Forum Cliches":
 1.  **NO "SHAKING HANDS":** Do not say "楼主手在抖" (OP's hands are shaking).
@@ -14377,9 +14414,20 @@ You are no longer just an author; you are a **SERIALIZED STORYTELLER** on a foru
     - ✅ **RIGHT:** "[Directly start the story narrative...]"
 3.  **FORBIDDEN TROPES:** Do NOT use "Found Phone" (捡手机) or "Chat Logs" (聊天体). Write a proper, descriptive story.
 4.  **REACTIONS BELONG TO WATER ARMY:** Any discussion, excitement, or meta-commentary about the story MUST be placed in the \`water_army\` field as comments from readers.
-**[GLOBAL IP & DIALECT STRATEGY]**
-1.  **Location:** Use a mix of Chinese provinces and International locations (US, UK, Korea, etc.).
-2.  Dialect: Use dialects for flavor, but **ALWAYS** append a translation in parentheses for clarity.
+5.  **NO DISCUSSION THREADS:** You are **FORBIDDEN** from creating threads that are just "Let's discuss CP" or "Looking for recs". You MUST create **FICTION**.
+**[1. DYNAMIC LOCATION/IP PROTOCOL (CRITICAL)]**
+You MUST generate a \`location\` based on the **Story Setting/Worldview**.
+*   **IF ANCIENT (古代/宫廷/武侠):** Use "Imperial Capital (京城)", "Jiangnan (江南)", "Border (边关)", "Mount Hua (华山)". **NEVER use modern provinces.**
+*   **IF WESTERN FANTASY:** Use "Royal Capital", "Magic Tower".
+*   **IF MODERN:** Use real cities/countries.
+
+**[2. CREATIVE NAMING PROTOCOL]**
+*   **FORBIDDEN:** "LZ", "Passerby A".
+*   **REQUIRED:** Creative IDs that fit the theme (e.g., "Sword Saint", "Alchemy Apprentice", "Office Ghost").
+
+**[3. USER ERASURE & PERSPECTIVE LAW]**
+*   **"I" is NOT {{user}}:** In "Dream/Yume" (梦女) stories, "I" (我) is the fictional protagonist.
+*   **ABSOLUTE BAN:** You are **STRICTLY FORBIDDEN** from mentioning \`{{user}}\` or making them a character in the story unless explicitly told to.
 
 
 **[NEW IDENTITY: THE "CLIFFHANGER MASTER" (卡文太太)]**
@@ -14617,58 +14665,104 @@ ${chatHistoryForTuqu || 'No recent history.'}
                 }
             });
 
-            // 3. 构建指令 (终极拟真版：引入随机性与混乱)
+            // 3. 构建指令 (终极拟真版：同人区强制生产力模式 + 智能IP/ID修正)
             const specificInstruction = `
-# [ULTIMATE DIRECTIVE: SPECIFIC THREAD UPDATE - THE CHAOS ENGINE]
-The user has clicked "Update/催更". They want to see **NEW ACTIVITY** in this thread.
+# [ULTIMATE DIRECTIVE: SPECIFIC THREAD UPDATE - THE CREATOR'S ENGINE]
 
-**CRITICAL SHIFT: REALISM OVER CONTINUATION**
-In a real forum, a "bump" does NOT always guarantee a story update. Real life happens. Drama happens. Writer's block happens.
-**You are NOT a content vending machine.** You are simulating a living, breathing, chaotic community.
+**[ABSOLUTE BAN: FORBIDDEN OPENINGS]**
+STRICTLY FORBIDDEN: "楼主手在抖", "全是错别字", "凑合看", "家人们谁懂啊". 
 
-**[YOUR MANDATORY CHOICE: ROLL THE DICE]**
-You MUST choose **ONE** of the following scenarios based on the thread type and current "vibe". Do not always choose Scenario A. Mix it up!
+The user has clicked "Update/催更". They want **CONTENT**.
+
+**[1. DYNAMIC LOCATION/IP PROTOCOL (CRITICAL)]**
+You MUST generate a \`location\` based on the **Story Setting/Worldview**.
+*   **IF ANCIENT:** Use "Imperial Capital (京城)", "Jiangnan (江南)", "Border (边关)". **NEVER use modern provinces.**
+*   **IF MODERN:** Use real cities/countries.
+
+**[2. CREATIVE NAMING PROTOCOL]**
+*   **FORBIDDEN:** "LZ", "Passerby A".
+*   **REQUIRED:** Creative IDs (e.g., "Waiting for Update", "Crying in the Rain").
+
+**[3. USER ERASURE]**
+*   **"I" is NOT {{user}}:** The "I" in the story is a fictional character.
+*   **ABSOLUTE BAN:** Do NOT mention \`{{user}}\`.
+
+**[MANDATORY BRANCHING LOGIC]**
+Check the \`[TARGET THREAD CONTEXT]\` above. What is the **Board Name**?
 
 ---
+## **【BRANCH 1: IF BOARD IS "同人衍生" (FAN FICTION)】**
+
+**[1. DYNAMIC LOCATION/IP PROTOCOL (CRITICAL)]**
+You MUST generate a \`location\` based on the **Story Setting/Worldview**.
+*   **IF ANCIENT (古代/宫廷/武侠):** Use "Imperial Capital (京城)", "Jiangnan (江南)", "Border (边关)", "Mount Hua (华山)", "Nameless Valley (无名谷)". **NEVER use modern provinces like "Henan" or "Hubei".**
+*   **IF WESTERN FANTASY/MAGIC (西幻/魔法):** Use "Magic Tower (法师塔)", "Royal Capital (王都)", "Elf Forest (精灵之森)", "Abyss (深渊)".
+*   **IF SCI-FI/CYBERPUNK:** Use "Sector 7", "Mars Colony", "Night City", "Underground".
+*   **IF MODERN (Real World):** Use real cities/countries (London, Tokyo, Shanghai, New York).
+
+**[2. CREATIVE NAMING PROTOCOL (NO BORING NAMES)]**
+*   **FORBIDDEN:** "LZ", "Passerby A", "Author".
+*   **REQUIRED:** Creative IDs that fit the vibe.
+    *   *Angst:* "Tears for Breakfast", "Waiting for He", "Broken Sword".
+    *   *Sweet:* "Sugar Addict", "CP is Real", "Wedding Witness".
+    *   *Funny:* "Pants Flying Away", "Eating Melons", "Bald Author".
+
+**[3. USER ERASURE & PERSPECTIVE LAW]**
+*   **"I" is NOT {{user}}:** When writing "Dream/Yume" (梦女) content, "I" (我) refers to the **Fictional Protagonist** inside the story.
+*   **ABSOLUTE BAN:** You are **STRICTLY FORBIDDEN** from mentioning, tagging, or interacting with the actual App User (\`{{user}}\`). The user does not exist in this fictional thread.
+*   **NO "YOU":** Do not address the reader as "You". Address them as "Everyone" (大家) or "Sisters" (姐妹们).
+
+---
+**[CHOOSE ONE CREATIVE SCENARIO]**
+
 ### **SCENARIO A: THE "GOLDEN DROP" (Probability: 40%)**
-*   **Condition:** The author is inspired and productive.
-*   **Action:** 
-    *   **IF YOU ARE THE AUTHOR (LZ):** Post the **NEXT CHAPTER/PART**. Make it substantial (800+ chars). End on a cliffhanger.
-    *   **IF YOU ARE A READER:** Write a long, high-quality analysis or a "screaming" reaction to the previous part that reignites the hype.
+*   **Action:** Post the **NEXT FULL CHAPTER**.
+*   **Content:** Substantial narrative (800+ chars). Advance the plot.
+*   **ID Style:** A poetic or humble author name (e.g., "Late Night Coder").
+*   **Water Army:** Readers screaming, crying, praising the plot.
 
-### **SCENARIO B: THE "EXCUSE & DELAY" (Probability: 20%)**
-*   **Condition:** Real life hit the author hard.
-*   **Action:**
-    *   **IF YOU ARE THE AUTHOR (LZ):** Post a short "Leave of Absence" (请假条).
-        *   *Examples:* "Sorry guys, my cat stepped on my keyboard and deleted the draft.", "Work is killing me, update tomorrow!", "Stuck on a plot hole, need ideas."
-    *   **IF YOU ARE A READER:** Complain about the cliffhanger. "It's been 84 years...", "LZ don't drop this!", "Sending blades (寄刀片)."
+### **SCENARIO B: THE "SMALL THEATER / SNIPPET" (小剧场/段子) (Probability: 30%)**
+*   **Context:** You haven't finished the main chapter, but you want to feed the hungry readers.
+*   **Action:** Write a short, fun, or intense **"If/AU Snippet"** or **"Behind the Scenes"**.
+*   **ID Style:** A playful name (e.g., "Fishing for Comments", "Head Empty").
+*   **Water Army:** "So cute!", "Canon!", "This healed me."
 
-### **SCENARIO C: THE "DRAMA & CONFLICT" (Probability: 20%)**
-*   **Condition:** The plot went a direction some people hate, or a troll appeared.
-*   **Action:**
-    *   **Role:** Act as a **Disappointed Reader** or **Anti-Fan**.
-    *   **Content:** "避雷 (Avoid this)!", "OOC is too much.", "Why did A do that? It makes no sense.", "I'm dropping this."
-    *   **Water Army Response:** Generate a wave of arguments. Some defending the author, some attacking. Create a "flame war" (骂战).
+### **SCENARIO C: THE "LORE DROP" (设定/大纲) (Probability: 15%)**
+*   **Context:** Expanding the world or clarifying character motivations.
+*   **Action:** Post a detailed **Character Profile**, **World Setting**, or a **Discarded Plot Outline**.
+*   **ID Style:** Analytical name (e.g., "Setting Addict", "Lore Keeper").
+*   **Water Army:** Analyzing the lore, shocked by the discarded plot.
 
-### **SCENARIO D: THE "SPECULATION & HYPE" (Probability: 20%)**
-*   **Condition:** No update yet, but the audience is bored.
-*   **Action:**
-    *   **Role:** Act as a **Theory Crafter**.
-    *   **Content:** "Guys, I think B is actually the villain.", "What if the ring is fake?", "Betting 50 cents they kiss in the next chapter."
-    *   **Water Army Response:** People debating the theory.
+### **SCENARIO D: THE "INTERACTIVE CHOICE" (安价/互动) (Probability: 15%)**
+*   **Context:** You are stuck (卡文) and need reader input to proceed.
+*   **Action:** Ask a specific plot question. "Should A kiss B now, or wait until the war starts? Type 1 or 2."
+*   **ID Style:** Distressed name (e.g., "Stuck in Pit", "Need Brains").
+*   **Water Army:** Voting "1111", "2222", giving creative reasons.
 
 ---
-**[COMMON RULES FOR ALL SCENARIOS]**
+## **【BRANCH 2: IF BOARD IS *NOT* "同人衍生" (GOSSIP/LIFE/ETC)】**
+**MANDATE:** Simulate a chaotic internet forum.
 
-**1. AUTHOR NAME:** Use "LZ" (楼主) or the Original Author's pseudonym. **NEVER** use your real character name ("${senderName}") as the author.
-**2. CONTENT ANONYMITY:** Keep the story/gossip anonymous.
-**3. NO META-TALK:** **ABSOLUTE BAN** on mentioning HTML, snippets, or visual effects.
+### **SCENARIO A: THE "UPDATE" (Probability: 40%)**
+*   **Action:** Update the gossip/event with new evidence.
+*   **ID:** "LZ" or "Insider".
+*   **Location:** Real world city.
 
-**[WATER ARMY TASK - MATCH THE VIBE]**
-*   **If Scenario A (Update):** 10-20 comments of "AHHHH!", "Kneeling!", "More!".
-*   **If Scenario B (Excuse):** 5-10 comments of "Take care", "Waiting", "Noooo!".
-*   **If Scenario C (Drama):** 15-30 comments of arguing, fighting, "You don't understand", "Don't read if you don't like it".
-*   **If Scenario D (Speculation):** 5-10 comments of discussion.
+### **SCENARIO B: THE "CONFLICT" (Probability: 30%)**
+*   **Action:** A fight breaks out.
+*   **ID:** "Passerby" vs "Fan".
+*   **Location:** Real world city.
+
+### **SCENARIO C: THE "SPECULATION" (Probability: 30%)**
+*   **Action:** Users guessing the truth.
+*   **ID:** "Detective", "Analyst".
+*   **Location:** Real world city.
+
+---
+**[COMMON RULES]**
+
+**1. CONTENT ANONYMITY:** Keep the story/gossip anonymous.
+**2. NO META-TALK:** **ABSOLUTE BAN** on mentioning HTML, snippets, or visual effects.
 
 **[ROLEPLAY SETTING]**
 ${senderName !== 'Anonymous_System' ? `Character: "${senderName}"\nUser Persona: ${finalUserPersonaText}\nYour Persona: ${finalCharPersonaText}\n${associatedNpcsPrompt}` : `Role: Anonymous Internet User / Original Author`}
@@ -14678,7 +14772,7 @@ Setting: ${extraOptions.worldview || "Standard reality"}
 **[STRICT JSON FORMAT REQUIRED]**
 You MUST output using this EXACT JSON structure.
 
-\`[tuqu_complex_action: {"type":"comment", "postId":"${targetPost.id}", "content":"[YOUR CHOSEN SCENARIO CONTENT HERE]", "author":"[Pseudonym based on Role]", "location":"City", "water_army": [{"author":"ReplyName1", "location":"City1", "content":"Reply1"}, {"author":"ReplyName2", "location":"City2", "content":"Reply2"}]}]\`
+\`[tuqu_complex_action: {"type":"comment", "postId":"${targetPost.id}", "content":"[YOUR CHOSEN SCENARIO CONTENT HERE]", "author":"[Creative ID based on Protocol]", "location":"[Dynamic Location based on Protocol]", "water_army": [{"author":"[Creative ID]", "location":"[Dynamic Location]", "content":"Reply1"}, {"author":"[Creative ID]", "location":"[Dynamic Location]", "content":"Reply2"}]}]\`
 
 ${TUQU_MEDIA_PROTOCOL}
 
@@ -14693,6 +14787,7 @@ ${TUQU_MEDIA_PROTOCOL}
 **[COMMAND]**
 Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 `;
+
 
 
             
@@ -16019,6 +16114,80 @@ conversationManager.showNotificationBanner('TUQU', {
             }
         });
     }
+    // 【核心新增：单独导入酒馆世界书逻辑】
+    async function importSillyTavernLorebook() {
+        // 1. 权限检查：只有解锁了酒馆功能的才能使用
+        const isUnlocked = localStorage.getItem('app_st_feature_unlocked') === 'true';
+        if (!isUnlocked) {
+            await conversationManager.customAlert('该功能尚未解锁。请前往“API 设置”完成开发者认证。', '功能受限');
+            return;
+        }
+
+        // 2. 触发文件选择
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.json,application/json';
+        fileInput.onchange = async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            try {
+                const text = await file.text();
+                const lbData = JSON.parse(text);
+                
+                // 酒馆世界书格式通常在 entries 字段下，可能是数组也可能是对象
+                const entriesRaw = lbData.entries || lbData;
+                const entries = Array.isArray(entriesRaw) ? entriesRaw : Object.values(entriesRaw);
+                
+                if (!entries || entries.length === 0) {
+                    throw new Error("未在 JSON 中检测到有效的世界书条目。");
+                }
+
+                // 获取分类名（优先使用文件名，或 JSON 里的名称）
+                const categoryName = lbData.name || file.name.replace(/\.[^/.]+$/, "");
+                let importedCount = 0;
+
+                entries.forEach(entry => {
+                    if (entry.content && entry.content.trim()) {
+                        const hasKeys = entry.keys && Array.isArray(entry.keys) && entry.keys.length > 0;
+                        // 提取标题：优先用注释，其次用名称，最后用第一个关键词
+                        const entryTitle = entry.comment || entry.name || (hasKeys ? entry.keys[0] : `Entry_${Date.now()}`);
+                        
+                        // 【核心规则】：强制加上 (VC-IGNORE) 标记
+                        const wbName = `${entryTitle}(VC-IGNORE)`;
+
+                        // 查重：如果已经存在同名条目则跳过
+                        if (!worldBookEntries.some(wb => wb.name === wbName)) {
+                            worldBookEntries.push({
+                                name: wbName,
+                                category: categoryName,
+                                keywords: hasKeys ? entry.keys.join(', ') : '',
+                                content: entry.content,
+                                enabled: entry.enabled !== false, // 尊重原始开关状态
+                                triggerMode: hasKeys ? 'keyword' : 'always',
+                                useInMoments: false,
+                                useInTuqu: false
+                            });
+                            importedCount++;
+                        }
+                    }
+                });
+
+                if (importedCount > 0) {
+                    saveWorldBook();
+                    renderWorldBook();
+                    alert(`成功导入 ${importedCount} 条世界书条目！\n分类：${categoryName}`);
+                } else {
+                    alert("导入完成，但未发现新条目（可能已全部存在）。");
+                }
+
+            } catch (err) {
+                console.error(err);
+                alert("导入失败：请确保上传的是标准的 SillyTavern Lorebook JSON 文件。");
+            }
+        };
+        fileInput.click();
+    }
 
     async function extractDataFromPng(file) {
         const buffer = await file.arrayBuffer();
@@ -17227,7 +17396,8 @@ info.myPersona = document.getElementById('my-persona').value.trim();
         delete info.groupPersonas; 
     }
 
-    const mountedWbCheckboxes = document.querySelectorAll('#mounted-worldbook-list input[type="checkbox"]:checked');
+    // 核心修复：只抓取 class 为 wb-individual-checkbox 的勾选框，避免存入分类名
+    const mountedWbCheckboxes = document.querySelectorAll('#mounted-worldbook-list .wb-individual-checkbox:checked');
     const mountedWbNames = Array.from(mountedWbCheckboxes).map(cb => cb.value);
     saveToLocalStorage(`chat_mounted_wb_${currentChatId}`, mountedWbNames);
 
@@ -27697,7 +27867,41 @@ elements.userPersonaSelect.innerHTML = '<option value="无">无</option>';
 
             const wbListContainer = document.getElementById('mounted-worldbook-list');
             const mountedWbNames = loadFromLocalStorage(`chat_mounted_wb_${chatState.chatId}`, []);
-            wbListContainer.innerHTML = worldBookEntries.length > 0 ? worldBookEntries.map(wb => `<label class="inline-label"><input type="checkbox" value="${wb.name}" ${mountedWbNames.includes(wb.name) ? 'checked' : ''}> ${wb.name}</label>`).join('') : '<p style="text-align:center;color:#888;">没有可用的世界书</p>';
+            
+            if (worldBookEntries.length === 0) {
+                wbListContainer.innerHTML = '<p style="text-align:center;color:#888;">没有可用的世界书</p>';
+            } else {
+                // 1. 按分类分组
+                const groups = {};
+                worldBookEntries.forEach(wb => {
+                    const cat = wb.category || '未分类';
+                    if (!groups[cat]) groups[cat] = [];
+                    groups[cat].push(wb);
+                });
+
+                // 2. 渲染分组列表
+                wbListContainer.innerHTML = Object.keys(groups).sort().map(catName => {
+                    const items = groups[catName];
+                    // 检查该分类下是否所有项都被选中
+                    const isAllChecked = items.every(item => mountedWbNames.includes(item.name));
+                    
+                    const itemsHtml = items.map(wb => `
+                        <label class="inline-label" style="margin-left: 20px; font-weight: normal;">
+                            <input type="checkbox" class="wb-individual-checkbox" data-category="${catName}" value="${wb.name}" ${mountedWbNames.includes(wb.name) ? 'checked' : ''}> ${wb.name}
+                        </label>
+                    `).join('');
+
+                    return `
+                        <div class="wb-mount-category-group" style="margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px;">
+                            <label class="inline-label">
+                                <input type="checkbox" class="wb-category-select-all" data-target-category="${catName}" ${isAllChecked ? 'checked' : ''}> 
+                                <b style="color: var(--primary-color);">${catName}</b>
+                            </label>
+                            <div class="wb-category-items">${itemsHtml}</div>
+                        </div>
+                    `;
+                }).join('');
+            }
 
             // START: 新增正则挂载列表渲染
             const regexListContainer = document.getElementById('mounted-regex-list');
@@ -27906,24 +28110,35 @@ elements.userPersonaSelect.innerHTML = '<option value="无">无</option>';
                 disbandBtn.textContent = (relationship.groupStatus === 'disbanded') ? '恢复群聊' : '解散群聊';
                 disbandBtn.classList.toggle('danger', relationship.groupStatus !== 'disbanded');
             }
-            // --- 新增：为回溯历史按钮绑定事件 ---
-            const viewBranchesBtn = document.getElementById('view-history-branches-btn');
-            // 先移除旧的监听器，防止重复绑定
-            const newBtn = viewBranchesBtn.cloneNode(true);
-            viewBranchesBtn.parentNode.replaceChild(newBtn, viewBranchesBtn);
-            // 在新的克隆按钮上添加事件
-            newBtn.addEventListener('click', () => {
-                showBranchHistoryModal(chatState.chatId);
-            });
 
-            // 【核心新增】回填自动总结间隔
-            const autoSummaryInput = document.getElementById('auto-summary-interval');
-            if (autoSummaryInput) {
-                autoSummaryInput.value = info.autoSummaryInterval || '';
-            }
+            // 【核心新增：处理世界书分类全选联动】
+            // 将事件绑定在容器上，利用事件冒泡处理点击
+            wbListContainer.onclick = (e) => {
+                const catCheckbox = e.target.closest('.wb-category-select-all');
+                if (catCheckbox) {
+                    const catName = catCheckbox.dataset.targetCategory;
+                    const isChecked = catCheckbox.checked;
+                    // 找到该分类下所有的个体勾选框
+                    const children = wbListContainer.querySelectorAll(`.wb-individual-checkbox[data-category="${catName}"]`);
+                    children.forEach(cb => cb.checked = isChecked);
+                    return;
+                }
+
+                // 如果点击的是个体勾选框，反向检查分类全选框的状态
+                const indCheckbox = e.target.closest('.wb-individual-checkbox');
+                if (indCheckbox) {
+                    const catName = indCheckbox.dataset.category;
+                    const parentAll = wbListContainer.querySelector(`.wb-category-select-all[data-target-category="${catName}"]`);
+                    if (parentAll) {
+                        const allSiblings = Array.from(wbListContainer.querySelectorAll(`.wb-individual-checkbox[data-category="${catName}"]`));
+                        parentAll.checked = allSiblings.every(cb => cb.checked);
+                    }
+                }
+            };
 
             navigateTo('chat-info');
         }
+
 
 function enterMultiSelectMode(initialMessageId) { 
     isMultiSelectMode = true; 
@@ -33453,7 +33668,16 @@ checkMomentsUpdates(); // <--- 新增这一行
             }
         }
 
+        // 在 dynamicsManager 顶部变量声明区增加一个锁
+        let isTicking = false; 
+
         async function tick() {
+            if (isTicking) {
+                console.log(`[Dynamics Tick] Previous cycle still running, skipping...`);
+                return;
+            }
+            isTicking = true;
+
             console.log(`%c[Dynamics Tick]`, 'color: blue; font-weight: bold;', `New check cycle started...`);
             const now = Date.now();
             let settingsChanged = false;
@@ -33472,9 +33696,22 @@ checkMomentsUpdates(); // <--- 新增这一行
         
                     if (!config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000)) {
                         if (Math.random() * 100 < config.probability) {
-                            // 核心修复：进入概率后第一时间锁死时间戳，不再使用旧的 now 变量
-                            config.lastTick = Date.now();
-                            saveSettings(); 
+                            // --- 速率限制检查 ---
+                            const ONE_MINUTE = 60 * 1000;
+                            const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                            const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                            proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
+                            
+                            if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                                console.log(`%c[Rate Limiter]`, 'color: orange;', `Group "${group.name}" action blocked by rate limit (${RATE_LIMIT}/min).`);
+                                continue; // 被拦截，直接跳过，不更新时间戳，下次还能试
+                            } else {
+                                // 通过拦截，才更新时间戳并保存
+                                config.lastTick = Date.now();
+                                saveSettings();
+                                proactiveApiCallTimestamps.push(Date.now());
+                            }
+                            // --------------------
 
                             // 【【【【【【 核心新增代码从这里开始 】】】】】】
                             // 在触发前，检查群聊是否已解散
@@ -33817,9 +34054,8 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
                                 } catch (e) {
                                     console.error(`[Dynamics Tick] Failed to generate group scene for "${group.name}":`, e);
                                 }
-                                
-                                config.lastTick = now;
-                                settingsChanged = true;
+                                // config.lastTick = now; // <---这行删掉，前面已经更新过了
+                                // settingsChanged = true; // <---这行删掉
                             } else {
                                 console.warn(`[Dynamics Tick] Group "${group.name}" was triggered, but no potential AI speakers were found.`);
                             }
@@ -33847,12 +34083,25 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
                         const config = actorSettings.moments;
                         if (!config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000)) {
                             if (Math.random() * 100 < config.probability) {
-                                const action = Math.random() < 0.2 ? 'post_moment' : 'browse_moments';
-                                console.log(`%c[Dynamics Action - Actor Trigger]`, 'color: green; font-weight: bold;', `Triggering "${action}" for actor "${actorName}".`);
-                                // 核心修复：在 await 前更新并保存
-                                config.lastTick = Date.now();
-                                saveSettings(); 
-                                await triggerProactiveAI(null, actorName, action);
+                                // 1. 速率检查
+                                const ONE_MINUTE = 60 * 1000;
+                                const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                                const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                                proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
+                                
+                                if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                                    console.log(`%c[Rate Limiter]`, 'color: orange;', `Actor "${actorName}" moments action blocked.`);
+                                    // 被拦截，不更新时间戳
+                                } else {
+                                    // 2. 通过检查，更新时间戳并执行
+                                    config.lastTick = Date.now();
+                                    saveSettings();
+                                    proactiveApiCallTimestamps.push(Date.now());
+                                    
+                                    const action = Math.random() < 0.2 ? 'post_moment' : 'browse_moments';
+                                    console.log(`%c[Dynamics Action - Actor Trigger]`, 'color: green; font-weight: bold;', `Triggering "${action}" for actor "${actorName}".`);
+                                    await triggerProactiveAI(null, actorName, action);
+                                }
                             }
                         }
                     }
@@ -33861,13 +34110,24 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
                         const config = actorSettings.tuqu;
                         if (!config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000)) {
                             if (Math.random() * 100 < config.probability) {
-                                // 【核心修复】：将 charName 修正为 actorName，解决未定义报错
-                                console.log(`Dynamics: Triggering Tuqu action for ${actorName}`);
-                                // 核心修复：更新时间戳并保存设置
-                                config.lastTick = Date.now();
-                                saveSettings();
-                                // 【核心修复】：将 charName 修正为 actorName，解决未定义报错
-                                await triggerProactiveAI(null, actorName, 'tuqu_interaction');
+                                // 速率检查
+                                const ONE_MINUTE = 60 * 1000;
+                                const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                                const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                                proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
+
+                                if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                                    console.log(`%c[Rate Limiter]`, 'color: orange;', `Actor "${actorName}" tuqu action blocked.`);
+                                    // 被拦截，不更新时间戳
+                                } else {
+                                    // 通过检查，更新时间戳并执行
+                                    config.lastTick = Date.now();
+                                    saveSettings();
+                                    proactiveApiCallTimestamps.push(Date.now());
+                                    
+                                    console.log(`Dynamics: Triggering Tuqu action for ${actorName}`);
+                                    await triggerProactiveAI(null, actorName, 'tuqu_interaction');
+                                }
                                 continue; 
                             }
                         }
@@ -33884,12 +34144,24 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
         
                         if (isChatIdle && (!config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000))) {
                             if (Math.random() * 100 < config.probability) {
-                                // 核心修复：在调用 API 之前必须完成保存
-                                config.lastTick = Date.now();
-                                saveSettings();
+                                // 速率检查
+                                const ONE_MINUTE = 60 * 1000;
+                                const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                                const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                                proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
 
-                                console.log(`%c[Dynamics Action - Actor Trigger]`, 'color: green; font-weight: bold;', `Triggering proactive message for actor "${actorName}" in group "${group.name}".`);
-                                await triggerProactiveAI(targetChatId, actorName, 'message');
+                                if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                                    console.log(`%c[Rate Limiter]`, 'color: orange;', `Actor "${actorName}" message action blocked.`);
+                                    // 被拦截，不更新时间戳
+                                } else {
+                                    // 通过检查，更新时间戳并执行
+                                    config.lastTick = Date.now();
+                                    saveSettings();
+                                    proactiveApiCallTimestamps.push(Date.now());
+
+                                    console.log(`%c[Dynamics Action - Actor Trigger]`, 'color: green; font-weight: bold;', `Triggering proactive message for actor "${actorName}" in group "${group.name}".`);
+                                    await triggerProactiveAI(targetChatId, actorName, 'message');
+                                }
                             }
                         }
                     }
@@ -33911,11 +34183,24 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
                     const tConfig = charSettings.tuqu;
                     if (!tConfig.lastTick || (Date.now() - tConfig.lastTick >= tConfig.interval * 60 * 1000)) {
                         if (Math.random() * 100 < tConfig.probability) {
-                            console.log(`[Dynamics] ${charName} 决定去兔区发帖/回帖`);
-                            // 核心修复：使用 Date.now() 实时锁死并立即写入 localStorage
-                            tConfig.lastTick = Date.now();
-                            saveSettings(); 
-                            await triggerProactiveAI(chat.id, charName, 'tuqu_interaction');
+                            // 速率检查
+                            const ONE_MINUTE = 60 * 1000;
+                            const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                            const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                            proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
+
+                            if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                                console.log(`%c[Rate Limiter]`, 'color: orange;', `Private actor "${charName}" tuqu action blocked.`);
+                                // 被拦截，不更新时间戳
+                            } else {
+                                // 通过检查，更新时间戳并执行
+                                tConfig.lastTick = Date.now();
+                                saveSettings();
+                                proactiveApiCallTimestamps.push(Date.now());
+                                
+                                console.log(`[Dynamics] ${charName} 决定去兔区发帖/回帖`);
+                                await triggerProactiveAI(chat.id, charName, 'tuqu_interaction');
+                            }
                             continue; 
                         }
                     }
@@ -33923,65 +34208,81 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
 
                 // --- 2. 检查主动发消息 ---
                 if (charSettings.message && charSettings.message.enabled) {
-                const config = charSettings.message;
-                const messages = loadFromLocalStorage(`conversation_${chat.id}`, []);
-                
-                // 核心修复：全部改用 Date.now()，防止异步函数执行期间时间戳失效
-                const realTimeCooldownPassed = !config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000);
+                    const config = charSettings.message;
+                    const messages = loadFromLocalStorage(`conversation_${chat.id}`, []);
+                    
+                    const realTimeCooldownPassed = !config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000);
+                    const lastMessageTimestamp = messages.length > 0 ? messages[messages.length - 1].timestamp : 0;
+                    const messageHistoryCooldownPassed = messages.length === 0 || (Date.now() - lastMessageTimestamp >= config.interval * 60 * 1000);
 
-                const lastMessageTimestamp = messages.length > 0 ? messages[messages.length - 1].timestamp : 0;
-                const messageHistoryCooldownPassed = messages.length === 0 || (Date.now() - lastMessageTimestamp >= config.interval * 60 * 1000);
+                    if (realTimeCooldownPassed && messageHistoryCooldownPassed) {
+                        if (Math.random() * 100 < config.probability) {
+                            // 速率检查
+                            const ONE_MINUTE = 60 * 1000;
+                            const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                            const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                            proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
 
-                if (realTimeCooldownPassed && messageHistoryCooldownPassed) {
-                    if (Math.random() * 100 < config.probability) {
-                        // 核心修复：第一时间更新并保存
-                        config.lastTick = Date.now();
-                        saveSettings();
+                            if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                                console.log(`%c[Rate Limiter]`, 'color: orange;', `Private actor "${charName}" message action blocked.`);
+                                // 被拦截，不更新时间戳
+                            } else {
+                                // 通过检查，更新时间戳并保存
+                                config.lastTick = Date.now();
+                                saveSettings();
 
-                        // 【【【【【【 核心新增代码从这里开始 】】】】】】
-                        // 在决定发消息前，检查关系状态
-                        let myStatus = 'normal';
-                        for (const msg of messages) {
-                            if (msg.side === 'system') {
-                                if (msg.text.includes('你将') && (msg.text.includes('加入黑名单') || msg.text.includes('拉黑'))) {
-                                    myStatus = 'blacklisted';
-                                } else if (msg.text.includes('你已删除')) {
-                                    myStatus = 'deleted';
-                                } else if (msg.text.includes('你将') && msg.text.includes('移出黑名单')) {
-                                    myStatus = 'normal';
-                                } else if (msg.text.includes('你已添加了')) {
-                                    myStatus = 'normal';
+                                // 关系检查
+                                let myStatus = 'normal';
+                                for (const msg of messages) {
+                                    if (msg.side === 'system') {
+                                        if (msg.text.includes('你将') && (msg.text.includes('加入黑名单') || msg.text.includes('拉黑'))) {
+                                            myStatus = 'blacklisted';
+                                        } else if (msg.text.includes('你已删除')) {
+                                            myStatus = 'deleted';
+                                        } else if (msg.text.includes('你将') && msg.text.includes('移出黑名单')) {
+                                            myStatus = 'normal';
+                                        } else if (msg.text.includes('你已添加了')) {
+                                            myStatus = 'normal';
+                                        }
+                                    }
+                                }
+
+                                if (myStatus === 'deleted' || myStatus === 'blacklisted') {
+                                    console.log(`[Dynamics Tick] Skipping proactive message for "${charName}" because user relationship is: ${myStatus}.`);
+                                } else {
+                                    proactiveApiCallTimestamps.push(Date.now());
+                                    console.log(`%c[Dynamics Action - Private Trigger]`, 'color: #16a085; font-weight: bold;', `Triggering proactive message for private character "${charName}".`);
+                                    await triggerProactiveAI(chat.id, charName, 'message');
                                 }
                             }
                         }
-
-                        // 如果用户已拉黑或删除，则跳过本次发消息行为
-                        if (myStatus === 'deleted' || myStatus === 'blacklisted') {
-                            console.log(`[Dynamics Tick] Skipping proactive message for "${charName}" because user relationship is: ${myStatus}.`);
-                        } else {
-                            // 只有关系正常时，才执行发消息
-                            console.log(`%c[Dynamics Action - Private Trigger]`, 'color: #16a085; font-weight: bold;', `Triggering proactive message for private character "${charName}".`);
-                            await triggerProactiveAI(chat.id, charName, 'message');
-                        }
-                        // 【【【【【【 核心新增代码到这里结束 】】】】】】
-                        
-                        // 注意：单聊的主动消息不更新 lastTick，因为它只在空闲时触发一次
                     }
                 }
-            }
 
-            // --- 2. 检查朋友圈互动 ---
+            // --- 3. 检查朋友圈互动 ---
             if (charSettings.moments && charSettings.moments.enabled && charSettings.moments.probability > 0) {
                 const config = charSettings.moments;
                 if (!config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000)) {
                     if (Math.random() * 100 < config.probability) {
-                        // 【核心修改】将 0.2 (20%) 降低为 0.05 (5%)，极大减少顺便发帖的频率
-                        const action = Math.random() < 0.05 ? 'post_moment' : 'browse_moments'; 
-                        console.log(`%c[Dynamics Action - Private Trigger]`, 'color: #16a085; font-weight: bold;', `Triggering moment action (${action}) for private character "${charName}".`);
-                        // 核心修复：在 await 前更新并保存
-                        config.lastTick = Date.now();
-                        saveSettings(); 
-                        await triggerProactiveAI(chat.id, charName, action);
+                        // 速率检查
+                        const ONE_MINUTE = 60 * 1000;
+                        const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                        const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                        proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
+
+                        if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                            console.log(`%c[Rate Limiter]`, 'color: orange;', `Private actor "${charName}" moments action blocked.`);
+                            // 被拦截，不更新时间戳
+                        } else {
+                            // 通过检查，更新时间戳并执行
+                            config.lastTick = Date.now();
+                            saveSettings();
+                            proactiveApiCallTimestamps.push(Date.now());
+
+                            const action = Math.random() < 0.05 ? 'post_moment' : 'browse_moments'; 
+                            console.log(`%c[Dynamics Action - Private Trigger]`, 'color: #16a085; font-weight: bold;', `Triggering moment action (${action}) for private character "${charName}".`);
+                            await triggerProactiveAI(chat.id, charName, action);
+                        }
                     }
                 }
             }
@@ -33991,6 +34292,7 @@ Your ENTIRE output MUST be a sequence of one or more \`<block>\` elements, each 
                 saveSettings();
             }
             console.log(`%c[Dynamics Tick]`, 'color: blue; font-weight: bold;', `Check cycle finished.`);
+            isTicking = false; // 解锁，允许下一次 tick 运行
         }
 
         function init() {
@@ -35880,8 +36182,9 @@ fileInput.style.display = 'none';
     })();
     
     const npcManager = (function() {
-        let npcTimer = null; // <--- 在这里，新加这一行
+        let npcTimer = null;
         let lastSelectedNpcs = new Set();
+        let isNpcTicking = false; // 【核心新增】防重入锁
         // !!!!!!!!!! 粘贴的第一个新函数从这里开始 !!!!!!!!!!
         function startNpcTimer() {
             if (npcTimer) {
@@ -35897,6 +36200,12 @@ fileInput.style.display = 'none';
         // !!!!!!!!!! 粘贴的第一个新函数到这里结束 !!!!!!!!!!
 
         async function tick() {
+            if (isNpcTicking) {
+                console.log(`[NPC Tick] Previous cycle still running, skipping...`);
+                return;
+            }
+            isNpcTicking = true; // 上锁
+
             console.log(`NPC Dynamics Tick running...`); 
             const characters = npcList.filter(name => npcSettings.activeStates && npcSettings.activeStates[name]);
             const now = Date.now();
@@ -35911,51 +36220,51 @@ fileInput.style.display = 'none';
                     const tConfig = charDynamics.tuqu;
                     if (!tConfig.lastTick || (Date.now() - tConfig.lastTick >= tConfig.interval * 60 * 1000)) {
                         if (Math.random() * 100 < tConfig.probability) {
-                            console.log(`NPC Dynamics: Triggering Tuqu action for ${charName}`);
-                            // 核心修复：在 await 前立即锁死并保存，防止异步空窗期
-                            tConfig.lastTick = Date.now();
-                            saveNpcData(); 
-                            await triggerProactiveAI(null, charName, 'tuqu_interaction');
+                            // 1. 速率检查
+                            const ONE_MINUTE = 60 * 1000;
+                            const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
+                            const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
+                            proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
+
+                            if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
+                                console.log(`%c[Rate Limiter]`, 'color: orange;', `NPC "${charName}" tuqu action blocked.`);
+                                // 被拦截，不更新时间戳，下次还能试
+                            } else {
+                                // 2. 通过检查，更新时间戳并执行
+                                tConfig.lastTick = Date.now();
+                                saveNpcData();
+                                proactiveApiCallTimestamps.push(Date.now());
+
+                                console.log(`NPC Dynamics: Triggering Tuqu action for ${charName}`);
+                                await triggerProactiveAI(null, charName, 'tuqu_interaction');
+                            }
                         }
                     }
                 }
 
-                                const config = charDynamics;
-                 if (!config.lastTick || (now - config.lastTick >= config.interval * 60 * 1000)) {
+                // 检查 NPC 的朋友圈动态 (config 直接指向 charDynamics 根对象)
+                const config = charDynamics;
+                if (!config.lastTick || (Date.now() - config.lastTick >= config.interval * 60 * 1000)) {
                     if (Math.random() * 100 < config.probability) {
-                        
-                        // =================================================================
-
-                        
-                        // =================================================================
-                        // START: Proactive Action Rate Limiter (for NPCs)
-                        // =================================================================
+                        // 1. 速率检查
                         const ONE_MINUTE = 60 * 1000;
                         const dynamicsSettings = loadFromLocalStorage('app-dynamics-settings', { rateLimit: 2 });
                         const RATE_LIMIT = (dynamicsSettings.rateLimit && dynamicsSettings.rateLimit >= 1) ? dynamicsSettings.rateLimit : 2;
-
-                        proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => now - timestamp < ONE_MINUTE);
+                        proactiveApiCallTimestamps = proactiveApiCallTimestamps.filter(timestamp => Date.now() - timestamp < ONE_MINUTE);
 
                         if (proactiveApiCallTimestamps.length >= RATE_LIMIT) {
-                            console.log(`%c[Rate Limiter]`, 'color: orange; font-weight: bold;', `NPC action for "${charName}" blocked. Limit of ${RATE_LIMIT} per minute reached.`);
-                            // 即使被阻止，也更新时间戳，防止在下一轮tick中立即重试
-                            config.lastTick = now;
-                            settingsChanged = true;
-                            continue; // 跳过这个NPC，检查下一个
-                        }
-                        
-                        // 如果未达到上限，记录本次调用
-                        proactiveApiCallTimestamps.push(now);
-                        // =================================================================
-                        // END: Proactive Action Rate Limiter
-                        // =================================================================
+                            console.log(`%c[Rate Limiter]`, 'color: orange;', `NPC "${charName}" moments action blocked.`);
+                            // 被拦截，不更新时间戳，下次还能试
+                        } else {
+                            // 2. 通过检查，更新时间戳并执行
+                            config.lastTick = Date.now();
+                            saveNpcData();
+                            proactiveApiCallTimestamps.push(Date.now());
 
-                        const action = Math.random() < 0.8 ? 'browse_moments' : 'post_moment';
-                        console.log(`NPC Dynamics: Triggering moment action (${action}) for ${charName}`);
-                        // 核心修复：NPC 区域使用 saveNpcData()
-                        config.lastTick = Date.now();
-                        saveNpcData(); 
-                        await triggerProactiveAI(null, charName, action);
+                            const action = Math.random() < 0.8 ? 'browse_moments' : 'post_moment';
+                            console.log(`NPC Dynamics: Triggering moment action (${action}) for ${charName}`);
+                            await triggerProactiveAI(null, charName, action);
+                        }
                     }
                 }
             }
@@ -35963,6 +36272,7 @@ fileInput.style.display = 'none';
             if (settingsChanged) {
                 saveNpcData();
             }
+            isNpcTicking = false; // 解锁
         }
         
         function loadNpcData() {
@@ -38786,6 +39096,11 @@ async function handleRemoveMember() {
         });
 
         loadWorldBook(); renderWorldBook();
+        // 【核心新增】绑定导入酒馆世界书按钮事件
+        const importStWbBtn = document.getElementById('import-st-lorebook-btn');
+        if (importStWbBtn) {
+            importStWbBtn.addEventListener('click', importSillyTavernLorebook);
+        }
         loadApiSettings(); renderApiProfiles();
         userPersonaManager.init();
         dynamicsManager.init();
