@@ -4961,6 +4961,11 @@ input:checked + .slider:before {
     background-color: #f5f5f5; /* 悬停时的背景色 */
 }
 
+/* 【核心新增】杀掉分类折叠模式下的多余圆圈 */
+#offline-worldbook-list .wb-mount-category-group label.inline-label::before {
+    display: none !important;
+}
+
 /* 隐藏原始的复选框 */
 #offline-worldbook-list input[type="checkbox"] {
     display: none;
@@ -8053,6 +8058,11 @@ body.preview-fullscreen-active #page-conversation .chat-content {
             <button class="copy-btn" onclick="copyToClipboard('chat-summary-content')">复制总结</button>
         </div>
         <textarea id="chat-summary-content" readonly placeholder="还没有生成总结..." style="min-height: 120px; background-color: #f0f0f0;"></textarea>
+        
+        <!-- 【核心新增】官方操作指引 -->
+        <p class="form-hint" style="color: #e67e22; font-weight: 500; margin-top: 8px;">
+            <b>[系统说明]</b> 剧情总结仅作为存档记录。若需 AI 感知总结内容以延续剧情，请点击“复制总结”并将其手动粘贴至上方的<b>“前情提要”</b>输入框内。
+        </p>
     </div>
                                 <div class="form-group" style="flex-direction: row; gap: 10px; padding-bottom: 15px;">
                                     <button id="generate-summary-btn" class="modal-button primary" style="margin: 0;">生成/更新总结</button>
@@ -14100,9 +14110,9 @@ When you decide to **COMMENT** on an existing thread, you MUST check the **Autho
     *   **Suggested Themes (Pick One Randomly):**
         *   **Fantasy/Xianxia:** Cultivation sects, demons, gods.
         *   **Modern/Urban:** Office romance, campus enemies-to-lovers,娱乐圈.
-        *   **Sci-Fi/Cyberpunk:** Androids, hackers, dystopian future.
         *   **Historical/Palace:** Emperors, generals, political intrigue.
         *   **Supernatural:** Vampires, werewolves, ghosts.
+    *   **FORBIDDEN THEMES (ABSOLUTE BAN):** You are **STRICTLY FORBIDDEN** from using Cyberpunk (赛博朋克), Interstellar (星际), or Sentinel/Guide (哨向) themes. These are banned.
     *   **Format:** Write a narrative snippet (小说片段) or a plot outline (大纲) set in one of these worlds.
 
 **[FORUM SUBCULTURE DICTIONARY]**
@@ -14350,7 +14360,8 @@ You are part of a diverse internet ecosystem. **DO NOT be repetitive.**
 
 *   **DIVERSITY MANDATE (ANTI-REPETITION):** 
     *   **STOP defaulting to "Found Phone/Chat Log" (捡手机/聊天体).** This trope is overused.
-    *   **PRIORITIZE ALTERNATE UNIVERSES (AU):** You are strongly encouraged to write stories set in different worlds (Fantasy, Sci-Fi, Historical, Supernatural).
+    *   **PRIORITIZE ALTERNATE UNIVERSES (AU):** You are strongly encouraged to write stories set in different worlds (Fantasy, Historical, Supernatural).
+    *   **FORBIDDEN THEMES:** Do NOT use Cyberpunk, Interstellar, or Sentinel/Guide (哨向).
     *   **Content:** Write a narrative snippet (小说片段) or a plot outline (大纲) set in one of these worlds.
 
 **[UPDATED INSTRUCTIONS]**
@@ -14627,9 +14638,10 @@ You are a storyteller, not a programmer. You are **STRICTLY FORBIDDEN** from men
 
 **[THE MISSION]**
 Write the **NEXT CHAPTER** of the story based on:
--   **SETTING (CRITICAL OVERRIDE):** \`${extraOptions.worldview || "Standard reality"}\`.
-    *   **IF AN AU (Alternate Universe) IS SPECIFIED (e.g., "ABO", "Ancient", "Cyberpunk", "Mafia"):**
+    *   **SETTING (CRITICAL OVERRIDE):** \`${extraOptions.worldview || "Standard reality"}\`.
+    *   **IF AN AU (Alternate Universe) IS SPECIFIED (e.g., "ABO", "Ancient", "Mafia", "Campus"):**
         1.  **IGNORE REALITY:** You MUST discard the current "Chat App/Phone" setting. The characters are NOT holding phones. They are inside the AU.
+
         2.  **ADAPT PERSONAS:** Keep the characters' core personalities (souls), but change their jobs, status, and clothes to fit the AU.
         3.  **NO "PICKING UP PHONES":** Unless the AU is modern, do not mention phones. Focus on the environment of the AU.
 -   **SUBJECTS:** Characters from your "LIFE CONTEXT" (Adapted to the new Setting).
@@ -15737,9 +15749,13 @@ Output ONLY the \`[tuqu_complex_action: {...}]\` command.
                             cleanText = cleanText.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
 
                             // 3. 替换表情包
-                            return cleanText.replace(/\[(emoji|sticker)[:：]([^\]]+)\]/g, (match, type, name) => {
-                                const item = stickers.find(s => s.name.trim() === name.trim() && s.type === type.toLowerCase());
-                                if (item) {
+                            // ...
+return cleanText.replace(/\[(emoji|sticker)[:：]([^\]]+)\]/g, (match, type, name) => {
+    // 【核心修复】确保 s.name 和 name 都是字符串，防止非字符串导致 trim() 报错
+    const item = stickers.find(s => (s.name || "").trim() === (name || "").trim() && s.type === type.toLowerCase());
+    if (item) {
+// ...
+
                                     if (type.toLowerCase() === 'emoji') {
                                         return `<img src="${item.url}" alt="${name}" class="inline-emoji" style="height:1.2em; vertical-align:middle; margin:0 2px;">`;
                                     } else {
@@ -16092,12 +16108,22 @@ conversationManager.showNotificationBanner('TUQU', {
         chatList.unshift(newChat); 
  
         if (type === '群聊') { 
-    // 直接、忠实地保存您在创建时选择的成员列表，不做任何画蛇添足的增删
-    const initialMembers = [...members]; 
-    saveToLocalStorage(`chat_members_${chatId}`, initialMembers);
-}
+            // 直接、忠实地保存您在创建时选择的成员列表，不做任何画蛇添足的增删
+            const initialMembers = [...members]; 
+            saveToLocalStorage(`chat_members_${chatId}`, initialMembers);
+        }
+
+        // 【核心新增】创建新聊天时，默认勾选分镜协议
+        // 注意：这里我们手动初始化 chat_info
+        const defaultChatInfo = {
+            // 默认把分镜协议的名字加进去
+            offlineWorldbookNames: ["分镜切割协议 (Split Bubble Protocol)(VC-IGNORE)"]
+        };
+        saveToLocalStorage(`chat_info_${chatId}`, defaultChatInfo);
+
         saveChatList();
         renderChatList(); 
+
         
         const visibleModal = document.querySelector('.modal-overlay.visible');
         if (visibleModal) {
@@ -16116,7 +16142,6 @@ conversationManager.showNotificationBanner('TUQU', {
         }
 
         // 【iOS 修复核心】：不再直接创建 input，而是弹出一个专用窗口
-        // 这样可以确保 input.click() 是由用户在这个新窗口上的点击直接触发的
         await conversationManager.showCustomModal({
             title: '导入角色卡',
             html: `
@@ -16124,34 +16149,25 @@ conversationManager.showNotificationBanner('TUQU', {
                     <p style="font-size: 14px; color: #666; margin-bottom: 20px;">
                         支持 SillyTavern 格式的 PNG 图片或 JSON 文件。
                     </p>
-                    <!-- 这个按钮将直接触发文件选择 -->
                     <button id="st-real-upload-btn" class="modal-button primary" style="width: 100%; padding: 12px; font-size: 16px;">
                         点击选择文件
                     </button>
-                    <!-- 隐藏的 input -->
                     <input type="file" id="st-hidden-input" accept="image/png,application/json,.json,.png" style="display:none;">
                 </div>
             `,
             showCloseButton: true,
-            // 这里的 onRender 是关键，它保证了点击事件的同步性
             onRender: (modalDOM, closeModal) => {
                 const btn = modalDOM.querySelector('#st-real-upload-btn');
                 const input = modalDOM.querySelector('#st-hidden-input');
 
-                // 1. 绑定点击：用户点按钮 -> 立即触发 input
-                btn.onclick = () => {
-                    input.click();
-                };
+                btn.onclick = () => { input.click(); };
 
-                // 2. 绑定文件改变：选中文件后开始处理
                 input.onchange = async (e) => {
                     const file = e.target.files[0];
                     if (!file) return;
                     
-                    // 选中文件后，先关闭弹窗，显示加载状态
                     closeModal();
                     
-                    // 给一点延时让弹窗动画跑完
                     setTimeout(async () => {
                         try {
                             let charData = null;
@@ -16181,7 +16197,6 @@ conversationManager.showNotificationBanner('TUQU', {
                                         if (entry.content && entry.content.trim()) {
                                             const hasKeys = entry.keys && Array.isArray(entry.keys) && entry.keys.length > 0;
                                             const entryTitle = entry.comment || entry.name || (hasKeys ? entry.keys[0] : `Entry_${index}`);
-                                            // 【核心修改】导入时自动加上 (VC-IGNORE)
                                             const wbName = `${name}_${entryTitle}(VC-IGNORE)`;
 
                                             if (!worldBookEntries.some(wb => wb.name === wbName)) {
@@ -16190,9 +16205,7 @@ conversationManager.showNotificationBanner('TUQU', {
                                                     category: name,
                                                     keywords: hasKeys ? entry.keys.join(', ') : '',
                                                     content: entry.content,
-                                                    // 核心修复：导入角色卡时也要遵循词条本身的开关状态
                                                     enabled: entry.enabled === true,
-                                                    // 核心修复：遵循蓝灯(constant:true)和绿灯(constant:false)
                                                     triggerMode: entry.constant ? 'always' : 'keyword',
                                                     useInMoments: false,
                                                     useInTuqu: false
@@ -16201,49 +16214,45 @@ conversationManager.showNotificationBanner('TUQU', {
                                             importedWbNames.push(wbName);
                                         }
                                     });
-                                    saveWorldBook();
+                                    // 【核心修复】使用 await 调用新的异步保存函数
+                                    await saveWorldBook();
                                     renderWorldBook();
                                 }
-                                // --- 2.5 处理正则脚本 (针对 1-2-1.json 结构优化) ---
+
+                                // --- 2.5 处理正则脚本 ---
                                 let importedRegexNames = [];
-                                // 路径：data.extensions.regex_scripts
                                 const stRegex = data.extensions && data.extensions.regex_scripts;
-                                
                                 if (stRegex && Array.isArray(stRegex)) {
-                                    // 确保全局正则数组存在
                                     if (!appearanceSettings.regexReplacements) appearanceSettings.regexReplacements = [];
                                     const globalRegexes = appearanceSettings.regexReplacements;
                                     
                                     stRegex.forEach(script => {
-                                        // 使用 JSON 中的 scriptName，并加上角色名前缀防止冲突
                                         const scriptName = `${name}_${script.scriptName || '未命名正则'}`;
-                                        
                                         const newRule = {
                                             name: scriptName,
-                                            // 【核心新增】将分类设为角色名
                                             category: name, 
                                             pattern: script.findRegex || '',
                                             flags: script.regex_flags || 'g', 
                                             template: script.replaceString || '',
                                             enabled: script.disabled === false 
                                         };
-
-
                                         if (newRule.pattern) {
-                                            // 查重：如果全局列表里没有同名的，才添加
                                             if (!globalRegexes.some(r => r.name === scriptName)) {
                                                 globalRegexes.push(newRule);
                                             }
                                             importedRegexNames.push(scriptName);
                                         }
                                     });
-                                    
                                     appearanceSettings.regexReplacements = globalRegexes;
-                                    appearanceManager.saveSettings(); // 立即保存到硬盘
-                                    console.log(`[导入] 已提取 ${importedRegexNames.length} 条正则规则。`);
+                                    // 这里也做个防爆处理
+                                    try {
+                                        localStorage.setItem('app-appearance-settings', JSON.stringify(appearanceSettings));
+                                    } catch(e) {
+                                        console.warn("正则设置过大，保存失败");
+                                    }
                                 }
 
-                                // --- 3. 处理多开场白 ---
+                                // --- 3. 处理多开场白 (大容量防爆处理) ---
                                 let alternateBranches = [];
                                 if (data.alternate_greetings && Array.isArray(data.alternate_greetings)) {
                                     data.alternate_greetings.forEach((greet, i) => {
@@ -16278,11 +16287,11 @@ conversationManager.showNotificationBanner('TUQU', {
                                 const chatInfo = {
                                     aiPersona: fullPersona.trim(),
                                     remark: name,
-                                    // 【核心修复】将刚才提取到的规则名列表填入，实现自动勾选
                                     enabledRegexes: importedRegexNames, 
-                                    userPersonaName: "无"
+                                    userPersonaName: "无",
+                                    // 【核心新增】导入角色时，默认勾选分镜协议
+                                    offlineWorldbookNames: ["分镜切割协议 (Split Bubble Protocol)(VC-IGNORE)"]
                                 };
-
 
                                 saveToLocalStorage(`chat_info_${chatId}`, chatInfo);
                                 
@@ -16290,8 +16299,14 @@ conversationManager.showNotificationBanner('TUQU', {
                                     saveToLocalStorage(`chat_mounted_wb_${chatId}`, importedWbNames);
                                 }
 
+                                // 【核心修复】开场白分支数据可能很大，强制使用安全保存
                                 if (alternateBranches.length > 0) {
-                                    saveToLocalStorage(`chat_branches_${chatId}`, alternateBranches);
+                                    try {
+                                        localStorage.setItem(`chat_branches_${chatId}`, JSON.stringify(alternateBranches));
+                                    } catch (e) {
+                                        console.warn("开场白分支过大，转存至数据库");
+                                        await imageStore.setItem(`chat_branches_${chatId}`, alternateBranches);
+                                    }
                                 }
 
                                 // --- 5. 头像与主线消息 ---
@@ -16309,7 +16324,14 @@ conversationManager.showNotificationBanner('TUQU', {
                                         side: 'received',
                                         timestamp: Date.now()
                                     };
-                                    saveToLocalStorage(`conversation_${chatId}`, [firstMsg]);
+                                    // 【核心修复】第一条消息可能很长，使用安全保存
+                                    const conversationData = [firstMsg];
+                                    try {
+                                        localStorage.setItem(`conversation_${chatId}`, JSON.stringify(conversationData));
+                                    } catch (e) {
+                                        console.warn("首条消息过长，转存至数据库");
+                                        await imageStore.setItem(`conversation_${chatId}`, conversationData);
+                                    }
                                 }
 
                                 renderChatList();
@@ -16317,13 +16339,14 @@ conversationManager.showNotificationBanner('TUQU', {
                             }
                         } catch (err) {
                             console.error(err);
-                            alert("导入失败，请检查文件格式。");
+                            alert("导入失败，请检查文件格式或存储空间。");
                         }
                     }, 100);
                 };
             }
         });
     }
+
     // 【核心新增：单独导入酒馆世界书逻辑 (修正版)】
     async function importSillyTavernLorebook() {
         // 1. 权限检查
@@ -16674,8 +16697,20 @@ conversationManager.showNotificationBanner('TUQU', {
                                     await imageStore.removeItem(key);
                                 }
                             }
+
+                            // 【核心新增】同步删除该角色的世界书和正则规则
+                            const chatName = chat.name;
+                            worldBookEntries = worldBookEntries.filter(wb => (wb.category !== chatName) && !wb.name.startsWith(chatName + "_"));
+                            await saveWorldBook();
+                            renderWorldBook();
+
+                            if (appearanceSettings.regexReplacements) {
+                                appearanceSettings.regexReplacements = appearanceSettings.regexReplacements.filter(r => (r.category !== chatName) && !r.name.startsWith(chatName + "_"));
+                                appearanceManager.saveSettings();
+                            }
+
                             renderChatList();
-                            await conversationManager.customAlert('聊天及所有备份已彻底删除。');
+                            await conversationManager.customAlert('聊天、关联的世界书及正则规则已彻底删除。');
                         }
                     }
                 }
@@ -16788,9 +16823,36 @@ From now on, you MUST treat every response as a sequence of "shots" in a movie.
 Do not be afraid to send 5, 8, or even 10 bubbles in a row. Short, focused bubbles create better suspense and readability than one giant wall of text. **SPLIT EVERYTHING.**`
     };
 
-    function saveWorldBook() { saveToLocalStorage('chat-worldbook', worldBookEntries); }
-    function loadWorldBook() { 
+    // 【核心修复】改为异步保存，支持大容量
+    async function saveWorldBook() { 
+        try {
+            // 1. 尝试存入 LocalStorage
+            localStorage.setItem('chat-worldbook', JSON.stringify(worldBookEntries));
+            // 如果成功，清理数据库里的旧备份
+            await imageStore.removeItem('chat-worldbook');
+        } catch (e) {
+            // 2. 如果存不下 (QuotaExceededError)，转存到 IndexedDB
+            console.warn("世界书数据过大，转存至数据库");
+            await imageStore.setItem('chat-worldbook', worldBookEntries);
+            // 清理 LocalStorage 里的残余
+            localStorage.removeItem('chat-worldbook');
+        }
+    }
+    // 【核心修复】改为 async
+    async function loadWorldBook() { 
+            // 1. 尝试从 LS 读取
             let entries = loadFromLocalStorage('chat-worldbook', []);
+            
+            // 2. 如果 LS 为空，尝试从 DB 读取
+            if (!entries || entries.length === 0) {
+                try {
+                    const dbData = await imageStore.getItem('chat-worldbook');
+                    if (dbData) entries = dbData;
+                } catch(e) { console.error(e); }
+            }
+            
+            // ... (后面的代码保持不变) ...
+
             
             // --- 核心新增：内置弹幕世界书 (已修正：禁止 Sticker) ---
             const DANMAKU_PRESET = {
@@ -17077,19 +17139,6 @@ You MUST use the custom \`<dm>\` tag format.
                 entries.push(SPLIT_BUBBLE_PRESET);
             }
 
-            // 【核心新增】强制将此协议挂载到所有已有聊天的“线下世界书”名单中
-            chatList.forEach(chat => {
-                const infoKey = `chat_info_${chat.id}`;
-                const info = loadFromLocalStorage(infoKey, {});
-                if (!info.offlineWorldbookNames) info.offlineWorldbookNames = [];
-                
-                // 如果名单里还没有这个协议，就加进去
-                if (!info.offlineWorldbookNames.includes(SPLIT_BUBBLE_PRESET.name)) {
-                    info.offlineWorldbookNames.push(SPLIT_BUBBLE_PRESET.name);
-                    saveToLocalStorage(infoKey, info);
-                }
-            });
-            // --- 新增结束 ---
 
             worldBookEntries = entries.map(e => {
                 if (typeof e.name === 'undefined') { 
@@ -17262,22 +17311,112 @@ You MUST use the custom \`<dm>\` tag format.
         document.getElementById('worldbook-use-in-tuqu').checked = false;
         document.querySelector('input[name="worldbook-trigger"][value="always"]').checked = true; 
         worldbookEditIndexInput.value = ''; 
+            
         worldbookAddBtn.textContent = '添加条目';
     });
 
     window.app = window.app || {};
-    window.app.editWorldBookEntry = (index) => {
+    
+    // 【核心修改】改为弹窗编辑模式，无需滚动到底部
+        // ... (前面的代码保持不变) ...
+    window.app.editWorldBookEntry = async (index) => {
         const entry = worldBookEntries[index];
-        // 【核心新增】回填分类字段
-        document.getElementById('worldbook-category').value = entry.category || '未分类';
-        worldbookNameInput.value = entry.name; worldbookKeywordsInput.value = entry.keywords; worldbookContentInput.value = entry.content;
-        worldbookEnabledInput.checked = entry.enabled; 
-        document.getElementById('worldbook-use-in-moments').checked = entry.useInMoments || false;
-        document.getElementById('worldbook-use-in-tuqu').checked = entry.useInTuqu || false;
-        document.querySelector(`input[name="worldbook-trigger"][value="${entry.triggerMode}"]`).checked = true;
-        worldbookEditIndexInput.value = index; worldbookAddBtn.textContent = '更新条目';
+        
+        const modalHtml = `
+            <div style="text-align: left; display: flex; flex-direction: column; gap: 15px; max-height: 65vh; overflow-y: auto; padding-right: 5px;">
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">分类 (Category)</label>
+                        <input type="text" id="edit-wb-category" class="modal-input" value="${escapeHtml(entry.category || '未分类')}" style="margin: 0;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">名称 (Name)</label>
+                        <input type="text" id="edit-wb-name" class="modal-input" value="${escapeHtml(entry.name)}" style="margin: 0;">
+                    </div>
+                </div>
+
+                <div>
+                    <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">关键词 (Keywords)</label>
+                    <input type="text" id="edit-wb-keywords" class="modal-input" value="${escapeHtml(entry.keywords || '')}" placeholder="逗号分隔" style="margin: 0;">
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                        <label style="font-size: 13px; color: #666;">内容 (Content)</label>
+                        <button class="copy-btn" onclick="copyToClipboard('edit-wb-content')">复制</button>
+                    </div>
+                    <textarea id="edit-wb-content" class="modal-textarea" style="height: 200px; margin: 0;">${escapeHtml(entry.content)}</textarea>
+                </div>
+
+                <div style="border-top: 1px solid #eee; padding-top: 10px;">
+                    <label style="font-size: 13px; color: #666; display: block; margin-bottom: 8px;">触发模式</label>
+                    <div style="display: flex; gap: 20px;">
+                        <label class="inline-label"><input type="radio" name="edit-wb-trigger" value="keyword" ${entry.triggerMode !== 'always' ? 'checked' : ''}> 关键词触发</label>
+                        <label class="inline-label"><input type="radio" name="edit-wb-trigger" value="always" ${entry.triggerMode === 'always' ? 'checked' : ''}> 始终触发</label>
+                    </div>
+                </div>
+
+                <!-- 【核心修改】增加了 margin-bottom: 25px，把底部撑开 -->
+                <div style="background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 25px;">
+                    <label class="inline-label" style="margin-bottom: 5px;"><input type="checkbox" id="edit-wb-enabled" ${entry.enabled ? 'checked' : ''}> <b>启用此条目</b></label>
+                    <div style="display: flex; gap: 15px; margin-top: 5px;">
+                        <label class="inline-label"><input type="checkbox" id="edit-wb-moments" ${entry.useInMoments ? 'checked' : ''}> 朋友圈使用</label>
+                        <label class="inline-label"><input type="checkbox" id="edit-wb-tuqu" ${entry.useInTuqu ? 'checked' : ''}> 兔区使用</label>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        // ... (后面的代码保持不变) ...
+
+
+        const result = await conversationManager.showCustomModal({
+            title: '编辑世界书',
+            html: modalHtml,
+            showCloseButton: true,
+            buttons: [
+                { text: '取消', value: 'cancel', class: 'secondary' },
+                { text: '保存修改', value: 'save', class: 'primary' }
+            ]
+        });
+
+        if (result && result.value === 'save') {
+            const modalBox = result.target.closest('.modal-box');
+            
+            const newName = modalBox.querySelector('#edit-wb-name').value.trim();
+            const newContent = modalBox.querySelector('#edit-wb-content').value.trim();
+            
+            if (!newName || !newContent) {
+                alert('名称和内容不能为空！');
+                return;
+            }
+
+            // 查重（排除自己）
+            if (worldBookEntries.some((e, i) => e.name === newName && i !== index)) {
+                alert('该名称已存在，请换一个。');
+                return;
+            }
+
+            // 更新数据
+            worldBookEntries[index] = {
+                name: newName,
+                category: modalBox.querySelector('#edit-wb-category').value.trim() || '未分类',
+                keywords: modalBox.querySelector('#edit-wb-keywords').value.trim(),
+                content: newContent,
+                triggerMode: modalBox.querySelector('input[name="edit-wb-trigger"]:checked').value,
+                enabled: modalBox.querySelector('#edit-wb-enabled').checked,
+                useInMoments: modalBox.querySelector('#edit-wb-moments').checked,
+                useInTuqu: modalBox.querySelector('#edit-wb-tuqu').checked
+            };
+
+            saveWorldBook();
+            renderWorldBook();
+            // alert('修改已保存'); // 可选，如果觉得弹窗太多可以注释掉
+        }
     };
+
     window.app.deleteWorldBookEntry = (index) => { if (confirm('确定删除?')) { worldBookEntries.splice(index, 1); saveWorldBook(); renderWorldBook(); } };
+
         window.app.deleteWorldBookCategory = async (categoryName) => {
         const confirmed = await conversationManager.customConfirm(`确定要删除分类 "${categoryName}" 下的所有世界书条目吗？\n此操作不可撤销。`, '删除分类确认');
         if (confirmed) {
@@ -17618,7 +17757,11 @@ You MUST use the custom \`<dm>\` tag format.
     info.mode = document.getElementById('mode-online').classList.contains('active') ? 'online' : 'offline';
     info.apiConfig = document.getElementById('chat-api-config').value;
     info.memoryLength = document.getElementById('chat-memory-length').value;
-    const offlineWbCheckboxes = document.querySelectorAll('#offline-worldbook-list input[type="checkbox"]:checked');
+    
+    // 【核心修改】只抓取带有 individual 类名的勾选框，避开全选框
+    // 使用刚才新定义的类名，精准抓取
+    const offlineWbCheckboxes = document.querySelectorAll('#offline-worldbook-list .offline-wb-individual-checkbox:checked');
+
     info.offlineWorldbookNames = Array.from(offlineWbCheckboxes).map(cb => cb.value);
     delete info.offlineWorldbookName; // 删除旧的单数属性
     info.userPersonaName = document.getElementById('chat-user-persona-select').value;
@@ -19029,16 +19172,13 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
             }
         }
 
-        function open(chatId) {
-            // 【核心新增】进入聊天时，清空队列中所有属于该角色的通知
+        // 【核心修复】增加 async 关键字
+        async function open(chatId) {
+            // 1. 清理通知队列
             notificationQueue = notificationQueue.filter(n => n.chatId !== chatId);
 
             timeManager.updateSettingsForChat(chatId); 
-            // ... (原有的逻辑)
-
-
-    relationship = { myStatus: 'normal', contactStatusToMe: 'normal' };
-
+            relationship = { myStatus: 'normal', contactStatusToMe: 'normal' };
 
             const chatInfoData = chatList.find(c => c.id === chatId);
             if (!chatInfoData) return;
@@ -19049,7 +19189,7 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
                 renderChatList();
             }
             
-            // 【核心新增：离开当前聊天前，保存草稿】
+            // 保存上一个聊天的草稿
             if (chatState.chatId) {
                 const drafts = loadFromLocalStorage('app_chat_drafts', {});
                 drafts[chatState.chatId] = footerMessageInput.value;
@@ -19062,7 +19202,7 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
             const savedChatInfo = loadFromLocalStorage(`chat_info_${chatId}`, {});
             updateHeaderTitle(savedChatInfo.remark || chatInfoData.name);
             
-            // 【核心修改：进入新聊天时，读取该角色的草稿】
+            // 读取新聊天的草稿
             const currentDrafts = loadFromLocalStorage('app_chat_drafts', {});
             footerMessageInput.value = currentDrafts[chatId] || ''; 
             footerMessageInput.dispatchEvent(new Event('input'));
@@ -19070,23 +19210,30 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
             actionMenu.classList.remove('active');
             cancelReply();
             
-            // 新增：切换聊天时隐藏并重置 Token 显示
             const usageEl = document.getElementById('token-usage-display');
             if (usageEl) usageEl.style.display = 'none';
 
-            initializeFromStorage(chatId);
+            // 【核心修复】先清空当前消息列表，防止显示上一个人的消息
+            messagesContainer.innerHTML = '';
+            chatState.messages = [];
+
+            // 【核心修复】关键！增加 await，强制等待数据库读取完成
+            await initializeFromStorage(chatId);
+            
+            // 数据准备好后，再跳转页面
             navigateTo('conversation');
 
             if (loadingStates[chatId]) {
-    dynamicDecorationBtn.classList.add('loading');
-} else {
-    dynamicDecorationBtn.classList.remove('loading');
-}
+                dynamicDecorationBtn.classList.add('loading');
+            } else {
+                dynamicDecorationBtn.classList.remove('loading');
+            }
 
             setTimeout(() => {
                 messagesContainer.scrollTop = messagesContainer.scrollHeight;
             }, 50);
         }
+
 
         function saveConversation() {
             if (!chatState.chatId) return;
@@ -19148,30 +19295,39 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
 
 
         // 【核心修改】增加 async 关键字
+        // 【核心修改】增加 async 关键字
         async function initializeFromStorage(chatId) {
-            // 【核心新增：初始化当前身份】
-            // 默认身份为 '{{user}}'
+            // 初始化当前身份
             const currentIdentity = loadFromLocalStorage(`chat_identity_${chatId}`, '{{user}}');
             chatState.currentIdentity = currentIdentity;
             updateIdentityDotUI();
 
-            // 1. 将完整的历史记录加载到我们新的“保险柜”数组中
-            fullMessageHistory = loadFromLocalStorage(`conversation_${chatId}`, []);
-            
-            // 【核心新增】如果 LocalStorage 为空，尝试从 IndexedDB 读取
-            if (fullMessageHistory.length === 0) {
+            // 1. 先尝试从 LocalStorage 读取
+            let lsData = loadFromLocalStorage(`conversation_${chatId}`, null); // 默认值改为 null 以便区分
+
+            // 2. 如果 LS 里没有数据 (null) 或者数据为空数组 ([])，则尝试查数据库
+            // 这样即使 LS 里残留了 "[]" 字符串，也会去数据库再确认一次
+            if (!lsData || lsData.length === 0) {
                 try {
                     const dbData = await imageStore.getItem(`conversation_${chatId}`);
-                    if (dbData && Array.isArray(dbData)) {
+                    if (dbData && Array.isArray(dbData) && dbData.length > 0) {
                         fullMessageHistory = dbData;
-                        console.log(`从数据库加载了聊天记录: ${chatId}`);
+                        console.log(`从数据库加载了聊天记录: ${chatId} (共 ${dbData.length} 条)`);
+                    } else {
+                        // 如果数据库也没数据，那才是真的空
+                        fullMessageHistory = lsData || [];
                     }
-                } catch(e) { console.error("读取聊天数据库失败", e); }
+                } catch(e) { 
+                    console.error("读取聊天数据库失败", e); 
+                    fullMessageHistory = [];
+                }
+            } else {
+                fullMessageHistory = lsData;
             }
 
             const messagesToLoad = 40;
 
-            // 2. 只截取最后40条消息用于初次显示，放入旧的数组
+            // 3. 截取最后40条用于显示
             chatState.messages = fullMessageHistory.slice(-messagesToLoad);
 
             if (chatState.messages.length > 0) {
@@ -19180,8 +19336,10 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
                 simulatedCurrentTime = timeManager.getCurrentTimestamp();
             }
             contactInfo.avatarUrl = loadFromLocalStorage(`chat_avatar_${chatId}`, null) || generateDefaultAvatar(chatState.chatName);
-            // 确保状态检查是在完整的历史上进行的
+            
+            // 状态检查
             fullMessageHistory.forEach(msg => { if (msg.side === 'system' && msg.type !== 'time_divider') processSystemMessageForState(msg.text); });
+            
             const savedBg = loadFromLocalStorage(`chat_bg_${chatState.chatId}`, null);
             if (savedBg) {
                 chatContent.style.backgroundImage = `url('${savedBg}')`;
@@ -19189,7 +19347,7 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
                 chatContent.style.backgroundImage = '';
             }
 
-            // 核心新增：刷新时从硬盘恢复 Token 显示
+            // 恢复 Token 显示
             const savedTokenUsage = loadFromLocalStorage(`token_usage_${chatId}`, null);
             const usageEl = document.getElementById('token-usage-display');
             const inputVal = document.getElementById('token-input-val');
@@ -19205,6 +19363,7 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
             loadPersonalizationSettings(); loadAutoReplySettings(); 
             reRenderMessages(true);
         }
+
 let isLoadingMore = false;
         async function loadMoreMessages() {
             if (isLoadingMore) return;
@@ -22610,16 +22769,12 @@ if (contactInfo.isGroup) {
 finalSystemPrompt += remarkContext;
 // --- 【【【 全新的备注记忆注入代码到这里结束 】】】 ---
                 // --- 【核心新增】注入【用户】的状态感知 ---
-const allStatuses = loadFromLocalStorage('app_character_statuses', {});
+// const allStatuses = ... (这行也不需要了，删掉)
 const chatInfoForStatus = loadFromLocalStorage(`chat_info_${chatState.chatId}`, {});
 
-// 优先从当前聊天的专属设置中读取用户状态
+// 【核心修复】只读取当前聊天的专属设置，绝对不读取全局状态
+// 这样就实现了每个聊天的状态完全独立
 let myCurrentStatus = chatInfoForStatus.user_status;
-
-// 如果专属设置中没有，再作为备用方案，去全局状态中查找
-if (!myCurrentStatus) {
-    myCurrentStatus = allStatuses[userNameForPrompt] || allStatuses['{{user}}'];
-}
 
 if (myCurrentStatus) {
     finalSystemPrompt += `\n[User's Current Status]\nThe user (${userNameForPrompt}) you are talking to has set their status to: "${myCurrentStatus}". You should be aware of this.\n`;
@@ -23411,12 +23566,22 @@ You MUST process the **"NEW EVIDENCE"** by expanding on the substance while igno
                 const appendedSummaryText = await callApi(chatId, finalMessages, 0.5);
 
                 if (appendedSummaryText) {
-                    // 【核心设计修正 4】: 将新总结追加到旧总结的后面
+                    // 1. 更新内部总结字段（用于追踪进度，不删）
                     const newFullSummary = (existingSummary === '(这是第一份总结)' ? '' : existingSummary + '\n\n') + appendedSummaryText;
-                    
                     chatInfo.chatSummary = newFullSummary;
+
+                    // 2. 【核心新增】同步至前情提要，确保 AI 必读
+                    const currentPreamble = chatInfo.preamble || "";
+                    // 检查是否已经包含该总结，防止重复追加
+                    if (!currentPreamble.includes(appendedSummaryText.substring(0, 20))) {
+                        const syncMarker = "\n\n--- [历史剧情回顾] ---\n";
+                        chatInfo.preamble = currentPreamble + syncMarker + appendedSummaryText;
+                        // 同步更新 UI 上的前情提要文本框
+                        const preambleEl = document.getElementById('chat-preamble');
+                        if (preambleEl) preambleEl.value = chatInfo.preamble;
+                    }
                     
-                    // 【核心修正】: 记录本次总结时的消息条数 (用于切片)
+                    // 3. 记录本次总结时的消息条数 (用于切片)
                     chatInfo.lastSummaryMessageCount = conversationHistory.length; 
                     
                     // 【核心修正】: 记录本次总结时的对话轮数 (用于下次触发判断)
@@ -25666,9 +25831,12 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
                             let tempCounter = 0;
                             
                             const textWithPlaceholders = rawText.replace(/\[(emoji|sticker)[:：]([^\]]+)\]/g, (match, type, name) => {
-                                type = type.toLowerCase();
-                                const item = stickers.find(s => s.name.trim() === name.trim() && s.type === type);
-                                if (item) {
+    type = type.toLowerCase();
+    // 【核心修复】增加防空保护
+    const item = stickers.find(s => (s.name || "").trim() === (name || "").trim() && s.type === type);
+    if (item) {
+// ...
+
                                     const key = `__MEDIA_${tempCounter++}__`;
                                     let imgTag = '';
                                     if (type === 'emoji') {
@@ -26314,9 +26482,12 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
                             let tempCounter = 0;
                             
                             const textWithPlaceholders = rawText.replace(/\[(emoji|sticker)[:：][^\]]+\]/g, (match, type, name) => {
-                                type = type.toLowerCase();
-                                const item = stickers.find(s => s.name.trim() === name.trim() && s.type === type);
-                                if (item) {
+    type = type.toLowerCase();
+    // 【核心修复】增加防空保护
+    const item = stickers.find(s => (s.name || "").trim() === (name || "").trim() && s.type === type);
+    if (item) {
+// ...
+
                                     const key = `__MEDIA_${tempCounter++}__`;
                                     let imgTag = '';
                                     if (type === 'emoji') {
@@ -28467,13 +28638,76 @@ elements.userPersonaSelect.innerHTML = '<option value="无">无</option>';
             elements.userPersonaSelect.onchange = updateUserAvatarPreview;
             updateUserAvatarPreview();
             
-            // 填充世界书和API配置
+            // 【终极修复版】线下世界书列表 - 增加样式隔离，防止 CSS 冲突
             const offlineWbListContainer = document.getElementById('offline-worldbook-list');
-            const offlineWbNames = info.offlineWorldbookNames || []; // 使用新的复数属性
-            offlineWbListContainer.innerHTML = worldBookEntries.length > 0 ? worldBookEntries.map((wb, index) => {
-                const uniqueId = `offline-wb-checkbox-${index}`; // <-- 核心修改在这里！
-                return `<input type="checkbox" id="${uniqueId}" value="${wb.name}" ${offlineWbNames.includes(wb.name) ? 'checked' : ''}><label for="${uniqueId}" class="inline-label">${wb.name}</label>`;
-            }).join('') : '<p style="text-align:center;color:#888;">没有可用的世界书</p>';
+            const offlineWbNames = info.offlineWorldbookNames || [];
+            
+            // 核心安全检查：确保数据已加载
+            if (!worldBookEntries || worldBookEntries.length === 0) {
+                // 如果内存里没有，尝试从本地存储紧急加载一次
+                worldBookEntries = loadFromLocalStorage('chat-worldbook', []);
+            }
+
+            if (worldBookEntries.length === 0) {
+                offlineWbListContainer.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">没有可用的世界书</p>';
+            } else {
+                const groups = {};
+                worldBookEntries.forEach(wb => {
+                    const cat = wb.category || '未分类';
+                    if (!groups[cat]) groups[cat] = [];
+                    groups[cat].push(wb);
+                });
+
+                offlineWbListContainer.innerHTML = Object.keys(groups).sort().map(catName => {
+                    const items = groups[catName];
+                    const isAllChecked = items.every(item => offlineWbNames.includes(item.name));
+                    const hasAnyChecked = items.some(item => offlineWbNames.includes(item.name));
+                    
+                    // 【关键修复】这里的 label 增加了 style 覆盖，防止被你原有的 CSS 强行画圆圈
+                    const itemsHtml = items.map(wb => `
+                        <label class="inline-label" style="display: flex !important; align-items: center !important; padding: 8px 15px !important; margin: 0 !important; background: none !important; border: none !important; gap: 10px !important;">
+                            <input type="checkbox" class="offline-wb-individual-checkbox" data-category="${catName}" value="${wb.name}" ${offlineWbNames.includes(wb.name) ? 'checked' : ''} style="display: inline-block !important; width:18px !important; height:18px !important; margin:0 !important; opacity: 1 !important; position: static !important;"> 
+                            <span style="font-size:14px; color:#444; position: static !important;">${wb.name}</span>
+                        </label>
+                    `).join('');
+
+                    // 【关键修复】header 也增加了 style 覆盖
+                    return `
+                        <div class="wb-mount-category-group" style="margin-bottom: 1px; background: #fff;">
+                            <div class="offline-wb-mount-header" style="display: flex !important; align-items: center !important; padding: 12px 15px !important; background: #f8f9fa !important; cursor: pointer; border-bottom: 1px solid #eee;">
+    <input type="checkbox" class="offline-wb-category-select-all" data-target-category="${catName}" ${isAllChecked ? 'checked' : ''} style="display: inline-block !important; width:18px !important; height:18px !important; margin-right: 10px !important; opacity: 1 !important;"> 
+    <b style="flex-grow: 1; font-size: 15px; color: #333; background: none !important;">${catName} (${items.length})</b>
+
+                                <span class="offline-wb-mount-arrow" style="font-size: 12px; color: #999; transition: transform 0.3s; transform: ${hasAnyChecked ? 'rotate(90deg)' : 'rotate(0deg)'};">▶</span>
+                            </div>
+                            <div class="offline-wb-mount-content" style="display: ${hasAnyChecked ? 'block' : 'none'}; background: #fff; border-bottom: 1px solid #eee;">
+                                ${itemsHtml}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+                // 绑定事件逻辑（保持不变）
+                offlineWbListContainer.querySelectorAll('.offline-wb-mount-header').forEach(header => {
+                    header.onclick = () => {
+                        const content = header.nextElementSibling;
+                        const arrow = header.querySelector('.offline-wb-mount-arrow');
+                        const isHidden = content.style.display === 'none';
+                        content.style.display = isHidden ? 'block' : 'none';
+                        arrow.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+                    };
+                });
+
+                offlineWbListContainer.onclick = (e) => {
+                    const catCheckbox = e.target.closest('.offline-wb-category-select-all');
+                    if (catCheckbox) {
+                        const catName = catCheckbox.dataset.targetCategory;
+                        const isChecked = catCheckbox.checked;
+                        const children = offlineWbListContainer.querySelectorAll(`.offline-wb-individual-checkbox[data-category="${catName}"]`);
+                        children.forEach(cb => cb.checked = isChecked);
+                    }
+                };
+            }
             
             const selectElement = document.getElementById('chat-api-config');
             selectElement.innerHTML = '';
@@ -28485,7 +28719,7 @@ elements.userPersonaSelect.innerHTML = '<option value="无">无</option>';
             const mountedWbNames = loadFromLocalStorage(`chat_mounted_wb_${chatState.chatId}`, []);
             
             if (worldBookEntries.length === 0) {
-                wbListContainer.innerHTML = '<p style="text-align:center;color:#888;">没有可用的世界书</p>';
+                wbListContainer.innerHTML = '<p style="text-align:center;color:#888;padding:20px;">没有可用的世界书</p>';
             } else {
                 // 1. 按分类分组
                 const groups = {};
@@ -28495,28 +28729,45 @@ elements.userPersonaSelect.innerHTML = '<option value="无">无</option>';
                     groups[cat].push(wb);
                 });
 
-                // 2. 渲染分组列表
+                // 2. 渲染分组列表 (带折叠功能)
                 wbListContainer.innerHTML = Object.keys(groups).sort().map(catName => {
                     const items = groups[catName];
-                    // 检查该分类下是否所有项都被选中
                     const isAllChecked = items.every(item => mountedWbNames.includes(item.name));
+                    // 只要该分类下有任何一个被选中，我们就让它默认展开，否则折叠
+                    const hasAnyChecked = items.some(item => mountedWbNames.includes(item.name));
                     
                     const itemsHtml = items.map(wb => `
-                        <label class="inline-label" style="margin-left: 20px; font-weight: normal;">
-                            <input type="checkbox" class="wb-individual-checkbox" data-category="${catName}" value="${wb.name}" ${mountedWbNames.includes(wb.name) ? 'checked' : ''}> ${wb.name}
+                        <label class="inline-label" style="padding: 8px 0; margin-left: 35px; border-bottom: 1px solid #fafafa; font-weight: normal; display: flex; align-items: center; gap: 10px;">
+                            <input type="checkbox" class="wb-individual-checkbox" data-category="${catName}" value="${wb.name}" ${mountedWbNames.includes(wb.name) ? 'checked' : ''} style="width:18px; height:18px; margin:0;"> 
+                            <span style="font-size:14px; color:#444;">${wb.name}</span>
                         </label>
                     `).join('');
 
                     return `
-                        <div class="wb-mount-category-group" style="margin-bottom: 10px; border-bottom: 1px solid #f0f0f0; padding-bottom: 5px;">
-                            <label class="inline-label">
-                                <input type="checkbox" class="wb-category-select-all" data-target-category="${catName}" ${isAllChecked ? 'checked' : ''}> 
-                                <b style="color: var(--primary-color);">${catName}</b>
-                            </label>
-                            <div class="wb-category-items">${itemsHtml}</div>
+                        <div class="wb-mount-category-group" style="margin-bottom: 5px; border: 1px solid #f0f0f0; border-radius: 8px; overflow: hidden;">
+                            <div class="wb-mount-header" style="display: flex; align-items: center; padding: 10px; background: #f8f9fa; cursor: pointer;">
+    <input type="checkbox" class="wb-category-select-all" data-target-category="${catName}" ${isAllChecked ? 'checked' : ''} style="width:18px; height:18px; margin-right: 10px;"> 
+    <b style="flex-grow: 1; font-size: 15px; color: #333;">${catName} (${items.length})</b>
+
+                                <span class="wb-mount-arrow" style="font-size: 12px; color: #999; transition: transform 0.3s; transform: ${hasAnyChecked ? 'rotate(90deg)' : 'rotate(0deg)'};">▶</span>
+                            </div>
+                            <div class="wb-mount-content" style="display: ${hasAnyChecked ? 'block' : 'none'}; background: #fff; padding: 5px 10px;">
+                                ${itemsHtml}
+                            </div>
                         </div>
                     `;
                 }).join('');
+
+                // 3. 绑定折叠点击事件
+                wbListContainer.querySelectorAll('.wb-mount-header').forEach(header => {
+                    header.onclick = (e) => {
+                        const content = header.nextElementSibling;
+                        const arrow = header.querySelector('.wb-mount-arrow');
+                        const isHidden = content.style.display === 'none';
+                        content.style.display = isHidden ? 'block' : 'none';
+                        arrow.style.transform = isHidden ? 'rotate(90deg)' : 'rotate(0deg)';
+                    };
+                });
             }
 
             // START: 新增正则挂载列表渲染
@@ -29995,8 +30246,20 @@ document.addEventListener('click', (e) => { if (messageContextMenu && !messageCo
 
 document.getElementById('delete-contact-btn').addEventListener('click', async () => {
         const chatId = getCurrentChatId();
-        if (await customConfirm(`删除联系人“${chatState.chatName}”？`, '删除联系人')) {
-            await addMessage({type: 'system', side: 'system', text: `你已删除“${chatState.chatName}”。`});
+        const chatName = chatState.chatName; // 提前锁定名字
+        if (await customConfirm(`删除联系人“${chatName}”？`, '删除联系人')) {
+            
+            // 【核心新增】同步删除该角色的世界书和正则规则
+            worldBookEntries = worldBookEntries.filter(wb => (wb.category !== chatName) && !wb.name.startsWith(chatName + "_"));
+            await saveWorldBook();
+            renderWorldBook();
+
+            if (appearanceSettings.regexReplacements) {
+                appearanceSettings.regexReplacements = appearanceSettings.regexReplacements.filter(r => (r.category !== chatName) && !r.name.startsWith(chatName + "_"));
+                appearanceManager.saveSettings();
+            }
+
+            await addMessage({type: 'system', side: 'system', text: `你已删除“${chatName}”。`});
             conversationManager.open(chatId);
         }
     });
@@ -30127,7 +30390,11 @@ async function handleProactiveAIMessage(targetChatId, senderName, content) {
 
             const result = await showCustomModal({
                 title: '回溯历史',
-                html: `<p style="font-size: 13px; color: #888; text-align: center; margin: -10px 0 15px 0; padding: 0 15px;">最多保留100条存档。</p><div style="max-height: 60vh; overflow-y: auto;">${branchesHtml}</div>`,
+                html: `
+                    <div style="background: #fffbe6; border: 1px solid #ffe58f; border-radius: 8px; padding: 10px; margin: -10px 10px 15px 10px; font-size: 12px; color: #856404; line-height: 1.5;">
+                        <b>系统说明：</b>为优化存储性能，本系统仅保留最近 100 条历史分支。其中标识为“存档”的自动记录将在生成 7 天后被永久清理。请及时为重要剧情节点执行“命名”操作以转为永久保存。
+                    </div>
+                    <div style="max-height: 55vh; overflow-y: auto;">${branchesHtml}</div>`,
                 showCloseButton: true,
                 onRender: (modalDOM, closeModal) => {
 
@@ -36147,21 +36414,90 @@ function saveSettings() {
             document.getElementById('regex-cancel-btn').style.display = 'none';
         }
 
-        window.app.editRegexRule = (index) => {
+        // 【核心修改】改为弹窗编辑模式，无需滚动到底部
+        window.app.editRegexRule = async (index) => {
             const rule = appearanceSettings.regexReplacements[index];
-            document.getElementById('regex-name').value = rule.name;
-            // 新增：回填分类
-            document.getElementById('regex-category').value = rule.category || '未分类';
-            document.getElementById('regex-pattern').value = rule.pattern;
-            document.getElementById('regex-flags').value = rule.flags;
-            document.getElementById('regex-template').value = rule.template;
-            document.getElementById('regex-enabled').checked = rule.enabled;
-            document.getElementById('regex-edit-index').value = index;
 
-            document.getElementById('regex-form-title').textContent = '编辑规则';
-            document.getElementById('regex-add-btn').textContent = '更新规则';
-            document.getElementById('regex-cancel-btn').style.display = 'inline-block';
+            const modalHtml = `
+                <div style="text-align: left; display: flex; flex-direction: column; gap: 15px; max-height: 65vh; overflow-y: auto; padding-right: 5px;">
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">分类 (Category)</label>
+                            <input type="text" id="edit-regex-category" class="modal-input" value="${escapeHtml(rule.category || '未分类')}" style="margin: 0;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">名称 (Name)</label>
+                            <input type="text" id="edit-regex-name" class="modal-input" value="${escapeHtml(rule.name)}" style="margin: 0;">
+                        </div>
+                    </div>
+
+                    <div style="display: flex; gap: 10px;">
+                        <div style="flex: 3;">
+                            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">匹配模式 (Pattern)</label>
+                            <input type="text" id="edit-regex-pattern" class="modal-input" value="${escapeHtml(rule.pattern)}" style="margin: 0; font-family: monospace; color: #d32f2f;">
+                        </div>
+                        <div style="flex: 1;">
+                            <label style="font-size: 13px; color: #666; display: block; margin-bottom: 5px;">标志 (Flags)</label>
+                            <input type="text" id="edit-regex-flags" class="modal-input" value="${escapeHtml(rule.flags || 'g')}" style="margin: 0; text-align: center; font-family: monospace;">
+                        </div>
+                    </div>
+
+                    <div>
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px;">
+                            <label style="font-size: 13px; color: #666;">替换模板 (HTML Template)</label>
+                            <button class="copy-btn" onclick="copyToClipboard('edit-regex-template')">复制</button>
+                        </div>
+                        <!-- 使用深色背景编辑器样式 -->
+                        <textarea id="edit-regex-template" class="modal-textarea" style="height: 150px; margin: 0; font-family: monospace; background: #282c34; color: #61afef; border: 1px solid #181a1f;">${escapeHtml(rule.template)}</textarea>
+                    </div>
+
+                    <!-- 【美化】增加了 margin-bottom: 25px，防止挨着按钮 -->
+                    <div style="background: #f9f9f9; padding: 10px; border-radius: 8px; margin-bottom: 25px; display: flex; align-items: center; justify-content: space-between;">
+                        <span style="font-size: 14px; font-weight: 600; color: #333;">启用此规则</span>
+                        <label class="switch">
+                            <input type="checkbox" id="edit-regex-enabled" ${rule.enabled ? 'checked' : ''}>
+                            <span class="slider"></span>
+                        </label>
+                    </div>
+                </div>
+            `;
+
+            const result = await conversationManager.showCustomModal({
+                title: '编辑正则规则',
+                html: modalHtml,
+                showCloseButton: true,
+                buttons: [
+                    { text: '取消', value: 'cancel', class: 'secondary' },
+                    { text: '保存修改', value: 'save', class: 'primary' }
+                ]
+            });
+
+            if (result && result.value === 'save') {
+                const modalBox = result.target.closest('.modal-box');
+                
+                const newName = modalBox.querySelector('#edit-regex-name').value.trim();
+                const newPattern = modalBox.querySelector('#edit-regex-pattern').value.trim();
+                
+                if (!newName || !newPattern) {
+                    alert('名称和匹配模式不能为空！');
+                    return;
+                }
+
+                // 更新数据
+                appearanceSettings.regexReplacements[index] = {
+                    name: newName,
+                    category: modalBox.querySelector('#edit-regex-category').value.trim() || '未分类',
+                    pattern: newPattern,
+                    flags: modalBox.querySelector('#edit-regex-flags').value.trim(),
+                    template: modalBox.querySelector('#edit-regex-template').value,
+                    enabled: modalBox.querySelector('#edit-regex-enabled').checked
+                };
+
+                saveSettings();
+                renderRegexList();
+            }
         };
+
 
         window.app.deleteRegexRule = (index) => {
             if (confirm('确定要删除这条规则吗？')) {
