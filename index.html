@@ -22753,7 +22753,18 @@ finalSystemPrompt += listenTogetherManager.getAIMusicContext();
                 // --- 修复结束 ---
                 // 【核心修复】：必须从完整历史记录中获取上下文，不能只用 chatState.messages (因为它可能只包含最近40条)
                 // 1. 重新加载完整历史记录
-                const fullHistoryForContext = loadFromLocalStorage(`conversation_${originatingChatId}`, []);
+                let fullHistoryForContext = loadFromLocalStorage(`conversation_${originatingChatId}`, []);
+                
+                // 【关键修复】如果 LS 为空（因为爆满转存了），必须去数据库捞！
+                if (fullHistoryForContext.length === 0) {
+                    try {
+                        const dbData = await imageStore.getItem(`conversation_${originatingChatId}`);
+                        if (dbData && Array.isArray(dbData)) {
+                            fullHistoryForContext = dbData;
+                            console.log(`[上下文构建] 从数据库挽救了 ${fullHistoryForContext.length} 条记录。`);
+                        }
+                    } catch (e) { console.error("读取历史数据库失败", e); }
+                }
                 
                 // 2. 获取用户设置的轮次 (默认为100轮)
                 const memoryRoundLimit = parseInt(chatInfo.memoryLength || 100, 10);
@@ -25898,6 +25909,19 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
                 if (shouldShowAvatar) {
                     const avatarDiv = document.createElement('div');
                     avatarDiv.className = 'message-avatar';
+                    
+                    // --- 新增：将角色名字绑定到头像节点，供头像框CSS识别 ---
+                    let attrName = "";
+                    if (msg.side === 'sent') {
+                        attrName = msg.sender || (chatInfo.userPersonaName && chatInfo.userPersonaName !== '无' ? chatInfo.userPersonaName : '{{user}}');
+                    } else {
+                        attrName = msg.sender || chatState.chatName;
+                    }
+                    avatarDiv.setAttribute('data-name', attrName);
+                    // --- 新增结束 ---
+
+                    // 核心修复：定义一个通用的头像解析器
+
 
                     // 核心修复：定义一个通用的头像解析器，确保单聊、NPC、群聊主角头像能全局同步
                     const resolveAvatar = (name) => {
@@ -26550,6 +26574,19 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
                 if (shouldShowAvatar) {
                     const avatarDiv = document.createElement('div');
                     avatarDiv.className = 'message-avatar';
+                    
+                    // --- 新增：将角色名字绑定到头像节点，供头像框CSS识别 ---
+                    let attrName = "";
+                    if (msg.side === 'sent') {
+                        attrName = msg.sender || (chatInfo.userPersonaName && chatInfo.userPersonaName !== '无' ? chatInfo.userPersonaName : '{{user}}');
+                    } else {
+                        attrName = msg.sender || chatState.chatName;
+                    }
+                    avatarDiv.setAttribute('data-name', attrName);
+                    // --- 新增结束 ---
+
+                    // 核心修复：定义一个通用的头像解析器
+
 
                     // 核心修复：使用与 createMessageElement 完全一致的通用解析逻辑
                     const resolveAvatar = (name) => {
@@ -30183,7 +30220,12 @@ function calculateApiPayloadSize() {
 
     // ---- 步骤 4: 用最精确的方式计算上下文（context）的字数 ----
     const memoryLength = parseInt(chatInfo.memoryLength || 20, 10);
-    const recentMessages = memoryLength > 0 ? chatState.messages.slice(-memoryLength) : chatState.messages;
+    
+    // 【修改】使用 fullMessageHistory 代替 chatState.messages
+    // 确保在 LocalStorage 爆满时，也能基于内存中的完整数据进行切片
+    const sourceMsgs = fullMessageHistory && fullMessageHistory.length > 0 ? fullMessageHistory : chatState.messages;
+    const recentMessages = memoryLength > 0 ? sourceMsgs.slice(-memoryLength) : sourceMsgs;
+
     const enabledRegexNames = chatInfo.enabledRegexes || [];
     const globalRules = appearanceSettings.regexReplacements || [];
     const activeRules = globalRules.filter(rule => enabledRegexNames.includes(rule.name) && rule.enabled);
@@ -30247,15 +30289,16 @@ function calculateApiPayloadSize() {
         return sum + finalCharCount;
     }, 0);
 
-    // ---- 步骤 5: 计算最终的总发送字数 ----
+                // ---- 步骤 5: 计算最终的总发送字数 ----
             const totalChars = systemChars + personaChars + worldbookChars + npcChars + contextChars;
 
             // ******** 新增代码从这里开始 ********
             
-            // 1. 获取完整的聊天记录
-            const fullHistory = loadFromLocalStorage(`conversation_${chatState.chatId}`, []);
+            // 1. 获取完整的聊天记录 (【修复】直接使用内存中的全量数据，不再读LS，防止LS爆满时读不到)
+            const fullHistory = fullMessageHistory && fullMessageHistory.length > 0 ? fullMessageHistory : loadFromLocalStorage(`conversation_${chatState.chatId}`, []);
             
             // 2. 计算总条数 (只计算有效消息)
+
             const totalMessages = fullHistory.filter(m => m.side !== 'system' && m.type !== 'time_divider').length;
 
             // 3. 计算总轮数 (只计算用户发送的条数)
@@ -36570,56 +36613,76 @@ function saveSettings() {
 // ===== 新版本的 showCssManagerModal 函数到这里结束 =====
         
         async function showAddFontModal() {
-            // 1. 先询问来源
+            // 1. 弹出询问来源的窗口
             const result = await conversationManager.showCustomModal({
                 title: '添加新字体',
                 text: '请选择字体来源：',
                 buttons: [
-                    { text: '本地上传 (自动命名)', value: 'upload', class: 'primary' },
-                    { text: '输入链接 (手动命名)', value: 'url', class: 'secondary' },
+                    { text: '本地上传', value: 'upload', class: 'primary' },
+                    { text: '输入链接', value: 'url', class: 'secondary' },
                     { text: '取消', value: 'cancel', class: 'secondary' }
-                ]
+                ],
+                // 【核心修复】：利用 onRender 在按钮渲染瞬间植入隐藏控件
+                onRender: (modalDOM, closeModal) => {
+                    const uploadBtn = modalDOM.querySelector('button[data-value="upload"]');
+                    if (uploadBtn) {
+                        // 1. 创建真实的文件输入框
+                        const fileInput = document.createElement('input');
+                        fileInput.type = 'file';
+                        fileInput.accept = '.ttf,.otf,.woff,.woff2';
+                        // 2. 把它变成透明的，并铺满整个按钮
+                        fileInput.style.cssText = `
+                            position: absolute;
+                            top: 0;
+                            left: 0;
+                            width: 100%;
+                            height: 100%;
+                            opacity: 0;
+                            cursor: pointer;
+                            z-index: 10;
+                        `;
+                        
+                        // 3. 确保按钮可以承载绝对定位的子元素
+                        uploadBtn.style.position = 'relative';
+                        uploadBtn.style.overflow = 'hidden';
+                        uploadBtn.appendChild(fileInput);
+
+                        // 4. 监听这个隐藏控件的变化
+                        fileInput.onchange = async (e) => {
+                            const file = e.target.files[0];
+                            if (!file) return;
+
+                            // 选好文件后，立刻关闭弹窗
+                            closeModal();
+
+                            // 执行保存逻辑
+                            let fontName = file.name.replace(/\.[^/.]+$/, "");
+                            let finalName = fontName;
+                            let count = 1;
+                            while (savedFonts.some(f => f.name === finalName)) {
+                                finalName = `${fontName}_${count}`;
+                                count++;
+                            }
+
+                            const dbKey = `font-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
+                            try {
+                                await imageStore.setItem(dbKey, file);
+                                savedFonts.push({ name: finalName, url: `indexeddb:${dbKey}` });
+                                activeFontName = finalName;
+                                saveSettings();
+                                await applySettings();
+                                renderPage();
+                                await conversationManager.customAlert(`字体 "${finalName}" 已添加并应用！`);
+                            } catch (err) {
+                                alert('保存失败: ' + err.message);
+                            }
+                        };
+                    }
+                }
             });
 
-            if (!result || result.value === 'cancel' || result.value === 'close') return;
-
-            if (result.value === 'upload') {
-                // --- 逻辑 A: 本地上传 ---
-                const fileInput = document.createElement('input');
-                fileInput.type = 'file';
-                fileInput.accept = '.ttf,.otf,.woff,.woff2';
-                fileInput.onchange = async (e) => {
-                    const file = e.target.files[0];
-                    if (!file) return;
-
-                    // 【关键】：自动获取文件名（去掉后缀）
-                    let fontName = file.name.replace(/\.[^/.]+$/, "");
-                    
-                    // 检查重名并自动加数字后缀，防止覆盖
-                    let finalName = fontName;
-                    let count = 1;
-                    while (savedFonts.some(f => f.name === finalName)) {
-                        finalName = `${fontName}_${count}`;
-                        count++;
-                    }
-
-                    const dbKey = `font-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`;
-                    try {
-                        await imageStore.setItem(dbKey, file);
-                        savedFonts.push({ name: finalName, url: `indexeddb:${dbKey}` });
-                        activeFontName = finalName;
-                        saveSettings();
-                        await applySettings();
-                        renderPage();
-                        await conversationManager.customAlert(`字体 "${finalName}" 已添加并应用！`);
-                    } catch (err) {
-                        alert('保存失败: ' + err.message);
-                    }
-                };
-                fileInput.click();
-
-            } else if (result.value === 'url') {
-                // --- 逻辑 B: 输入链接（保持手动命名） ---
+            // 2. 处理“输入链接”的分支 (因为 upload 已经在 onRender 里处理了，这里只需处理 url)
+            if (result && result.value === 'url') {
                 const fontName = await conversationManager.showContentInputModal({ 
                     title: '字体命名', 
                     placeholder: '为这个云端字体起个名字' 
@@ -36647,6 +36710,7 @@ function saveSettings() {
                 }
             }
         }
+
         
                 // --- 【修复版：字体管理器 (带滚动 + 编辑内容)】 ---
         async function showFontManagerModal() {
@@ -44662,9 +44726,18 @@ const cloudBackupManager = (function() {
     }
 
     async function performBackup(isAuto = false) {
+        // 【核心新增 1】备份开始时，强制启动后台保活 (播放静音音频)
+        // 这能防止你切屏去回微信时，浏览器把上传任务杀掉
+        if (typeof conversationManager !== 'undefined') {
+            conversationManager.enableKeepAlive();
+            console.log("☁️ 云端备份：已启动后台保活模式");
+        }
+
         var info = getRepoInfo();
         if (!info) {
             if (!isAuto) alert("请先填写仓库链接和Token！");
+            // 失败也要记得关掉保活
+            if (typeof conversationManager !== 'undefined') conversationManager.disableKeepAlive();
             return;
         }
 
@@ -44683,7 +44756,8 @@ const cloudBackupManager = (function() {
             const APP_DATA_PREFIXES = [ 
                 'app-', 'app_', 'chat-', 'chat_', 'my_', 'conversation_', 'moments_', 
                 'gh_', 'auto_', 'video_', 'pending_', 'catbox_userhash', 'jjForumData',
-                'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_' 
+                'tuqu_', 'token_usage_', 'blacklist_reply_count_',
+                'chat_avatar_', 'chat_user_avatar_', 'chat_bg_', 'chat_mounted_wb_', 'chat_associated_npcs_', 'chat_branches_', 'chat_favorites_', 'chat_identity_' 
             ];
 
             // 1. 准备文本数据和图片引用列表
@@ -44719,12 +44793,13 @@ const cloudBackupManager = (function() {
                 }
             }
 
-            for (const chat of chatListForBackup) {
-                const convKey = `conversation_${chat.id}`;
-                if (!allTextData[convKey]) {
-                    const convDb = await imageStore.getItem(convKey);
-                    // 注意：从数据库读出来的是对象，要转成字符串才能上传到 GitHub 的 data.json
-                    if (convDb) allTextData[convKey] = JSON.stringify(convDb);
+            if (chatListForBackup) {
+                for (const chat of chatListForBackup) {
+                    const convKey = `conversation_${chat.id}`;
+                    if (!allTextData[convKey]) {
+                        const convDb = await imageStore.getItem(convKey);
+                        if (convDb) allTextData[convKey] = JSON.stringify(convDb);
+                    }
                 }
             }
 
@@ -44736,6 +44811,20 @@ const cloudBackupManager = (function() {
             if (!allTextData['app-stickers']) {
                 const stickersDb = await imageStore.getItem('app-stickers');
                 if (stickersDb) allTextData['app-stickers'] = JSON.stringify(stickersDb);
+            }
+
+            // 【核心新增】捞取小说内容
+            const bookshelf = loadFromLocalStorage('app_novel_bookshelf', []);
+            for (const book of bookshelf) {
+                try {
+                    const bookContent = await imageStore.getItem(`novel_data_${book.id}`);
+                    if (bookContent) {
+                        // 注意：小说内容是对象，需要转字符串
+                        allTextData[`novel_data_${book.id}`] = JSON.stringify(bookContent);
+                    }
+                } catch (e) {
+                    console.warn(`Failed to export novel content for ${book.title}`, e);
+                }
             }
 
             // 2. 获取 GitHub 上已有的文件列表（用于获取 SHA）
@@ -44772,8 +44861,8 @@ const cloudBackupManager = (function() {
                 if (statusEl) statusEl.textContent = `正在同步图片 (${count}/${total})...`;
                 
                 const blobSha = getSha(existingBlobs, blobKey);
-                // 如果 GitHub 上已经有这个文件且 SHA 存在，理论上可以跳过（此处为了绝对安全选择覆盖或根据逻辑跳过）
-                // 这里我们简单处理：获取本地数据，如果本地有，就上传
+                
+                // 检查本地是否有这个图片
                 const blob = await imageStore.getItem(blobKey);
                 if (blob) {
                     const base64 = await new Promise(resolve => {
@@ -44814,8 +44903,15 @@ const cloudBackupManager = (function() {
                 statusEl.textContent = `❌ 备份失败: ${e.message}`;
             }
             if (!isAuto) alert("备份失败: " + e.message);
+        } finally {
+            // 【核心新增 2】无论成功还是失败，最后都要关闭后台保活，释放资源
+            if (typeof conversationManager !== 'undefined') {
+                conversationManager.disableKeepAlive();
+                console.log("☁️ 云端备份：保活已关闭");
+            }
         }
     }
+
     async function performRestore() {
         var info = getRepoInfo();
         if (!info) return alert("请先填写仓库链接和Token！");
