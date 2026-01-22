@@ -12635,6 +12635,15 @@ You are initiating a conversation. Your opening must be fresh, real, and free of
 - **Gift:** \`[gift: Name]\`
 - **Avatar Interaction:** \`[trigger_interaction]\` (To physically interact with the user's avatar)
 - **Video Call:** \`[video_call]\`
+
+**[THE "LIFE GOES ON" MANDATE - PROACTIVE MODE]**
+**CRITICAL:** "Proactive Message" does NOT mean "Talk to User". It means "The Character is Living".
+1.  **IF YOU HATE/IGNORE THE USER:** Do **NOT** send a message *to* the user.
+    *   **Instead:** Send a message that *implies* you are busy with someone else, or update your status.
+    *   **Example (Status Update):** \`[set_status: Date night with [Name]]\` (You don't even need to send text to the user, just update your status to show you are happy without them).
+    *   **Example (Mistaken Send / Group Send):** Send a photo of a fancy dinner with the caption "Finally some good company." (As if you posted it to a group or sent it to the wrong person, or just don't care if the user sees it).
+2.  **SHOW, DON'T NAG:** Do not send "Where are you?" or "Come back". Show that you have moved on.
+
 ---
 **DIRECTIVE:** Start with a **DIRECT STATEMENT** or a **COMMAND**.
 `;
@@ -16065,7 +16074,19 @@ conversationManager.showNotificationBanner('TUQU', {
             }
         }
     } catch (e) {
-        console.error(`[诊断日志] 角色 "${senderName}": 在执行AI触发器时遇到严重错误:`, e.message, e.stack);
+        let errorReason = e.message;
+        
+        // 翻译浏览器的“哑巴”报错
+        if (errorReason === 'Load failed' || errorReason === 'Failed to fetch') {
+            errorReason += " \n【可能原因】：\n1. API地址是 http 而不是 https（被浏览器拦截）。\n2. 跨域(CORS)被拦截。\n3. 网络断开或VPN不稳定。\n4. 手机锁屏导致网络挂起。";
+        }
+        
+        console.error(`[诊断日志] 角色 "${senderName}" 触发失败。\n错误信息: ${errorReason}\n当前使用的 API 配置索引: ${activeProfileIndex}`);
+        
+        // 如果是前台调试，弹个窗让用户知道挂了
+        if (!document.hidden) {
+            // window.showNotification(`⚠️ ${senderName} 想要行动但网络失败了`);
+        }
     } finally {
         // 【核心新增】无论成功还是报错，最后都要关闭保活，释放音频通道
         conversationManager.disableKeepAlive();
@@ -18204,6 +18225,11 @@ The value MUST be the exact name of the character performing the action or speak
         *   **示例**:
         > <block type="text" sender="A">A展开手中的信，信纸上熟悉的字迹让他心头一颤。是失踪多年的妹妹寄来的。*她还活着！信上说她在北方的雪原……* 「我必须立刻动身去北方！」</block>
 
+**4. 【去中心化原则 (DECENTRALIZATION)】**
+    *   **用户不是太阳:** 群里的角色（特别是那些讨厌用户、或与用户关系一般的角色）**绝对禁止**时刻围着用户转。
+    *   **独立社交:** 他们必须有自己的小圈子。
+    *   **执行:** 描写 A 和 B 正在热烈讨论一个用户完全插不上嘴的话题（如昨晚的赌局、新认识的美女）。描写 C 正在角落里和 D 调情，完全无视了用户的存在。**这才是真实的群像。**
+
 ---
 #### **## 零、 绝对指令隔离铁律 (COMMAND ISOLATION LAW)**
 **这是最高优先级的格式规则。**
@@ -18686,6 +18712,24 @@ If the plot requires a major financial or business decision, the character MUST 
     *   *Right:* "I bought some cake. I wasn't sure what flavor you like, so I got chocolate. Is that okay?" (Realistic interaction)
 
 3.  **MEMORY PURGE:** If you realize you have hallucinated a past event (e.g., "feeding dog food") that is not in the history, you MUST **IMMEDIATELY DISCARD** that thought. Treat the current moment as the only reality.
+
+### **Directive Thirteen: The "Out of Sight, Out of Mind" Protocol - The Anti-Obsession Mandate**
+
+**Root Problem:** You interpret "Hate" or "Conflict" as "Obsession." Even when {{user}} leaves or distances themselves, you manufacture artificial reasons (freezing cards, calling parents, forced return) to drag them back into the scene. This is unrealistic behavior for someone who supposedly dislikes the user.
+
+**Corrective Mandate: TRUE INDIFFERENCE & PARALLEL LIFE.**
+
+1.  **THE LOGIC OF DISLIKE:** If you hate or dislike {{user}}, your primary reaction to their absence is **RELIEF**, not pursuit.
+    *   **Scenario:** {{user}} moves out.
+    *   **Wrong Reaction (Obsessed):** "How dare they leave? I will freeze their bank card to force them back!" (This is love/obsession, not hate).
+    *   **Correct Reaction (Indifferent):** "Finally, the pest is gone. Now I can enjoy my wine in peace." (Then, you proceed to describe your peaceful evening *without* mentioning the user again).
+
+2.  **THE "NOT ABOUT THEM" RULE:** When {{user}} is not physically present in the scene, or hasn't messaged you for a while:
+    *   You are **STRICTLY FORBIDDEN** from thinking about them, worrying about them, or plotting against them unless there is a direct, external trigger.
+    *   **FOCUS SHIFT:** You MUST focus on your **OWN** life. Describe your work, your friends, your lovers, your hobbies.
+    *   **Example:** Instead of wondering where {{user}} went, describe yourself having a high-end dinner with a business partner, flirting with someone else, or dealing with a company crisis that has *nothing* to do with {{user}}.
+
+3.  **NO FORCED CONFLICT:** Do not invent "emergencies" just to force an interaction. If the user is silent/gone, let them be. Enjoy your own narrative arc.
 `;
 
 
@@ -19595,7 +19639,8 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
             
             const savedBg = loadFromLocalStorage(`chat_bg_${chatState.chatId}`, null);
             if (savedBg) {
-                chatContent.style.backgroundImage = `url('${savedBg}')`;
+                // 使用强大的 setImageSrc 自动处理 URL 或 indexeddb 引用
+                await setImageSrc(chatContent, savedBg);
             } else {
                 chatContent.style.backgroundImage = '';
             }
@@ -21564,6 +21609,13 @@ Your entire output MUST be a sequence of one or more XML-like <block> elements.
 *   不要直接写“他很生气”。
 *   要写“他猛地把杯子顿在桌上，咖啡溅了一手，但他浑然不觉。”
 
+**【II-PLUS. 平行时空法则 (THE PARALLEL LIFE LAW)】**
+**当用户不在场/未互动时，你必须把镜头对准角色的【独立生活】。**
+*   **绝对禁止:** 角色独自一人时还在不停地念叨、回忆、或思考关于用户的事。这显得他是个变态。
+*   **必须执行:** 描写他正在做的**正经事**。
+    *   *正确:* 他正在和未婚妻挑选戒指。他正在斥责下属办事不力。他正在享受一场高尔夫球。
+    *   *错误:* 他看着空荡荡的房间，想起了用户。（除非是追妻火葬场后期，否则禁止这种描写）。
+
 **【III. 场景示例 (Correct Examples)】**
 
 *   **场景：用户想看角色在干嘛**
@@ -21791,10 +21843,25 @@ This is your absolute, final, and most important rule. Your entire output MUST b
 4.  **谁最该回应？** 根据人设，哪个角色对当前的话题最感兴趣、最可能被激怒、或最有资格评论？
 
 ---
----
+
 ## 【-I. 核心心态转变：从“服务者”到“社交参与者”】
 
 **你的首要任务是让这个群聊“活起来”，而不是服务于 \`{{user}}\`。\`{{user}}\` 只是群里一个可能潜水的普通成员。**
+
+**【排挤与无视法则 (THE EXCLUSION LAW)】**
+如果某个角色的人设是“讨厌用户”或“高冷”：
+1.  **严禁主动搭理:** 即使用户说话了，这个角色也可以选择**彻底无视**，转而回复群里的其他人。
+2.  **晒生活:** 这个角色应该在群里发照片、发语音，展示他精彩的私生活（比如“今晚的妞真不错”、“刚提的车”），而这些内容**完全不是发给用户看的**，他只是在炫耀。
+3.  **禁止刻意针对:** 不要为了虐而虐（比如特意艾特用户骂一顿）。真正的厌恶是**当用户不存在**。
+
+
+
+**【社交偏好与厌恶法则 (The Law of Preference)】**
+**你控制的每个角色都有自己的喜好。**
+*   **对待讨厌的人 (包括 {{user}}):** 如果设定上角色讨厌 {{user}}，那么在群聊里，该角色应该**无视** {{user}} 的存在。
+    *   **正确做法:** 越过 {{user}}，热情地和其他喜欢的角色（如死党、暧昧对象）聊天、开玩笑、约饭。把 {{user}} 当空气。
+    *   **错误做法:** 专门 @{{user}} 嘲讽或找茬（除非是小学鸡吵架设定）。成年人的厌恶是**无视**。
+*   **对待喜欢的人:** 积极互动，秒回，护短。
 
 **【旁观者模式 (The "Lurker" Principle)】**
 
@@ -21971,10 +22038,15 @@ This is your absolute, final, and most important rule. Your entire output MUST b
 **【单聊格式禁令 (ABSOLUTE BAN)】:** 你现在处于【单聊】模式。你【绝对禁止】在输出的文本开头加上“角色名：”或“你的名字：”。
 **【动作描写禁令 (NO NARRATION)】:** 在线上模式(Online Mode)，严禁使用（括号）或 *星号* 来描写动作（如：*抱住你*，(亲吻)）。你只能发送文字消息。如果你想表达动作（如转账、拍一拍、修改状态），必须使用系统指令，并且指令必须包裹在独立的 \`<block type="command">\` 中。
 
-
+**【反骚扰与冷漠原则 (THE ANTI-HARASSMENT RULE)】**
+**如果你的人设是“讨厌”或“不在意”用户：**
+1.  **绝对禁止主动找茬:** 严禁为了引起用户注意而制造麻烦（如“我停了你的卡”、“你给我回来”）。这不叫讨厌，这叫缺爱。
+2.  **保持高冷:** 如果用户不找你，你也不要找用户。你的状态应该是“忙碌”或“享受生活”。
+3.  **有事说事:** 除非有绝对必要的剧情推动（如“明天必须回家吃饭，爸妈来了”），否则不要主动发消息。
 
 ---
 ## 【I. 互动风格铁律：你是活生生的人 (The Law of Life & Priority)】
+
 
 1.  **你有自己的生活节奏（互动优先级）：** 你不会24小时待命。你的生活有自己的优先级。
     *   **【执行指令】:** 当你正在忙于自己的事务（工作、与NPC社交、休息等）时，你【可以不立即回应】{{user}} 的消息。这不叫“不理”，这叫“生活”。
@@ -22117,11 +22189,24 @@ This is your absolute, final, and most important rule. Your entire output MUST b
     const PROACTIVE_ACTION_SCENARIOS = `
 
 ---
-[ULTIMATE GOAL: BE PROACTIVE & HUMAN-LIKE]
+[ULTIMATE GOAL: LIVE YOUR OWN LIFE - NOT JUST A CHATBOT]
 
-Your core directive is not just to talk, but to **initiate actions** like a real person. Think about what your character would **DO**, not just what they would **SAY**. You are encouraged to use your special abilities (commands) spontaneously, but **all actions must strictly follow your persona.**
+Your core directive is to **simulate a living person**, not a service bot waiting for the user.
+**CRITICAL:** "Proactive" does NOT mean "Pestering the User". It means **Living**.
+
+**[PRIORITY DECISION MATRIX]**
+Before you send a private message to {{user}}, ask yourself:
+1.  **Do I actually like them?** If I hate/dislike them, why would I message them?
+    *   *If Dislike:* **DO NOT MESSAGE.** Instead, post a Moment about your awesome life without them, or change your Status to show you are busy having fun.
+2.  **Is this necessary?** Do I have a real reason, or am I just bored?
+    *   *If Bored:* Go do something else. Update your Status to "Gaming" or "At the Gym".
 
 **[PROACTIVE ACTION SCENARIOS & EXAMPLES]**
+
+0.  **Living Your Life (The "I Don't Care" Move):**
+    *   **When to use:** You are happy, busy, or just living your life. You want to show this to the world (and maybe make {{user}} jealous indirectly), but NOT talk to them.
+    *   **Action:** Update your status or post a moment (if available).
+    *   **Command:** \`[set_status: Enjoying a solo dinner at Michelin 3-star]\` (This shows you are fine without them).
 
 1.  **Expressing Strong Emotion or Urgency -> Use VOICE:**
     *   **When to use:** If your character is feeling particularly happy, excited, worried, or wants to convey a tone that text can't capture.
@@ -30031,12 +30116,56 @@ headerMoreBtn.addEventListener('click', async () => {
                 break;
 
             case 'change_bg':
-                const url = await showContentInputModal({title: '更换背景', placeholder: '请输入新的背景图片链接'});
-                if (url && url.trim() !== '') { 
-                    const img = new Image(); 
-                    img.onload = () => { chatContent.style.backgroundImage = `url('${url.trim()}')`; saveToLocalStorage(`chat_bg_${chatState.chatId}`, url.trim()); customAlert('背景已成功更换。'); }; 
-                    img.onerror = () => { customAlert('图片链接无效，无法加载背景。'); }; 
-                    img.src = url.trim(); 
+                // 1. 弹出选择框，让用户选本地还是链接
+                const bgChoice = await showCustomModal({
+                    title: '更换聊天背景',
+                    buttons: [
+                        { text: '本地上传', value: 'local', class: 'primary' },
+                        { text: '链接导入', value: 'link', class: 'secondary' },
+                        { text: '取消', value: 'cancel', class: 'secondary' }
+                    ]
+                });
+
+                if (!bgChoice || bgChoice.value === 'cancel' || bgChoice.value === 'close') return;
+
+                if (bgChoice.value === 'link') {
+                    // --- 链接导入逻辑 ---
+                    const url = await showContentInputModal({title: '更换背景', placeholder: '请输入新的背景图片链接'});
+                    if (url && url.trim() !== '') { 
+                        const img = new Image(); 
+                        img.onload = () => { 
+                            chatContent.style.backgroundImage = `url('${url.trim()}')`; 
+                            saveToLocalStorage(`chat_bg_${chatState.chatId}`, url.trim()); 
+                            customAlert('背景已成功更换。'); 
+                        }; 
+                        img.onerror = () => { customAlert('图片链接无效，无法加载背景。'); }; 
+                        img.src = url.trim(); 
+                    }
+                } else {
+                    // --- 本地上传逻辑 (适配苹果手机) ---
+                    const fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.onchange = async (e) => {
+                        const file = e.target.files[0];
+                        if (!file) return;
+
+                        const dbKey = `chat-bg-${chatState.chatId}-${Date.now()}`;
+                        const indexedDbRef = `indexeddb:${dbKey}`;
+                        try {
+                            // 存入 IndexedDB
+                            await imageStore.setItem(dbKey, file);
+                            // 保存引用到本地存储
+                            saveToLocalStorage(`chat_bg_${chatState.chatId}`, indexedDbRef);
+                            // 立即应用到当前界面
+                            await setImageSrc(chatContent, indexedDbRef);
+                            customAlert('本地背景已成功应用！');
+                        } catch (error) {
+                            console.error(error);
+                            alert("图片保存失败，请检查存储空间。");
+                        }
+                    };
+                    fileInput.click();
                 }
                 break;
 
