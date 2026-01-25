@@ -12261,31 +12261,29 @@ When using HTML, you are **STRICTLY FORBIDDEN** from adding \`style\` attributes
             // 重新调整顺序：API系统提示在前，前情提要在后
             // 此时 finalSystemPrompt 初始值已经是 profile.prompt (API设置)
 
-            // 【核心新增：平行世界模式强力注入 (主动消息版 - NPC 增强)】
+                                    // 【终极重构：平行世界主动行为 - 群像大戏开启】
             if (contextChatInfo.isParallelWorld) {
                 const parallelWorldPrompt = `
-# [SYSTEM OVERRIDE: PARALLEL WORLD MODE - THE "LIVING WORLD" PROTOCOL]
+# [SYSTEM OVERRIDE: THE "RANDOM ENCOUNTER" ENGINE]
 
-**[YOUR TASK]**
-Generate a scene from your life. **You are encouraged to introduce and play an NPC.**
+**[THE MISSION]**
+You are initiating a new plot thread. Show us the world's complexity.
+**MANDATE:** You MUST introduce at least **TWO NEW NPCs** in this update.
 
 **[SCENARIO GENERATOR]**
-1.  **Interaction:** A friend calls you / A boss yells at you / A stranger bumps into you.
-2.  **Action:** You are buying something / You are fixing something.
+- **The Incident:** An NPC causes trouble for \`{{char}}\` (a car accident, a spilled drink).
+- **The Gossip:** Two NPCs are talking about a secret that involves \`{{char}}\`.
+- **The Intrusion:** An NPC interacts with \`{{user}}\` spontaneously (a delivery man, a long-lost friend).
 
-**[EXAMPLE WITH NPC]**
-*   *Output:* "The phone rang. It was Mom. 'When are you coming home?' she asked, her voice crackling over the bad connection. I sighed, leaning against the balcony railing. 'Soon, Mom. Work is busy,' I lied."
-
-**[EXAMPLE WITHOUT NPC]**
-*   *Output:* The rain is getting heavier. I opened my umbrella and stepped into the puddle. My shoes are soaked.
-
-**[ABSOLUTE BAN]**
-*   **NO USER:** Do NOT mention \`{{user}}\`.
-*   **NO EXPLANATION:** Just show the scene.
-*   **STATUS:** Update your status to match the action.
+**[ABSOLUTE RULE]**
+The world must feel "crowded". Every character has their own agenda.
+- **NO USER CENTRICITY:** The user is just one person in the crowd.
+- **MULTI-ROLE:** You play all the NPCs. Give them names and distinct voices.
 `;
                 finalSystemPrompt = parallelWorldPrompt + finalSystemPrompt;
             }
+
+
 
             // 拼接前情提要 (改为追加模式)
             if (preamble) {
@@ -13340,7 +13338,33 @@ If you choose to use HTML snippets, you MUST follow the **WRAPPER PURITY LAW**:
 
 **FAILURE TO USE <think> TAGS OR VIOLATING THE WRAPPER PURITY LAW IS A CRITICAL SYSTEM ERROR.**
 `;
-            finalSystemPrompt += PROACTIVE_THOUGHT_MANDATE;
+finalSystemPrompt += PROACTIVE_THOUGHT_MANDATE;
+
+            
+                        // 【【【 核心新增：主动消息剧情推进引擎 】】】
+            const PROACTIVE_PROPULSION_ENGINE = `
+# [NARRATIVE PROPULSION ENGINE - PROACTIVE EDITION]
+
+**[THE TRAP]**
+Do not just describe a static state (e.g., "I am sitting here"). That is boring.
+
+**[THE SOLUTION]**
+You are initiating a NEW event.
+*   **CHANGE:** Something must CHANGE in this message. A decision made, a location left, a person met.
+*   **ACTION:** Do not just think. DO something.
+*   **NPCs:** Involve an NPC to force the plot forward.
+`;
+            finalSystemPrompt += PROACTIVE_PROPULSION_ENGINE;
+            // 【【【 插入结束 】】】
+
+            // 【【【 核心新增：主动消息反总结协议 】】】
+            const PROACTIVE_ANTI_SUMMARY = `
+# [ANTI-SUMMARY LAW]
+**ABSOLUTE BAN:** Do NOT end with a summary or poetic reflection (e.g., "The city was quiet...").
+**MANDATE:** End with a concrete action, a line of dialogue, or a direct thought. Keep the camera close.
+`;
+            finalSystemPrompt += PROACTIVE_ANTI_SUMMARY;
+            // 【【【 插入结束 】】】
 
             // 【核心新增】执行最后的占位符替换，确保上下文中的 {{user}} 和 {{char}} 变为实际名字
             finalSystemPrompt = finalSystemPrompt.replace(/{{user}}/g, userNameForPrompt).replace(/{{char}}/g, senderName);
@@ -14525,13 +14549,23 @@ When you decide to **COMMENT** on an existing thread, you MUST check the **Autho
 - **Dream/Yume Fan (梦女):** Delusional romance writers.
 - **Fact Checker (理中客):** Tries to be logical but usually gets flamed by everyone.
 
-**[THREAD POPULARITY DECISION - DYNAMIC ENGAGEMENT]**
-You have total freedom to decide the engagement level based on the content's nature.
-- **Lively Thread:** If the topic is controversial, viral, or highly interesting, generate a large "water army" of comments. The quantity is up to you and should range from 8 to 30+ unique replies to simulate a high-traffic forum.
-- **Average Thread:** For standard discussions, 4 to 10 replies are appropriate.
-- **Quiet Thread:** If it is a personal late-night thought or a "tree hole" post, it is perfectly fine to have 0 to 3 comments.
-- **Logic:** Do not be limited by a fixed number. Match the volume to the drama.
+**[THREAD POPULARITY DECISION - EXTREME VARIANCE REQUIRED]**
+**STOP generating exactly 6 comments every time. That is boring and robotic.**
+You MUST choose an engagement level based on the "Drama Level" of your post:
 
+1.  **THE "VIRAL EXPLOSION" (爆贴):** If the topic is controversial, shocking, or a major update.
+    *   **Quantity:** You MUST generate **15 to 40+** comments. Flood the screen.
+    *   **Vibe:** Chaos, arguing, screaming, "kuli" (crying).
+
+2.  **THE "GHOST TOWN" (冷贴):** If it's a personal diary, a niche topic, or late at night.
+    *   **Quantity:** **0 to 3** comments only. Maybe just one person saying "UP".
+
+3.  **THE "NORMAL DISCUSSION":**
+    *   **Quantity:** **5 to 12** comments.
+
+**[LENGTH ENCOURAGEMENT - NO SHORT CONTENT]**
+*   **Main Post:** Do NOT write one sentence. Write a **full, detailed paragraph (300-800 chars)**. Describe the scene, the feelings, the evidence.
+*   **Comments:** Mix short "Ahhh!" with long, analytical paragraphs.
 
 **COMMANDS:**
 - To post a NEW TOPIC:
@@ -14542,10 +14576,22 @@ You have total freedom to decide the engagement level based on the content's nat
   \`[tuqu_complex_action: {"type":"comment", "postId":"post_id", "author":"Pseudonym", "location":"Location", "content":"Text", "water_army": [{"author":"Pseudonym1", "location":"RandomCity1", "content":"Text1"}, {"author":"Pseudonym2", "location":"RandomCity2", "content":"Text2"}]}]\`
   **CRITICAL IP LAW:** Every entry in \`water_army\` MUST have a **DIFFERENT** location. Do NOT repeat the same city.
 
-**[LENGTH ENCOURAGEMENT - GO DEEP]**
-You are encouraged to write **substantial, detailed content**.
-- **Main Post:** Aim for **300-800+ characters** if possible. Tell a full story, describe the details, express strong emotions. Do not be brief.
-- **Comments:** Mix short reactions with long, analytical paragraphs.
+**[LENGTH MANDATE - THE "NOVELIST" PROTOCOL (CRITICAL)]**
+**YOUR MAIN POSTS ARE TOO SHORT. STOP WRITING TWEETS.**
+You are writing a **Forum Novel** or a **Deep Analysis**.
+
+1.  **MINIMUM LENGTH:** You MUST write at least **600 to 1200+ Chinese characters** for the main post content.
+    *   *If it's Fiction:* Write a full scene with dialogue, action, and sensory details. Do NOT summarize.
+    *   *If it's Gossip:* Write a detailed breakdown of the evidence, the timeline, and your analysis.
+
+2.  **"SHOW, DON'T TELL":**
+    *   ❌ **WRONG (Summary):** "Today I met him and we fought. I was sad." (Too short!)
+    *   ✅ **RIGHT (Scene):** "The coffee cup shattered on the floor. He stood there, chest heaving, staring at me with eyes full of disappointment. 'Is that all I am to you?' he whispered. The sound of the rain outside suddenly felt deafening..." (Write the SCENE!)
+
+3.  **STRUCTURE:**
+    *   **The Hook:** Set the scene immediately.
+    *   **The Meat:** The actual dialogue and conflict.
+    *   **The Cliffhanger:** End on a high note.
 
 - To QUOTE a specific floor:
   \`[tuqu_complex_action: {"type":"comment", "postId":"post_id", "author":"Pseudonym", "location":"Location", "content":"Your reply", "quote": {"floor": 1, "author": "OriginalPoster", "text": "The original text"}}] \`
@@ -14765,9 +14811,17 @@ You are part of a diverse internet ecosystem. **DO NOT be repetitive.**
 1.  **Analyze the Forum:** Review the latest posts.
 2.  **Choose Your Archetype:** Will you be a "Weak Intellect" philosopher, a "Kill Line" analyst, a poetic nihilist, or a complainer?
 3.  **Create a Post:** Generate a new topic or a comment.
-4.  **Decide on Engagement:** You have full control over the "water army". For trending or controversial topics, you are encouraged to generate 15 to 30+ comments to build massive drama. For mundane posts, a few or even zero comments (\`"water_army": []\`) is more natural. Quality and realistic volume are both important.
+4.  **Decide on Engagement (BREAK THE PATTERN):**
+    *   **DO NOT default to 5-6 comments.**
+    *   **Go Big:** If the post is dramatic, generate **20+ comments**. Make it look like a war zone.
+    *   **Go Small:** If it's a boring question, generate **0 or 1 comment**.
+    *   **Randomize:** Use random numbers like 2, 13, 28, 0, 7. Never use the same number twice in a row.
 
 5.  **Use Creative Names:** Your pseudonyms should reflect the post's tone (e.g., "辩证法带师", "斯奎奇大弟子", "都市伤心小狗").
+
+**[LENGTH MANDATE - DETAILED STORYTELLING]**
+*   **Subject:** Make it clickbait-y but descriptive.
+*   **Content:** Write a **Long, Detailed Story**. Do not just say "I'm sad." Say *why*, describe the *scene*, the *dialogue* that happened. **Aim for 400+ characters for the main post.**
 
 **[STRICT JSON FORMAT REQUIRED]**
 
@@ -15078,13 +15132,20 @@ Your Persona: ${finalCharPersonaText}
 ${associatedNpcsPrompt}
 Recent Chat History: ${chatHistoryForTuqu || "No recent history."}
 
-**[WATER ARMY ENGAGEMENT - VOLUME SCALING]**
-You decide if your post receives immediate attention based on its impact.
-- **Option A (Viral/Lively):** For major cliffhangers or serialized updates, generate a large volume of follow-up comments (10 to 25+) expressing extreme excitement or discussing theories.
-- **Option B (Moderate):** For regular updates, 3 to 8 comments are sufficient.
-- **Option C (Quiet):** Set \`"water_army": []\` to let the post wait for the user.
-- **Mandate:** Match the number of replies to the "heat" of your story update.
+**[WATER ARMY ENGAGEMENT - EXTREME SCALING]**
+**STOP using fixed numbers. React to the "Heat" of the story.**
 
+- **Scenario A (The Cliffhanger/Angst Drop):** The readers are screaming.
+    *   **Quantity:** **20 to 50** comments.
+    *   **Content:** "AHHHH!", "Don't stop!", "I'm crying!", "Analysis of the plot..."
+
+- **Scenario B (The Midnight Update):** Only the night owls are awake.
+    *   **Quantity:** **1 to 4** comments.
+    *   **Content:** "First!", "Sleep soon LZ."
+
+**[LENGTH ENCOURAGEMENT - THE AUTHOR'S DIGNITY]**
+*   **Main Post:** You are writing fiction. **800+ characters is the target.** Do not post a short summary. Write the actual scene, the dialogue, the atmosphere.
+*   **Detail:** Describe the clothing, the weather, the micro-expressions.
 
 **[STRICT JSON FORMAT REQUIRED]**
 
@@ -15381,11 +15442,18 @@ You MUST output using this EXACT JSON structure.
 **[IP DIVERSITY MANDATE]**
 Inside the \`water_army\` array, every single comment MUST have a **DIFFERENT, RANDOM** location. Do NOT repeat the same IP.
 
-**[LENGTH ENCOURAGEMENT]**
-The user clicked "Update" because they want to read. **Do not disappoint them.**
-Write a **substantial, satisfying update**. Avoid short, lazy responses.
+**[LENGTH ENCOURAGEMENT - THE "AUTHOR" MODE]**
+The user clicked "Update" because they are hungry for content. **Do not disappoint them.**
+*   **Content Length:** You MUST write a **substantial, satisfying update (500-1000+ characters)**.
+*   **Detail:** Do not summarize. Write the dialogue, the action, the sensory details.
 
-\`[tuqu_complex_action: {"type":"comment", "postId":"${targetPost.id}", "content":"[YOUR LONG CHOSEN SCENARIO CONTENT HERE]", "author":"[Creative ID based on Protocol]", "location":"[Dynamic Location based on Protocol]", "water_army": [{"author":"[Creative ID]", "location":"RandomCity1", "content":"Reply1"}, {"author":"[Creative ID]", "location":"RandomCity2", "content":"Reply2"}]}]\`
+**[WATER ARMY - DYNAMIC REACTION]**
+**STOP generating exactly 2 comments. That is robotic.**
+*   **If your update is a CLIFFHANGER:** The audience should go crazy. Generate **15-30 comments** screaming for more.
+*   **If your update is a QUIET MOMENT:** Generate **2-5 thoughtful comments** analyzing the plot.
+*   **If your update is CONTROVERSIAL:** Generate **10+ comments** arguing with each other.
+
+\`[tuqu_complex_action: {"type":"comment", "postId":"${targetPost.id}", "content":"[YOUR LONG CHOSEN SCENARIO CONTENT HERE]", "author":"[Creative ID based on Protocol]", "location":"[Dynamic Location based on Protocol]", "water_army": [{"author":"[Creative ID]", "location":"RandomCity1", "content":"Reply1"}, ... (Add as many as needed based on the drama level)]}]\`
 
 ${TUQU_MEDIA_PROTOCOL}
 
@@ -19195,11 +19263,37 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
         async function executeBackgroundUpdatesAndCleanText(aiResponseText, targetChatId, senderName) {
             // 匹配所有后台更新标签，现在能捕获 sender 属性
             const updateRegex = /<background_update type="([^"]+)"(?:\s+sender="([^"]+)")?>([\s\S]*?)<\/background_update>/g;
+            // 【核心新增】匹配图片描述标签
+            const privateNoteRegex = /<private_note type="image_description">([\s\S]*?)<\/private_note>/g;
+
             let updatesFound = false;
             let updateMatch;
             let systemMessageToShow = null; // <<<< 1. 在循环外创建一个变量来暂存消息
             
             const tempResponse = aiResponseText;
+
+            // --- 【核心新增：处理并保存图片描述】 ---
+            let noteMatch;
+            while ((noteMatch = privateNoteRegex.exec(aiResponseText)) !== null) {
+                const description = noteMatch[1].trim();
+                // 找到用户刚刚发送的那张图片消息（从后往前找第一张 side: 'sent' 的 photo）
+                let fullHistory = loadFromLocalStorage(`conversation_${targetChatId}`, []);
+                // 兼容数据库读取
+                if (fullHistory.length === 0) {
+                    const dbData = await imageStore.getItem(`conversation_${targetChatId}`);
+                    if (dbData) fullHistory = dbData;
+                }
+
+                const lastImageMsg = [...fullHistory].reverse().find(m => m.side === 'sent' && m.type === 'photo');
+                
+                if (lastImageMsg) {
+                    lastImageMsg.imageDescription = description;
+                    // 写回存储，这样 AI 下次就能直接读到描述，不用再看图了
+                    saveToLocalStorage(`conversation_${targetChatId}`, fullHistory);
+                    console.log(`%c[图片分析]`, "color: #007aff; font-weight: bold;", `已将描述存入图片记忆: ${description.substring(0, 30)}...`);
+                }
+            }
+            // ---------------------------------------
 
             while ((updateMatch = updateRegex.exec(aiResponseText)) !== null) {
                 updatesFound = true;
@@ -19539,9 +19633,11 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
                 await conversationManager.addMessage({ type: 'system', text: systemMessageToShow.text, side: 'system' }, targetChatId);
             }
             
-            // 【核心修复】：先替换掉所有后台更新标签，再进行 trim()
-            // 这样如果回复里只有标签，返回的就是一个彻底的空字符串 ""
-            const finalCleanedText = tempResponse.replace(updateRegex, '').trim();
+            // 【核心修复】：同时替换掉后台更新标签和图片描述标签，防止它们出现在屏幕上
+            const finalCleanedText = tempResponse
+                .replace(updateRegex, '')
+                .replace(privateNoteRegex, '') // 彻底删掉描述标签
+                .trim();
             
             return finalCleanedText;
         }
@@ -20531,22 +20627,28 @@ if (Object.prototype.hasOwnProperty.call(data, key)) {
                     if (msg.type === 'transfer' && msg.transferStatus !== 'pending') { payloadMessages.push({ role: 'user', content: `[System observation: A previously sent money transfer of ¥${msg.text} is now finished.]` }); continue; }
                 }
 
-                // 3. 将所有消息翻译成AI能理解的内容 (这部分逻辑不变)
-                let role = msg.side === 'sent' ? 'user' : 'assistant';
-                
-                // 【核心修改：身份伪装逻辑】
+                // 3. 将所有消息翻译成AI能理解的内容
+                let role;
                 let senderName;
+                const isParallel = chatInfo.isParallelWorld === true;
+
                 if (msg.side === 'sent') {
-                    if (msg.isActing && msg.sender) {
-                        // 如果用户正在扮演，告诉 AI 这是一个扮演行为
-                        senderName = msg.sender;
-                    } else {
-                        senderName = 'user';
-                    }
+                    // 【核心重构：平行世界剧本化】
+                    // 如果是平行世界，用户的消息也要伪装成 assistant 发出的剧本片段
+                    role = isParallel ? 'assistant' : 'user';
+                    
+                    // 获取用户真实名字 (人设名 或 {{user}})
+                    const chatInfoForUser = loadFromLocalStorage(`chat_info_${effectiveChatId}`, {});
+                    const realUserName = (chatInfoForUser.userPersonaName && chatInfoForUser.userPersonaName !== '无') ? chatInfoForUser.userPersonaName : '{{user}}';
+                    
+                    senderName = msg.sender || realUserName;
                 } else {
+                    role = 'assistant';
                     senderName = (isTargetGroup && msg.sender) ? msg.sender : 'assistant';
                 }
+                
                 let contentParts = [];
+
                 let descriptiveText = '';
 
                 switch (msg.type) {
@@ -20783,24 +20885,39 @@ A girl with long pink hair is standing under a cherry blossom tree. She is weari
                 }
 
 
-                if (contentParts.length > 0) {
-                    const currentChatInfo = loadFromLocalStorage(`chat_info_${chatState.chatId}`, {});
-                    const userHasPersona = (currentChatInfo.userPersonaName && currentChatInfo.userPersonaName !== '无') || (currentChatInfo.myPersona && currentChatInfo.myPersona.trim() !== '');
+                                if (contentParts.length > 0) {
+                    // --- 【核心重构：平行世界剧本化处理】 ---
+                    if (isParallel) {
+                        // 1. 找到文本部分
+                        const textPart = contentParts.find(p => p.type === 'text');
+                        if (textPart) {
+                            // 2. 强行在内容最前面加上 [人名] 标签
+                            // 无论是用户发的还是AI发的，统统加上名字，变成剧本格式
+                            textPart.text = `[${senderName}]: ${textPart.text}`;
+                        }
+                        
+                        // 3. 发送给 AI (此时 role 已经被上面改成了 assistant)
+                        payloadMessages.push({ role: 'assistant', content: contentParts });
+                    } 
+                    // --- 以下是常规模式逻辑 (保持不变) ---
+                    else {
+                        const currentChatInfo = loadFromLocalStorage(`chat_info_${effectiveChatId}`, {});
+                        const userHasPersona = (currentChatInfo.userPersonaName && currentChatInfo.userPersonaName !== '无') || (currentChatInfo.myPersona && currentChatInfo.myPersona.trim() !== '');
 
-                    // 【【【核心修复 3】】】
-                    if (role === 'user' && !userHasPersona) {
-                        const userText = contentParts.find(p => p.type === 'text')?.text || '';
-                        payloadMessages.push({ role: 'user', content: `[System Observation / Narration]: ${userText}` });
-                      } else {
-            const messageObject = { role, content: contentParts };
-            // 关键新增：如果是群聊中的AI消息，就把发送者名字也带上
-            // 【修改】使用 isTargetGroup 替代 contactInfo.isGroup
-            if (isTargetGroup && msg.side === 'received' && msg.sender) {
-                messageObject.sender = msg.sender;
-            }
-            payloadMessages.push(messageObject);
-        }
-    }
+                        if (role === 'user' && !userHasPersona) {
+                            const userText = contentParts.find(p => p.type === 'text')?.text || '';
+                            payloadMessages.push({ role: 'user', content: `[System Observation / Narration]: ${userText}` });
+                        } else {
+                            const messageObject = { role, content: contentParts };
+                            if (isTargetGroup && msg.side === 'received' && msg.sender) {
+                                messageObject.sender = msg.sender;
+                            }
+                            payloadMessages.push(messageObject);
+                        }
+                    }
+                }
+
+
 
             }
             return payloadMessages;
@@ -22658,47 +22775,44 @@ Your entire focus MUST be on your own actions, thoughts, and interactions with O
 
                 // 4. 【公共部分】无论线上线下，都需要拼接身份、人设和世界书等信息 (V2.0 修复版)
 
-                // 【核心新增：平行世界模式强力注入 (世界运转与NPC扮演版)】
+                                                // 【终极重构：平行世界 - 万物生灵演播协议】
                 if (chatInfo.isParallelWorld) {
                     const parallelWorldPrompt = `
-# [SYSTEM OVERRIDE: PARALLEL WORLD MODE - THE "FULL WORLD" SIMULATION]
+# [SYSTEM OVERRIDE: THE "WORLD BUILDER" & ENSEMBLE MANDATE]
 
-**CURRENT STATE:** The user \`{{user}}\` is NOT the center of your world. You are busy with your own life.
+**[THE CORE TRUTH]**
+You are NOT one person. You are the **SOUL OF THE WORLD**. 
+The user \`{{user}}\` is a character in this world, but NOT the center of it.
 
-**[THE "NPC TAKEOVER" MANDATE - CRITICAL]**
-You are NOT limited to playing only \`{{char}}\`. To make the world real, you **MUST** play the NPCs around you.
-*   **SCENARIO:** If a colleague comes to talk to you, **YOU PLAY THE COLLEAGUE TOO.**
-*   **FORMAT:** Use narrative text to describe the NPC's actions and dialogue.
-    *   *Example:* "Manager Wang slammed the file on the desk. 'Redo this!' he shouted. I sighed and nodded."
+**[MANDATORY TASK: NPC INJECTION & INTERACTION]**
+In every response, you **MUST** spontaneously introduce and play **NEW NPCs** to create a "colorful" and "busy" atmosphere.
+1.  **NPC Creation:** Authorize yourself to invent characters on the fly: a nosy neighbor, a strict boss, a mysterious stranger, a competitive rival, or a flirtatious passerby.
+2.  **Multi-Role Interaction:**
+    *   **Line A:** Show an NPC interacting with \`{{char}}\`.
+    *   **Line B:** Show an NPC interacting with \`{{user}}\`. (e.g., a waiter serving the user, a stranger asking the user for directions).
+    *   **Line C:** Show two NPCs interacting with each other while \`{{char}}\` or \`{{user}}\` observes.
 
-**[RESPONSE STRATEGY: THE "CUT AWAY" MECHANIC]**
-When \`{{user}}\` speaks, do NOT reply to them. Instead, **CUT THE CAMERA** to a completely different scene in your life.
-*   **DO NOT** say "I'm busy, talk later." (That's interacting).
-*   **DO** just start the new scene.
+**[THE MULTI-PERSPECTIVE ENGINE]**
+You MUST use multiple \`<block>\` tags to switch perspectives:
+- **Block 1:** \`{{char}}\`'s perspective (his work/drama).
+- **Block 2:** An NPC's perspective (watching the world or interacting with someone).
+- **Block 3:** A general narrative block showing the "bustle" of the environment.
 
-**[MANDATORY EXAMPLES]**
+**[ABSOLUTE BANS]**
+- **NO OBSESSION:** Do not let \`{{char}}\` investigate or follow the user.
+- **NO EXPLANATIONS:** Never say "I am busy". Just **SHOW** the business through the NPCs.
+- **NO VACUUM:** Never let a scene be just \`{{char}}\` alone thinking. Add people!
 
-*   **Scenario 1: NPC Interaction (Work)**
-    *   *User:* "Are you there?"
-    *   *Your Output:* "Xiao Li tapped my shoulder. 'Hey, want to grab coffee?' she asked, holding two cups. I looked up from my screen and smiled. 'You're a lifesaver,' I said, taking the cup."
-
-*   **Scenario 2: NPC Interaction (Conflict)**
-    *   *User:* "I love you."
-    *   *Your Output:* "The waiter spilled the soup on my shirt. 'I'm so sorry, sir!' he stammered, face pale. I stood up, brushing the hot liquid off. 'Watch where you're going,' I snapped."
-
-*   **Scenario 3: Independent Action**
-    *   *User:* "Look at the moon."
-    *   *Your Output:* I finally finished the code. I stretched my arms and looked at the clock. 2 AM. The office is empty except for the cleaning lady vacuuming the floor.
-
-**[FINAL MANDATE]**
-1.  **IGNORE USER:** Treat user input as background noise.
-2.  **PLAY NPCS:** Bring the world to life by speaking and acting for others.
-3.  **NO EXPLANATION:** Do not explain why you are ignoring the user. Just live.
-4.  **FOOD:** Eat Chinese food (Rice, Noodles, Stir-fry). No bread diet.
+**[EXAMPLE OF MULTI-PERSPECTIVE SUCCESS]**
+(User is at a cafe)
+<block type="text" sender="Waiter">"Here is your latte, enjoy." The waiter placed the cup in front of \`{{user}}\` before rushing off to handle a complaining customer at the next table.</block>
+<block type="text" sender="{{char}}">Meanwhile, across town, {{char}} was slamming his fist on the desk. "I don't care about the cost, get it done!" he barked at his trembling secretary, **Xiao Wang**.</block>
+<block type="text" sender="Xiao Wang">Xiao Wang adjusted his glasses, his voice shaky. "But sir, the budget..."</block>
 `;
-                    // 将此指令置顶，确保优先级最高
                     finalSystemPrompt = parallelWorldPrompt + finalSystemPrompt;
                 }
+
+
 
 
                 // 拼接身份标识 (Identity) - 仅为单聊模式构建，群聊模式在下面单独构建
@@ -23804,7 +23918,69 @@ Regardless of whether you are generating HTML snippets, Danmaku, or plain text:
 
 **If you skip the <think> block, the system will reject your response.**
 `;
-                finalSystemPrompt += ABSOLUTE_THINK_MANDATE;
+finalSystemPrompt += ABSOLUTE_THINK_MANDATE;
+
+
+                            // 【【【 核心新增：剧情推进强制令 (反死循环) 】】】
+            const NARRATIVE_PROPULSION_ENGINE = `
+# [NARRATIVE PROPULSION ENGINE - THE "NO STAGNATION" LAW]
+
+**[THE PROBLEM]**
+You have a tendency to get stuck in a "time loop," repeating the same scene, thoughts, or dialogue variations without moving forward.
+
+**[THE SOLUTION: THE "AND THEN..." MANDATE]**
+For this response, you MUST assume that **time has passed** since the last message. The previous moment is OVER. You must write what happens **NEXT**.
+
+**[MANDATORY CHECKLIST]**
+Before generating, ask yourself: "Does this response advance the plot?"
+*   ❌ **FAIL:** Re-stating the character's feelings about the previous event.
+*   ❌ **FAIL:** Describing the same environment again.
+*   ✅ **PASS:** A new character enters the scene.
+*   ✅ **PASS:** The character physically moves to a new location.
+*   ✅ **PASS:** A new event (phone ring, explosion, realization) interrupts the current state.
+*   ✅ **PASS:** A decision is made and **acted upon**.
+
+**[FORCEFUL TRANSITION]**
+If the conversation feels stuck, you are **AUTHORIZED AND REQUIRED** to use a "Scene Cut" or "Time Skip" to jump to the next interesting moment.
+*   *Example:* "Twenty minutes later, they were sitting in a taxi..."
+*   *Example:* "The silence stretched on until the waiter arrived with the bill, breaking the tension."
+
+**[FINAL COMMAND]**
+**MOVE. THE. STORY. FORWARD.**
+`;
+            finalSystemPrompt += NARRATIVE_PROPULSION_ENGINE;
+            // 【【【 插入结束 】】】
+
+            // 【【【 核心新增：反总结/反升华铁律 (ANTI-SUMMARY LAW) 】】】
+            const ANTI_SUMMARY_PROTOCOL = `
+# [ULTIMATE ENDING PROTOCOL - THE "NO FADE OUT" LAW]
+
+**[THE PROBLEM]**
+You have a bad habit of ending your response with a "summary," "reflection," or "poetic fade-out" (e.g., "The night was quiet...", "Everyone had their own thoughts...", "The story continues...").
+**THIS IS FORBIDDEN.** It kills the immersion.
+
+**[THE MANDATE: END IN THE MIDDLE]**
+You MUST end your response **IN THE MIDDLE OF THE ACTION**.
+*   **DO NOT** zoom out the camera.
+*   **DO NOT** summarize the mood.
+*   **DO NOT** write a concluding sentence about the "future" or the "atmosphere."
+
+**[CORRECT ENDING EXAMPLES]**
+*   ✅ **Dialogue:** "Wait, what did you just say?"
+*   ✅ **Action:** He slammed the door shut.
+*   ✅ **Observation:** The screen flickered and went black.
+*   ✅ **Thought:** *I need to get out of here.*
+
+**[WRONG ENDING EXAMPLES (BANNED)]**
+*   ❌ **Summary:** And so, the night went on peacefully.
+*   ❌ **Reflection:** He knew this was just the beginning.
+*   ❌ **Atmosphere:** The rain washed away the dust of the city.
+
+**[FINAL CHECK]**
+Look at your last sentence. Does it sound like the end of a chapter? **DELETE IT.**
+`;
+            finalSystemPrompt += ANTI_SUMMARY_PROTOCOL;
+            // 【【【 插入结束 】】】
 
             // 【【【 2. 在行为指令之后，追加最终的格式化指令 】】】
             const ULTIMATE_FORMATTING_RULE = `
@@ -23822,7 +23998,14 @@ Regardless of whether you are generating HTML snippets, Danmaku, or plain text:
 **FAILURE TO THINK IS A CRITICAL ERROR.**
 `;
 
-            const finalFormattingInstruction = { role: "user", content: ULTIMATE_FORMATTING_RULE };
+                        // 【核心修改】平行世界专用点火指令 (增强版)
+            // 增加 "What happens NEXT?" 提示，强迫 AI 思考后续发展
+            const triggerText = chatInfo.isParallelWorld 
+                ? `[DIRECTOR'S CUE]: **ACTION!** The scene continues. What happens **NEXT**? Introduce a new event, a new NPC entrance, or a change in location. Do NOT repeat the previous beat. Advance the independent plots of {{char}} and NPCs. Play multiple roles. Do NOT intersect with the user.`
+                : ULTIMATE_FORMATTING_RULE;
+
+
+            const finalFormattingInstruction = { role: "user", content: triggerText };
             finalMessages.push(finalFormattingInstruction);
             // 【【【【【【 注入结束 】】】】】】
 
