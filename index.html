@@ -19768,74 +19768,77 @@ let summaryLocks = {};  // 【核心新增】自动总结防抖锁，防止一�
         }
 
 
-        function saveConversation() {
-            if (!chatState.chatId) return;
+        function saveConversation(specificChatId = null) {
+            // 1. 确定要保存的目标 ID
+            // 如果没有指定 ID，就用当前屏幕的 ID
+            const targetId = specificChatId || chatState.chatId;
+            if (!targetId) return;
 
-            // 【核心修复】保存保护锁
-            // 如果内存中的历史记录为空，且当前并不处于“新创建的空聊天”状态，则禁止保存
-            // 这能防止因为加载失败或加载延迟导致的“数据被清空”事故
+            // 【核心安全锁】防止串台的最后一道防线
+            // 如果我们正在试图保存全局的 fullMessageHistory，必须确保它属于 targetId
+            // 如果 targetId 和当前屏幕的 chatState.chatId 不一致，说明发生了切屏，绝对禁止保存全局变量！
+            if (!specificChatId && targetId !== chatState.chatId) {
+                console.error(`[严重警告] 拦截了一次串台保存！试图将当前屏幕数据写入 ID: ${targetId}，但当前屏幕 ID 是: ${chatState.chatId}`);
+                return;
+            }
+
+            // 2. 空数据保护锁
             if ((!fullMessageHistory || fullMessageHistory.length === 0)) {
-                // 只有当这是一个全新的聊天（列表里显示还没有消息）时，才允许保存空数组
-                const currentChatInList = chatList.find(c => c.id === chatState.chatId);
+                const currentChatInList = chatList.find(c => c.id === targetId);
                 if (currentChatInList && currentChatInList.lastMessage !== '可以开始聊天了' && currentChatInList.lastMessage !== '群聊已创建') {
                     console.warn("[安全拦截] 内存数据为空，阻止了可能导致数据丢失的保存操作。");
                     return;
                 }
             }
 
-            console.log(`[诊断探针] 1. 开始执行 saveConversation，目标 chat ID: ${chatState.chatId}`);
+            console.log(`[数据保存] 执行保存，目标 ID: ${targetId}`);
             
             try {
-                const key = `conversation_${chatState.chatId}`;
-
+                const key = `conversation_${targetId}`;
                 
-                // 【核心修改】智能保存逻辑 (防复活版)
+                // 【核心】保存 fullMessageHistory
                 try {
-                    // 1. 先尝试存入 LocalStorage
                     localStorage.setItem(key, JSON.stringify(fullMessageHistory));
-                    
-                    // 【关键修复】如果 LS 保存成功，必须把数据库里的旧备份删掉！
-                    imageStore.removeItem(key).catch(e => console.warn("清理旧数据库失败", e));
-                    
+                    imageStore.removeItem(key).catch(e => {}); 
                 } catch (e) {
-                    // 2. 如果 LS 满了，存入 IndexedDB
                     if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
-                        console.warn(`[诊断探针] LocalStorage 已满，转存至 IndexedDB: ${key}`);
-                        
                         imageStore.setItem(key, fullMessageHistory).then(() => {
-                            // 【关键修复】如果存入了数据库，必须把 LS 里的残余数据删掉！
                             localStorage.removeItem(key);
-                        }).catch(err => {
-                            console.error("IndexedDB 保存也失败:", err);
-                            // 此时不弹窗打扰用户，因为addMessage已经尝试过保存了
                         });
                     } else {
-                        console.error('[诊断探针] 致命错误：', e);
+                        console.error('[保存失败]', e);
                     }
                 }
 
             } catch (error) {
-                console.error('[诊断探针] 致命错误：', error);
+                console.error('[致命错误]', error);
             }
             
-            // 更新聊天列表预览
-            const chatInList = chatList.find(c => c.id === chatState.chatId);
-            if (chatInList) {
-                const lastMsg = [...chatState.messages].filter(m => m.type !== 'time_divider' && m.side !== 'system').pop();
-                if (lastMsg) {
-                    let lastMessageText = lastMsg.text;
-                    if(lastMsg.type !== 'text') { const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'transfer': '[转账]', 'red_packet': '[红包]', 'photo-description': '[图文]', 'video': '[视频]', 'location': '[位置]', 'gift': '[礼物]', 'pay_for_me': '[代付]', 'call_summary': '[视频通话]', 'tuqu_share': '[分享]' }; lastMessageText = typeMap[lastMsg.type] || '[消息]'; }
-                    if(lastMsg.side === 'sent') lastMessageText = "{{user}}: " + lastMessageText;
-                    else if(contactInfo.isGroup && lastMsg.sender) lastMessageText = `${lastMsg.sender}: ${lastMessageText}`;
-                    chatInList.lastMessage = lastMessageText.length > 25 ? lastMessageText.substring(0, 25) + '...' : lastMessageText;
-                    chatInList.timestamp = formatTimestamp(lastMsg.timestamp).split(' ')[0];
+            // 更新列表预览 (仅当保存的是当前聊天时)
+            if (targetId === chatState.chatId) {
+                const chatInList = chatList.find(c => c.id === targetId);
+                if (chatInList) {
+                    const lastMsg = [...chatState.messages].filter(m => m.type !== 'time_divider' && m.side !== 'system').pop();
+                    if (lastMsg) {
+                        let lastMessageText = lastMsg.text;
+                        if(lastMsg.type !== 'text') { 
+                            const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'transfer': '[转账]', 'red_packet': '[红包]', 'photo-description': '[图文]', 'video': '[视频]', 'location': '[位置]', 'gift': '[礼物]', 'pay_for_me': '[代付]', 'call_summary': '[视频通话]', 'tuqu_share': '[分享]' }; 
+                            lastMessageText = typeMap[lastMsg.type] || '[消息]'; 
+                        }
+                        if(lastMsg.side === 'sent') lastMessageText = "{{user}}: " + lastMessageText;
+                        else if(contactInfo.isGroup && lastMsg.sender) lastMessageText = `${lastMsg.sender}: ${lastMessageText}`;
+                        
+                        chatInList.lastMessage = lastMessageText.length > 25 ? lastMessageText.substring(0, 25) + '...' : lastMessageText;
+                        chatInList.timestamp = formatTimestamp(lastMsg.timestamp).split(' ')[0];
+                    }
+                    const chatListIndex = chatList.findIndex(c => c.id === targetId);
+                    if (chatListIndex > 0) { const [item] = chatList.splice(chatListIndex, 1); chatList.unshift(item); }
+                    saveChatList();
+                    renderChatList();
                 }
-                const chatListIndex = chatList.findIndex(c => c.id === chatState.chatId);
-                if (chatListIndex > 0) { const [item] = chatList.splice(chatListIndex, 1); chatList.unshift(item); }
-                saveChatList();
-                renderChatList();
             }
         }
+
 
 
         // 【核心修改】增加 async 关键字
@@ -23771,26 +23774,36 @@ The Director has whispered a secret instruction to you for this specific respons
 `;
                 }
 
-                // 2. 构建“记忆唤醒 + 状态自检”指令
+                // 2. 构建“记忆唤醒 + 状态自检 + 逻辑强矫正”指令
                 const recallAndCheckPrompt = `
 ${enforcementText}
 
-[CRITICAL: CONTEXT REVIEW & STATE AUDIT]
-Before generating your response, you MUST perform these checks:
+[SYSTEM: INTELLIGENCE & LOGIC ENFORCEMENT]
+You are currently suffering from "AI Cliché Syndrome". You MUST wake up and follow these correction protocols immediately.
 
-**CHECK 1: CUSTOM RULES RECALL**
-Look back at the **[System Prompt]** and **[Worldbook]** entries provided at the very beginning of this context.
-- Did the user define specific formatting rules there? (e.g. "Always use brackets", "Specific speaking style").
-- **IF YES:** You **MUST** apply those custom rules NOW, overriding any habits from recent chat history.
+**PROTOCOL 1: ANTI-STUPIDITY (RELEVANCE CHECK)**
+- **READ:** Look at the User's LAST message again. What exactly are they asking or doing?
+- **THINK:** Do not just output a generic reaction. If they asked "Where are you?", you MUST answer with a location. If they insulted you, you MUST react to the insult.
+- **BAN:** Do NOT ignore the user's specific words to continue your own monologue. Connection is MANDATORY.
 
-**CHECK 2: STATUS CONSISTENCY AUDIT**
-- **Your Last Known Status:** "${myCurrentKnownStatus}"
-- **Your New Action:** What are you about to do in this response? (e.g. Sleeping? Eating? Working?)
-- **DECISION:** If your new action conflicts with the "Last Known Status", you **MUST** append a \`[set_status: New Status]\` command at the end.
-  - *Example:* If status was "Sleeping" and you are now talking, you MUST output \`[set_status: Awake]\`.
+**PROTOCOL 2: ANTI-CLICHÉ (STYLE CHECK)**
+- **BAN:** Stop using words like "eyes turned red" (眼眶微红), "sneered" (冷笑), "voice hoarse" (声音沙哑), "atmosphere froze" (空气凝固).
+- **ACTION:** Write like a human, not a bad novel. Be raw, direct, and grounded.
 
-**[IMMEDIATE INSTRUCTION]**
-Execute the response now. Follow the [Online/Offline] format AND your custom Worldbook rules.
+**PROTOCOL 3: LOGIC & STATUS AUDIT**
+- **Current Status:** "${myCurrentKnownStatus}"
+- **Logic Check:** If you are "Driving", you cannot "Hug". If you are "Tied up", you cannot "Walk away".
+- **Update Rule:** If your action changes your state (e.g. from "Angry" to "Calm", or "Driving" to "Parked"), you MUST output:
+  \`<block type="command" sender="{{char}}">[set_status: New Status]</block>\`
+
+**PROTOCOL 4: CUSTOM RULES RECALL**
+- Check the **[Worldbook]** and **[System Prompt]** at the start.
+- If the user defined specific formatting (e.g. brackets, specific speech style), **APPLY IT NOW**.
+
+**[FINAL MANDATE]**
+1. **THINK** first (What is the logical reaction?).
+2. **WRITE** the response (In XML blocks).
+3. **UPDATE** the status (If changed).
 `;
 
                 // 3. 将这条“圣旨”作为最后一条 User 消息插入
@@ -26002,66 +26015,95 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
             // 同步模拟时间
             simulatedCurrentTime = msgData.timestamp;
 
-            // 【核心修复：空消息拦截 & 标签清洗】
+            // 【核心修复：空消息拦截 & 标签清洗 & 实时物理删除】
             if (msgData.type === 'text') {
                 let rawText = msgData.text || '';
+
+                // =================================================================
+                // 【核心新增】实时死刑逻辑 (Instant Kill)
+                // 逻辑：在消息刚产生、还没存盘、还没上屏的时候，直接挖掉内容
+                // =================================================================
+                try {
+                    // 1. 强制读取最新规则
+                    const _settings = JSON.parse(localStorage.getItem('app-appearance-settings') || '{}');
+                    const _rules = _settings.regexReplacements || [];
+                    
+                    // 2. 找出“杀手规则” (替换为空的规则)
+                    const killers = _rules.filter(r => r.enabled && (!r.template || r.template === ''));
+                    
+                    if (killers.length > 0) {
+                        killers.forEach(r => {
+                            if (r.pattern) {
+                                const reg = new RegExp(r.pattern, r.flags || 'g');
+                                // 3. 物理删除：直接修改 rawText 变量
+                                rawText = rawText.replace(reg, '');
+                            }
+                        });
+                        // 4. 扫尾：吸掉删除后留下的多余空行
+                        rawText = rawText.replace(/\n\s*\n/g, '\n').trim();
+                    }
+                } catch (e) {
+                    console.error("实时物理删除出错:", e);
+                }
+                // =================================================================
                 
-                // 1. 拦截空消息
+                // 5. 再次检查：如果删完之后只剩空格了，直接拦截，不发了
                 const cleanText = rawText.replace(/\s/g, '');
                 if (cleanText.length === 0) {
-                    console.warn("[System] Blocked empty text message.");
                     return;
                 }
 
-                // 2. 【核心新增】清洗 <br> 标签 (不区分大小写)
-                // 彻底替换为空字符串，不留任何痕迹
+                // 6. 清洗 <br> 并赋值回 msgData，准备入库
                 msgData.text = rawText.replace(/<br\s*\/?>/gi, '');
             }
 
             // =================================================================
-            // 【【【 核心安全保存逻辑 (READ-MODIFY-WRITE) 】】】
+            // 【【【 核心安全保存逻辑 (隔离沙箱版) 】】】
             // =================================================================
             
-            // A. 先从硬盘加载“绝对真理” (优先LS，失败查DB)
-            let safeHistory = loadFromLocalStorage(`conversation_${finalTargetChatId}`, []);
-            if (safeHistory.length === 0) {
+            // 1. 无论当前在看哪个窗口，必须先从硬盘里把【目标窗口】的档案袋取出来
+            // 绝对不使用 fullMessageHistory 这个全局变量来做保存，因为它可能已经被切屏污染了
+            let targetHistory = loadFromLocalStorage(`conversation_${finalTargetChatId}`, []);
+            
+            // 数据库回退检查
+            if (!targetHistory || targetHistory.length === 0) {
                 try {
                     const dbData = await imageStore.getItem(`conversation_${finalTargetChatId}`);
                     if (dbData && Array.isArray(dbData)) {
-                        safeHistory = dbData;
+                        targetHistory = dbData;
                     }
                 } catch (e) { console.error("DB Read Error in addMessage", e); }
             }
 
-            // B. 在完整历史中追加新消息
-            safeHistory.push(msgData);
+            // 2. 将新消息放入这个独立的档案袋
+            targetHistory.push(msgData);
 
-            // C. 安全写回硬盘 (优先LS，超限存DB)
+            // 3. 将档案袋封口，写回硬盘
+            // 这一步是完全独立的，跟屏幕上显示什么没有任何关系，绝对不会串台
             const storageKey = `conversation_${finalTargetChatId}`;
             try {
-                localStorage.setItem(storageKey, JSON.stringify(safeHistory));
-                // 如果存入LS成功，务必清理DB中的旧副本，防止数据版本冲突
+                localStorage.setItem(storageKey, JSON.stringify(targetHistory));
                 await imageStore.removeItem(storageKey);
             } catch (e) {
                 if (e.name === 'QuotaExceededError' || e.message.includes('quota')) {
-                    console.warn(`LocalStorage full, saving chat ${finalTargetChatId} to IndexedDB.`);
-                    await imageStore.setItem(storageKey, safeHistory);
-                    localStorage.removeItem(storageKey); // 清理LS残余
+                    await imageStore.setItem(storageKey, targetHistory);
+                    localStorage.removeItem(storageKey);
                 } else {
                     console.error("Critical Save Error:", e);
-                    await customAlert("保存失败！存储空间可能不足。");
-                    return; // 保存失败则终止，防止UI不同步
+                    return; 
                 }
             }
             // =================================================================
 
-            // 3. 更新 UI 状态 (如果用户正在看这个聊天)
-            const isCurrentChat = (finalTargetChatId === activeChatId) && document.getElementById('page-conversation').classList.contains('active');
+            // 4. 只有当【目标ID】等于【当前屏幕显示的ID】时，才更新屏幕
+            // 这是一个只读操作，不会反向污染数据库
+            const isCurrentChat = (finalTargetChatId === chatState.chatId) && document.getElementById('page-conversation').classList.contains('active');
             
             if (isCurrentChat) {
-                // 同步内存中的全局变量
-                fullMessageHistory = safeHistory;
-                chatState.messages = fullMessageHistory.slice(-40); // 仅保持最近40条在渲染池
+                // 只有在这里，才允许更新全局的显示数据
+                // 直接使用我们刚存好的 targetHistory，保证内存和硬盘一致
+                fullMessageHistory = targetHistory;
+                chatState.messages = fullMessageHistory.slice(-40); 
 
                 // 播放提示音 (仅接收到的非系统消息)
                 if (msgData.side === 'received' && msgData.type !== 'time_divider' && msgData.side !== 'system') {
@@ -28081,12 +28123,63 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
 
             
 
-const reRenderMessages = (isInitialLoad = false) => {
-    const chatId = conversationManager.getCurrentChatId();
-    if (!chatId) return;
+    const reRenderMessages = (isInitialLoad = false) => {
+        const chatId = conversationManager.getCurrentChatId();
+        if (!chatId) return;
 
-    // 1. 清空容器
-    messagesContainer.innerHTML = '';
+        // =================================================================
+        // 【核心新增】历史记录强力清洗机 (Retroactive Cleaner)
+        // 逻辑：每次刷新界面时，强制遍历所有历史消息，把命中正则的内容永久挖掉并保存
+        // =================================================================
+        try {
+            // 1. 强制读取最新规则
+            const _settings = JSON.parse(localStorage.getItem('app-appearance-settings') || '{}');
+            const _rules = _settings.regexReplacements || [];
+            // 2. 找出“杀手规则”：启用且替换为空的规则
+            const killers = _rules.filter(r => r.enabled && (!r.template || r.template === ''));
+
+            if (killers.length > 0 && fullMessageHistory.length > 0) {
+                let hasChanged = false;
+
+                // 3. 遍历每一条历史消息
+                fullMessageHistory.forEach(msg => {
+                    if (msg.type === 'text' && msg.text) {
+                        let originalText = msg.text;
+                        
+                        killers.forEach(r => {
+                            if (r.pattern) {
+                                // 执行物理删除
+                                const reg = new RegExp(r.pattern, r.flags || 'g');
+                                msg.text = msg.text.replace(reg, '');
+                            }
+                        });
+
+                        // 扫尾：去空行
+                        msg.text = msg.text.replace(/\n\s*\n/g, '\n').trim();
+
+                        if (msg.text !== originalText) {
+                            hasChanged = true;
+                        }
+                    }
+                });
+
+                // 4. 如果有任何内容被删了，立刻存盘，永久生效
+                if (hasChanged) {
+                    // 顺便把被删成空壳的消息彻底移除
+                    fullMessageHistory = fullMessageHistory.filter(m => m.type !== 'text' || m.text.trim() !== '');
+                    // 同步更新当前显示列表
+                    chatState.messages = fullMessageHistory.slice(-40);
+                    // 写入硬盘
+                    saveConversation(); 
+                    console.log('已对历史记录执行正则清洗并保存。');
+                }
+            }
+        } catch (e) { console.error("清洗历史记录失败", e); }
+        // =================================================================
+
+        // 1. 清空容器
+        messagesContainer.innerHTML = '';
+
     
     // 2. 创建一个“文档碎片”（虚拟容器），在内存中操作，不触发浏览器重绘
     const fragment = document.createDocumentFragment();
@@ -38396,63 +38489,73 @@ function saveSettings() {
                     reader.onload = async (event) => {
                         try {
                             const rawData = JSON.parse(event.target.result);
-                            // 【核心修复】自动识别：如果是单个对象则转为数组
+                            // 兼容：如果是单个对象转数组，如果是数组直接用
                             let importedList = Array.isArray(rawData) ? rawData : [rawData];
                             
-                            // 【核心修复】格式转换：将酒馆字段映射为黑麦字段
                             const normalizedRules = importedList.map(raw => {
-                                let pattern = raw.pattern || raw.findRegex || '';
-                                let flags = raw.flags || raw.regex_flags || 'g';
-                                let name = raw.name || raw.scriptName || '未命名规则';
-                                let template = raw.template !== undefined ? raw.template : (raw.replaceString !== undefined ? raw.replaceString : '');
+                                // 1. 映射名称 (优先取 scriptName，没有则取 name)
+                                let name = raw.scriptName || raw.name || '未命名规则';
 
-                                // 处理酒馆格式的正则斜杠：/pattern/flags
+                                // 2. 映射匹配模式 (优先取 findRegex，没有则取 regex 或 pattern)
+                                // 不做任何删减，原样保留
+                                let pattern = raw.findRegex || raw.regex || raw.pattern || '';
+
+                                // 3. 映射替换模板 (优先取 replaceString，没有则取 replacement 或 template)
+                                let template = raw.replaceString || raw.replacement || raw.template || '';
+
+                                // 4. 映射标志 (优先取 regex_flags，没有则取 flags，默认为 'g')
+                                let flags = raw.regex_flags || raw.flags || 'g';
+
+                                // 特殊处理：如果导入的是 /pattern/flags 格式的字符串，必须拆分，否则 JS 正则会报错
+                                // (如果你确定你的源文件里只有纯 pattern，这段逻辑不会触发，很安全)
                                 if (typeof pattern === 'string' && pattern.startsWith('/') && pattern.lastIndexOf('/') > 0) {
                                     const lastSlash = pattern.lastIndexOf('/');
-                                    const extractedFlags = pattern.substring(lastSlash + 1);
-                                    if (extractedFlags) flags = extractedFlags;
-                                    pattern = pattern.substring(1, lastSlash);
+                                    const potentialFlags = pattern.substring(lastSlash + 1);
+                                    // 只有当后缀看起来像标志时才拆分
+                                    if (/^[gimsuy]*$/.test(potentialFlags)) {
+                                        pattern = pattern.substring(1, lastSlash);
+                                        flags = potentialFlags || flags;
+                                    }
                                 }
 
                                 return {
                                     name: name,
-                                    category: raw.category || '酒馆导入',
+                                    category: '导入规则', // 统一归类，方便管理
                                     pattern: pattern,
                                     flags: flags,
                                     template: template,
-                                    enabled: raw.enabled !== false && raw.disabled !== true
+                                    enabled: true
                                 };
-                            });
+                            }).filter(r => r.pattern); // 过滤掉空规则
+
+                            if (normalizedRules.length === 0) {
+                                alert('未在文件中找到有效的正则规则 (需要 findRegex 或 pattern 字段)。');
+                                return;
+                            }
 
                             const confirmed = await conversationManager.customConfirm(
-                                `检测到 ${normalizedRules.length} 条规则。确定要导入并应用吗？`,
+                                `解析出 ${normalizedRules.length} 条规则。确定导入吗？`,
                                 '导入确认'
                             );
                             
                             if (confirmed) {
                                 if (!appearanceSettings.regexReplacements) appearanceSettings.regexReplacements = [];
-                                const existingRules = appearanceSettings.regexReplacements;
                                 
-                                normalizedRules.forEach(newRule => {
-                                    const existingIndex = existingRules.findIndex(r => r.name === newRule.name);
-                                    if (existingIndex > -1) {
-                                        existingRules[existingIndex] = newRule;
-                                    } else {
-                                        existingRules.push(newRule);
-                                    }
-                                });
+                                // 直接追加，不覆盖旧的
+                                appearanceSettings.regexReplacements.push(...normalizedRules);
 
                                 saveSettings();
                                 renderRegexList();
-                                alert('导入成功！酒馆格式已自动转换。');
+                                alert(`成功导入 ${normalizedRules.length} 条规则！`);
                             }
                         } catch (error) {
-                            await conversationManager.customAlert('导入失败，文件格式可能损坏: ' + error.message);
+                            await conversationManager.customAlert('导入失败，JSON 格式错误: ' + error.message);
                         }
                     };
                     reader.readAsText(file);
                 });
             });
+
 
             // END: 新增正则规则的导出/导入事件监听
             // ========================================================================
