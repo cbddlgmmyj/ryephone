@@ -11595,7 +11595,8 @@ if ('serviceWorker' in navigator) {
                         triggerProactiveAI(null, 'Anonymous_System', 'pure_tuqu_interaction', board, {
                             allBoards: event.data.allBoards,
                             includeContext: event.data.includeContext,
-                            selectedWorldbooks: event.data.selectedWorldbooks // 【核心修复】传递勾选的世界书
+                            selectedWorldbooks: event.data.selectedWorldbooks, // 【核心修复】传递勾选的世界书
+                            worldview: event.data.worldview // <--- 【核心新增】补上这行，把设定传给AI
                         });
                     }
                 }
@@ -14866,6 +14867,9 @@ ${TUQU_MEDIA_PROTOCOL}
 3.  **FALLBACK PROTOCOL:** If you want to use an expression but are unsure of the prefix or if it exists in the list, you **MUST** use the universal fallback image:
     *   **Command:** \`[sticker:地铁老人看手机]\` (Use this for confusion, shock, or speechlessness).
 
+**[WORLDVIEW / SCENARIO (CRITICAL)]**
+Setting: ${extraOptions.worldview || "Standard reality"}
+
 **[COMMAND]**
 Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 `;
@@ -15192,6 +15196,9 @@ Check the **"Setting"** provided above.
 3.  **FALLBACK PROTOCOL:** If you want to use an expression but are unsure of the prefix or if it exists in the list, you **MUST** use the universal fallback image:
     *   **Command:** \`[sticker:地铁老人看手机]\` (Use this for confusion, shock, or speechlessness).
 
+**[WORLDVIEW / SCENARIO (CRITICAL)]**
+Setting: ${extraOptions.worldview || "Standard reality"}
+
 **[COMMAND]**
 Output ONLY the \`[tuqu_complex_action: {...}]\` command.
 `;
@@ -15474,6 +15481,9 @@ ${TUQU_MEDIA_PROTOCOL}
     *   **Sticker:** \`[sticker:抓狂]\`
 3.  **FALLBACK PROTOCOL:** If you want to use an expression but are unsure of the prefix or if it exists in the list, you **MUST** use the universal fallback image:
     *   **Command:** \`[sticker:地铁老人看手机]\` (Use this for confusion, shock, or speechlessness).
+
+**[WORLDVIEW / SCENARIO (CRITICAL)]**
+Setting: ${extraOptions.worldview || "Standard reality"}
 
 **[COMMAND]**
 Output ONLY the \`[tuqu_complex_action: {...}]\` command.
@@ -23778,33 +23788,36 @@ The Director has whispered a secret instruction to you for this specific respons
                 const recallAndCheckPrompt = `
 ${enforcementText}
 
-[SYSTEM: INTELLIGENCE & LOGIC ENFORCEMENT]
-You are currently suffering from "AI Cliché Syndrome". You MUST wake up and follow these correction protocols immediately.
+# [SYSTEM CRITICAL WARNING: SYNTAX CORRUPTION DETECTED]
+**You are currently generating INVALID XML tags (e.g., \`typea\`, \`</to-talk>\`, \`</body_part>\`).**
+**THIS IS A CRITICAL SYSTEM FAILURE.**
 
-**PROTOCOL 1: ANTI-STUPIDITY (RELEVANCE CHECK)**
-- **READ:** Look at the User's LAST message again. What exactly are they asking or doing?
-- **THINK:** Do not just output a generic reaction. If they asked "Where are you?", you MUST answer with a location. If they insulted you, you MUST react to the insult.
-- **BAN:** Do NOT ignore the user's specific words to continue your own monologue. Connection is MANDATORY.
+**[ABSOLUTE SYNTAX LAW - READ THIS OR BE TERMINATED]**
 
-**PROTOCOL 2: ANTI-CLICHÉ (STYLE CHECK)**
-- **BAN:** Stop using words like "eyes turned red" (眼眶微红), "sneered" (冷笑), "voice hoarse" (声音沙哑), "atmosphere froze" (空气凝固).
-- **ACTION:** Write like a human, not a bad novel. Be raw, direct, and grounded.
+1.  **ONLY THREE TAGS EXIST:**
+    *   \`<block>\`
+    *   \`<snippet>\` (Only inside block type="html")
+    *   \`<div>\` (Only inside snippet)
+    *   **ANY OTHER TAG IS FORBIDDEN.** Do NOT invent tags like \`<text>\`, \`<p>\`, \`<action>\`.
 
-**PROTOCOL 3: LOGIC & STATUS AUDIT**
-- **Current Status:** "${myCurrentKnownStatus}"
-- **Logic Check:** If you are "Driving", you cannot "Hug". If you are "Tied up", you cannot "Walk away".
-- **Update Rule:** If your action changes your state (e.g. from "Angry" to "Calm", or "Driving" to "Parked"), you MUST output:
-  \`<block type="command" sender="{{char}}">[set_status: New Status]</block>\`
+2.  **ATTRIBUTE SPELLING LAW:**
+    *   **CORRECT:** \`type="text"\`
+    *   **WRONG:** \`typea="text"\`, \`typ="text"\`
+    *   **CORRECT:** \`sender="Name"\`
+    *   **WRONG:** \`send="Name"\`, \`from="Name"\`
+    *   **SPACING:** You MUST put a space between attributes.
+        *   **WRONG:** \`type="text"sender="Name"\`
+        *   **RIGHT:** \`type="text" sender="Name"\`
 
-**PROTOCOL 4: CUSTOM RULES RECALL**
-- Check the **[Worldbook]** and **[System Prompt]** at the start.
-- If the user defined specific formatting (e.g. brackets, specific speech style), **APPLY IT NOW**.
+3.  **THE ONLY VALID BLOCK FORMATS:**
+    *   \`<block type="text" sender="Name">Content</block>\`
+    *   \`<block type="html" sender="Name"><snippet>...</snippet></block>\`
+    *   \`<block type="command" sender="Name">[command]</block>\`
 
-**[FINAL MANDATE]**
-1. **THINK** first (What is the logical reaction?).
-2. **WRITE** the response (In XML blocks).
-3. **UPDATE** the status (If changed).
+**FINAL COMMAND:**
+**Check your syntax character by character.** If you output \`typea\` again, the system will crash.
 `;
+
 
                 // 3. 将这条“圣旨”作为最后一条 User 消息插入
                 finalMessages.push({
@@ -25326,7 +25339,6 @@ You are the Director. If multiple characters react to the rejection, generate a 
 
             // 4. 【核心修复】终极空值拦截
             // 移除所有不可见字符（空格、换行、制表符）后，如果长度为0，直接终止
-            // 这能防止 "   \n   " 这种看似有内容实则为空的消息通过
             if (!line.replace(/\s/g, '').length) {
                 return;
             }
@@ -25335,9 +25347,41 @@ You are the Director. If multiple characters react to the rejection, generate a 
             // 双重保险
             if (!chatContent) return;
 
+            // ============================================================
+            // 【核心新增】白名单清洗 (Whitelist Sanitizer)
+            // 逻辑：只保留系统认识的合法标签，其他所有 <...> 统统删掉！
+            // ============================================================
+            
+            // 1. 修复属性粘连问题 (type="text"sender="...")
+            chatContent = chatContent.replace(/"sender=/gi, '" sender=');
+
+            // 2. 定义白名单标签列表 (不含尖括号)
+            // block: 消息块
+            // snippet, div, details, summary: HTML卡片
+            // background_update: 后台任务
+            // dm: 弹幕
+            // think, thought, thinking: 思考 (虽然前面删过了，这里再保底)
+            const allowedTags = ['block', 'snippet', 'div', 'details', 'summary', 'background_update', 'dm', 'think', 'thought', 'thinking', 'img'];
+
+            // 3. 执行清洗：匹配所有 <...> 结构
+            chatContent = chatContent.replace(/<\/?([a-zA-Z0-9_\-]+)(?:\s+[^>]*)?>/g, (match, tagName) => {
+                // 如果标签名在白名单里，保留原样
+                if (allowedTags.includes(tagName.toLowerCase())) {
+                    return match;
+                }
+                // 否则，直接删掉！
+                // 例如 </to-talk>, <body_part>, <bullshit> 都会被删成空字符串
+                return '';
+            });
+            
+            // 4. 再次去除可能产生的首尾空白
+            chatContent = chatContent.trim();
+            // ============================================================
             
             // <<< 新增：区块解析逻辑 开始 >>>
-            const blockMatch = chatContent.match(/^<block\s+type="([^"]+)"(?:\s+sender="([^"]+)")?>([\s\S]*?)<\/block>$/);
+            // 【核心修改】正则升级：(?:\s*sender=) 允许 sender 前面有0个或多个空格
+            const blockMatch = chatContent.match(/^<block\s+type="([^"]+)"(?:\s*sender="([^"]+)")?>([\s\S]*?)<\/block>$/);
+
 
             if (blockMatch) {
                 const type = blockMatch[1];
@@ -27954,20 +27998,82 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
 
         let bannerTimeout;
         function showNotificationBanner(chatId, msgData, unreadCount) {
-            // 【核心新增】检查全局通知开关
             const dynSettings = loadFromLocalStorage('app-dynamics-settings', {});
-            // 如果设置为 false (关闭)，直接返回，不加入队列
             if (dynSettings.showBanner === false) {
                 return;
             }
 
-            // 1. 将通知请求加入队列
-            notificationQueue.push({ chatId, msgData, unreadCount });
+            // ============================================================
+            // 【核心新增】系统通知分离：立即触发，不排队 (One by One)
+            // ============================================================
+            if ("Notification" in window && Notification.permission === "granted" && "serviceWorker" in navigator) {
+                // 1. 临时解析信息用于系统推送
+                let sysTitle = "新消息";
+                let sysIcon = "https://i.postimg.cc/MTSwWVtp/IMG-2146.png";
+                let sysBody = "";
 
-            
-            // 2. 尝试处理队列
+                // 解析标题和头像
+                if (chatId === 'MOMENTS') {
+                    sysTitle = "朋友圈";
+                    sysIcon = "https://i.postimg.cc/BZcqpKxY/757B1148E60B7D8B149400F98443116A.png";
+                } else if (chatId === 'TUQU') {
+                    sysTitle = "兔区";
+                    sysIcon = "https://i.postimg.cc/Xq3n3j0g/IMG-0499.png";
+                } else {
+                    const chat = chatList.find(c => c.id === chatId);
+                    if (chat) {
+                        const chatInfo = loadFromLocalStorage(`chat_info_${chat.id}`, {});
+                        sysTitle = chatInfo.remark || chat.name;
+                        sysIcon = loadFromLocalStorage(`chat_avatar_${chat.id}`, null) || generateDefaultAvatar(sysTitle);
+                    }
+                }
+
+                // 解析内容
+                if (msgData.type === 'text' || msgData.type === 'system') {
+                    sysBody = msgData.text;
+                } else {
+                    const typeMap = { 'photo': '[图片]', 'voice': '[语音]', 'video': '[视频]', 'photo-description': '[图文]', 'location': '[位置]' };
+                    if (msgData.type === 'red_packet') sysBody = `[红包] ${msgData.text}`;
+                    else if (msgData.type === 'transfer') sysBody = `[转账] ¥${msgData.text}`;
+                    else if (msgData.type === 'gift') sysBody = `[礼物] ${msgData.text}`;
+                    else if (msgData.type === 'pay_for_me') sysBody = `[代付] ${msgData.text}`;
+                    else sysBody = typeMap[msgData.type] || '[新消息]';
+                }
+
+                // 立即发送系统通知
+                try {
+                    const uniqueTag = chatId + '_' + Date.now() + '_' + Math.random();
+                    navigator.serviceWorker.ready.then(function(registration) {
+                        registration.showNotification(sysTitle, {
+                            body: sysBody,
+                            icon: sysIcon,
+                            badge: 'https://i.postimg.cc/MTSwWVtp/IMG-2146.png',
+                            tag: uniqueTag, // 使用唯一 tag，确保每条都弹
+                            renotify: true,
+                            requireInteraction: false,
+                            silent: false
+                        });
+                    });
+                } catch (e) { console.error(e); }
+            }
+            // ============================================================
+
+            // 2. 应用内横幅逻辑：保持排队合并 (防刷屏)
+            const existingIndex = notificationQueue.findIndex(n => n.chatId === chatId);
+
+            if (existingIndex !== -1) {
+                // 如果有，更新并合并
+                notificationQueue[existingIndex].msgData = msgData;
+                notificationQueue[existingIndex].unreadCount = unreadCount;
+            } else {
+                // 如果没有，加新的
+                notificationQueue.push({ chatId, msgData, unreadCount });
+            }
+
+            // 3. 处理队列
             processNotificationQueue();
         }
+
         function processNotificationQueue() {
             // 如果当前正在展示动画，或者队列空了，就停止
             if (isBannerAnimating || notificationQueue.length === 0) return;
@@ -28094,31 +28200,19 @@ const commandsRegex = /\[\s*(react_to|trigger_interaction|set_interaction_action
             // 触发滑入动画
             setTimeout(() => banner.classList.add('visible'), 50);
 
+            // 触发滑入动画
+            setTimeout(() => banner.classList.add('visible'), 50);
+
             // 播放提示音
             if (window.app && window.app.playNotificationSound) {
                 window.app.playNotificationSound();
             }
 
-            // 触发系统推送
-            if ("Notification" in window && Notification.permission === "granted" && "serviceWorker" in navigator) {
-                try {
-                    const uniqueTag = chatId + '_' + Date.now() + '_' + Math.random();
-                    navigator.serviceWorker.ready.then(function(registration) {
-                        registration.showNotification(displayName, {
-                            body: specificContent,
-                            icon: avatarUrl,
-                            badge: 'https://i.postimg.cc/MTSwWVtp/IMG-2146.png',
-                            tag: uniqueTag,
-                            renotify: true,
-                            requireInteraction: false,
-                            silent: false
-                        });
-                    });
-                } catch (e) { console.error(e); }
-            }
+            // 【核心修改】此处删除了系统推送逻辑，因为它已经在 showNotificationBanner 中立即执行了
 
             // 3秒后自动滑走
             bannerTimeout = setTimeout(closeBanner, 3000);
+
         }
 
             
@@ -31670,14 +31764,20 @@ document.getElementById('delete-contact-btn').addEventListener('click', async ()
             conversationManager.open(chatId);
         }
     });
-document.getElementById('exit-group-btn').addEventListener('click', async () => { 
+    document.getElementById('exit-group-btn').addEventListener('click', async () => { 
         const chatId = getCurrentChatId();
         if (await customConfirm(`你确定要退出群聊“${chatState.chatName}”吗？`)) { 
             // 【核心修正】在发送消息前，立刻更新内部状态
             relationship.myStatus = 'exited';
-            await addMessage({type:'system', side: 'system', text:`你退出了群聊。`});
+            
+            // 【核心修改】判断当前身份
+            const activeId = chatState.currentIdentity || '{{user}}';
+            const actorDisplay = activeId === '{{user}}' ? '你' : `“${activeId}”`;
+
+            await addMessage({type:'system', side: 'system', text:`${actorDisplay}退出了群聊。`});
         } 
     });
+
 
     document.getElementById('disband-group-btn').addEventListener('click', async () => {
         const chatId = getCurrentChatId();
@@ -32404,8 +32504,10 @@ async function triggerBackgroundDataUpdate(context, senderName, chatId) {
             (isGroup ? "**CRITICAL:** You MUST replace [CharacterName] with the actual name of the character who is writing this journal.\n" : "") +
             "**CONTENT LAW:**\n" +
             "1. **PURE TEXT ONLY:** You are STRICTLY FORBIDDEN from using any HTML tags (<snippet>, <div>), Markdown code blocks (```), or JSON inside the journal.\n" +
-            "2. **STYLE:** Write like a diary or a social media status. Use emojis if you want. Be emotional, raw, and personal.\n" +
-            "3. **Example:** '今天天气真好，突然想起了上次和他一起去的海边。有点想吃冰淇淋了。🌻'\n" +
+            "2. **STYLE:** Write like a private diary or a fleeting thought. Be emotional, raw, and personal.\n" +
+            "3. **EMOJI USAGE:** You MAY use emojis if they fit the mood, but do NOT force them. Plain text is perfectly fine and often more realistic.\n" +
+            "4. **Example (With Emoji):** '今天天气真好，突然想起了上次和他一起去的海边。有点想吃冰淇淋了。🌻'\n" +
+            "5. **Example (Plain Text):** '不知怎么的，心里空落落的。或许是因为下雨了吧。'\n" +
             "Rule: No meta-commentary, no English, no reasoning. Just the raw journal entry.";
     }
 
@@ -39719,6 +39821,7 @@ async function handleBatchDelete() {
     })();
 
     async function handleAddMember() {
+        // 【修复】改回使用通用方法获取ID，防止变量未定义报错
         const chatId = conversationManager.getCurrentChatId();
         const currentMembers = loadFromLocalStorage(`chat_members_${chatId}`, []);
 
@@ -39748,9 +39851,7 @@ async function handleBatchDelete() {
 
         // 5. 生成 HTML 列表
         const membersListHtml = allAvailableMembers.map(name => { 
-            // NPC 和 {{user}} 没有备注，直接用名字
             let displayName = name;
-            // 如果是 AI 角色，尝试获取备注
             const aiChar = chatList.find(c => c.name === name);
             if(aiChar) {
                 const chatInfo = loadFromLocalStorage(`chat_info_${aiChar.id}`, {});
@@ -39776,117 +39877,144 @@ async function handleBatchDelete() {
                 const updatedMembers = [...currentMembers, ...newMembers];
                 saveToLocalStorage(`chat_members_${chatId}`, updatedMembers);
                 
+                // 【核心修改】直接从硬盘读取当前身份，确保万无一失
+                const currentIdentity = loadFromLocalStorage(`chat_identity_${chatId}`, '{{user}}');
+                const actorDisplay = currentIdentity === '{{user}}' ? '你' : `“${currentIdentity}”`;
+
                 const addedMe = newMembers.includes('{{user}}');
                 const addedOthers = newMembers.filter(m => m !== '{{user}}');
                 let systemMessage = '';
+                
                 if (addedMe) {
-                    systemMessage = '你加入了群聊。';
+                    systemMessage = `${actorDisplay}加入了群聊。`;
                 }
                 if (addedOthers.length > 0) {
-                    systemMessage += (systemMessage ? '\n' : '') + `你邀请 "${addedOthers.join('", "')}" 加入了群聊。`;
+                    systemMessage += (systemMessage ? '\n' : '') + `${actorDisplay}邀请 "${addedOthers.join('", "')}" 加入了群聊。`;
                 }
 
+                // 【修复】显式调用 conversationManager.addMessage
                 await conversationManager.addMessage({type: 'system', side: 'system', text: systemMessage}); 
+                
+                // 【修复】显式调用
                 conversationManager.renderGroupMemberList(chatId); 
             }
         }
     }
+
     
     // 这是最终正确版，请用它替换整个旧函数
-async function handleRemoveMember() {
-    const chatId = conversationManager.getCurrentChatId();
-    const currentMembers = loadFromLocalStorage(`chat_members_${chatId}`, []);
-    const removableMembers = currentMembers.filter(m => m !== '{{user}}');
+    async function handleRemoveMember() {
+        // 【修复】改回使用通用方法获取ID
+        const chatId = conversationManager.getCurrentChatId();
+        const currentMembers = loadFromLocalStorage(`chat_members_${chatId}`, []);
+        const removableMembers = currentMembers.filter(m => m !== '{{user}}');
 
-    if (removableMembers.length === 0) {
-        await conversationManager.customAlert('没有可移出的成员。');
-        return;
-    }
+        if (removableMembers.length === 0) {
+            await conversationManager.customAlert('没有可移出的成员。');
+            return;
+        }
 
-    const membersListHtml = removableMembers.map(member => 
-        `<label class="inline-label"><input type="checkbox" value="${member}"> ${member}</label>`
-    ).join('');
-    
-    const modalHtml = `
-        <div style="max-height: 200px; overflow-y: auto; text-align: left; border: 1px solid #eee; padding: 10px; border-radius: 8px;">${membersListHtml}</div>
-        <div style="margin-top: 15px; text-align: left;">
-            <label class="inline-label">
-                <input type="checkbox" id="remove-permanently-checkbox">
-                <strong>彻底移出群聊 (无法重新加入)</strong>
-            </label>
-            <p class="form-hint" style="padding: 0; margin-top: 5px;">如果不勾选，被移出的成员将无法发言，但可以发送加群申请。</p>
-        </div>
-    `;
+        const membersListHtml = removableMembers.map(member => 
+            `<label class="inline-label"><input type="checkbox" value="${member}"> ${member}</label>`
+        ).join('');
+        
+        const modalHtml = `
+            <div style="max-height: 200px; overflow-y: auto; text-align: left; border: 1px solid #eee; padding: 10px; border-radius: 8px;">${membersListHtml}</div>
+            <div style="margin-top: 15px; text-align: left;">
+                <label class="inline-label">
+                    <input type="checkbox" id="remove-permanently-checkbox">
+                    <strong>彻底移出群聊 (无法重新加入)</strong>
+                </label>
+                <p class="form-hint" style="padding: 0; margin-top: 5px;">如果不勾选，被移出的成员将无法发言，但可以发送加群申请。</p>
+            </div>
+        `;
 
-    const result = await conversationManager.showCustomModal({
-        title: '移出成员',
-        html: modalHtml,
-        buttons: [
-            { text: '取消', value: 'cancel', class: 'secondary' },
-            { text: '确认移出', value: 'remove', class: 'danger' }
-        ],
-        showCloseButton: true
-    });
-    
-    if (result && result.value === 'remove') {
-        const modalBox = result.target.closest('.modal-box');
-        const selectedMembers = Array.from(modalBox.querySelectorAll('input[type="checkbox"]:not(#remove-permanently-checkbox):checked')).map(cb => cb.value);
-        const isPermanent = modalBox.querySelector('#remove-permanently-checkbox').checked;
+        const result = await conversationManager.showCustomModal({
+            title: '移出成员',
+            html: modalHtml,
+            buttons: [
+                { text: '取消', value: 'cancel', class: 'secondary' },
+                { text: '确认移出', value: 'remove', class: 'danger' }
+            ],
+            showCloseButton: true
+        });
+        
+        if (result && result.value === 'remove') {
+            const modalBox = result.target.closest('.modal-box');
+            const selectedMembers = Array.from(modalBox.querySelectorAll('input[type="checkbox"]:not(#remove-permanently-checkbox):checked')).map(cb => cb.value);
+            const isPermanent = modalBox.querySelector('#remove-permanently-checkbox').checked;
 
-        if (selectedMembers.length > 0) {
-            let membersToUpdate = loadFromLocalStorage(`chat_members_${chatId}`, []);
-            const chatInfo = loadFromLocalStorage(`chat_info_${chatId}`, {});
-            let softRemovedMembers = chatInfo.softRemovedMembers || [];
+            if (selectedMembers.length > 0) {
+                let membersToUpdate = loadFromLocalStorage(`chat_members_${chatId}`, []);
+                const chatInfo = loadFromLocalStorage(`chat_info_${chatId}`, {});
+                let softRemovedMembers = chatInfo.softRemovedMembers || [];
 
-            if (isPermanent) {
-                // --- 彻底移出逻辑 (Hard Remove) ---
-                membersToUpdate = membersToUpdate.filter(m => !selectedMembers.includes(m));
-                softRemovedMembers = softRemovedMembers.filter(m => !selectedMembers.includes(m));
-                
-                saveToLocalStorage(`chat_members_${chatId}`, membersToUpdate);
-                chatInfo.softRemovedMembers = softRemovedMembers;
-                saveToLocalStorage(`chat_info_${chatId}`, chatInfo);
+                if (isPermanent) {
+                    // --- 彻底移出逻辑 ---
+                    membersToUpdate = membersToUpdate.filter(m => !selectedMembers.includes(m));
+                    softRemovedMembers = softRemovedMembers.filter(m => !selectedMembers.includes(m));
+                    
+                    saveToLocalStorage(`chat_members_${chatId}`, membersToUpdate);
+                    chatInfo.softRemovedMembers = softRemovedMembers;
+                    saveToLocalStorage(`chat_info_${chatId}`, chatInfo);
 
-                alert('已彻底移出所选成员。');
+                    alert('已彻底移出所选成员。');
 
-            } else {
-                // --- 软移出逻辑 (Soft Remove) ---
-                membersToUpdate = membersToUpdate.filter(m => !selectedMembers.includes(m));
-                
-                selectedMembers.forEach(member => {
-                    if (!softRemovedMembers.includes(member)) {
-                        softRemovedMembers.push(member);
+                } else {
+                    // --- 软移出逻辑 ---
+                    membersToUpdate = membersToUpdate.filter(m => !selectedMembers.includes(m));
+                    
+                    selectedMembers.forEach(member => {
+                        if (!softRemovedMembers.includes(member)) {
+                            softRemovedMembers.push(member);
+                        }
+                    });
+
+                    saveToLocalStorage(`chat_members_${chatId}`, membersToUpdate);
+                    chatInfo.softRemovedMembers = softRemovedMembers;
+                    saveToLocalStorage(`chat_info_${chatId}`, chatInfo);
+                    
+                    // 【核心修改】直接从硬盘读取当前身份
+                    const currentIdentity = loadFromLocalStorage(`chat_identity_${chatId}`, '{{user}}');
+                    const actorDisplay = currentIdentity === '{{user}}' ? '你' : `“${currentIdentity}”`;
+
+                    // 【修复】显式调用 conversationManager.addMessage
+                    await conversationManager.addMessage({ 
+                        type: 'system', 
+                        side: 'system', 
+                        text: `${actorDisplay}将 "${selectedMembers.join('", "')}" 移出了群聊。` 
+                    });
+
+                    if (typeof notifyAIofMemberRemoval === 'function') {
+                        notifyAIofMemberRemoval(selectedMembers);
                     }
-                });
+                }
 
-                saveToLocalStorage(`chat_members_${chatId}`, membersToUpdate);
-                chatInfo.softRemovedMembers = softRemovedMembers;
-                saveToLocalStorage(`chat_info_${chatId}`, chatInfo);
-                
-                await conversationManager.addMessage({ 
-                    type: 'system', 
-                    side: 'system', 
-                    text: `你将 "${selectedMembers.join('", "')}" 移出了群聊。` 
-                });
-
-                notifyAIofMemberRemoval(selectedMembers);
-            }
-
-            // 【【【【【【 终极修复：通过强制重建DOM来解决浏览器渲染缓存问题 】】】】】】
+                // 强制重绘列表
+                            // 【【【【【【 终极修复：通过强制重建DOM来解决浏览器渲染缓存问题 (位置修正版) 】】】】】】
             const memberListEl = document.getElementById('chat-info-member-list');
-            const parent = memberListEl.parentElement;
-            memberListEl.remove(); // 1. 先把旧的列表从DOM中彻底“撕掉”
+            const listHeader = document.querySelector('.member-list-header'); // 获取列表标题元素
+
+            if (memberListEl && listHeader) {
+                const parent = memberListEl.parentElement;
+                memberListEl.remove(); // 1. 移除旧列表
+                
+                const newMemberListEl = document.createElement('ul'); // 2. 创建新列表
+                newMemberListEl.id = 'chat-info-member-list';
+                newMemberListEl.className = 'member-list';
+                
+                // 3. 【核心修复】将新列表插入到标题 (listHeader) 的紧后面
+                // 这样它就会回到原来的位置，而不会跑到群演人设下面去
+                listHeader.after(newMemberListEl);
+            }
             
-            const newMemberListEl = document.createElement('ul'); // 2. 创建一个全新的、空白的ul元素
-            newMemberListEl.id = 'chat-info-member-list';
-            newMemberListEl.className = 'member-list';
-            parent.appendChild(newMemberListEl); // 3. 把这个新列表放回原位
-            
-            // 4. 现在，在全新的元素上调用渲染函数，浏览器别无选择，必须从头开始重新绘制所有内容
+            // 【修复】显式调用
             conversationManager.renderGroupMemberList(chatId);
+
+            }
         }
     }
-}
+
 
     const exportChatBtn = document.getElementById('export-chat-btn');
     const importChatBtn = document.getElementById('import-chat-btn');
